@@ -36,7 +36,8 @@ func (self *UnivDist) Pa() Node { return self.pa }
 // Type return this node's type: 'leaf'.
 func (self *UnivDist) Type() string { return "leaf" }
 
-// Returns the probability of a certain valuation. That is Pr(X=valuation[0]), where Pr=UnivDist.
+// Returns the probability of a certain valuation. That is Pr(X=valuation[varid]), where
+// Pr=UnivDist.
 func (self *UnivDist) Value(valuation VarSet) float32 {
 	return self.pr[valuation[self.varid]]
 }
