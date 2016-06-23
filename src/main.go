@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	fmt.Printf("igamma = %f\nchisquare=%f\n", learn.Igamma(1, 2), learn.Chisquare(3, 23.1))
+	fmt.Printf("igamma = %f\nchisquare=%f\n", learn.Igamma(2, 1), learn.Chisquare(3, 15.2))
 }

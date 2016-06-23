@@ -4,14 +4,15 @@ package learn
 
 import "math"
 
-func Igamma(x, a float64) float64 {
+// Lower incomplete Gamma function.
+func igamma(a, x float64) float64 {
 	var sum float64 = 0.0
-	var term float64 = 1.0 / a
+	var t float64 = 1.0 / a
 	var n float64 = 1.0
 
-	for term != 0 {
-		sum += term
-		term *= x / (a + n)
+	for t != 0 {
+		sum += t
+		t *= x / (a + n)
 		n++
 	}
 
@@ -150,7 +151,7 @@ func Chisquare(df int, cv float64) float64 {
 		return math.Exp(-1.0 * x)
 	}
 
-	pval := Igamma(k, x)
+	pval := igamma(k, x)
 
 	if math.IsNaN(pval) || math.IsInf(pval, 0) || pval <= 1e-8 {
 		return 1e-14
