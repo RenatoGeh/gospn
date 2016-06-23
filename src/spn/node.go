@@ -5,7 +5,9 @@ package spn
 // distribution node, a sum node and a product node.
 type Node interface {
 	// Node value given a valuation.
-	Value(valuation VarSet) float32
+	Value(valuation VarSet) float64
+	// Returns the MAP state given a valuation.
+	Max(valuation VarSet) float64
 	// Set of children.
 	Ch() []Node
 	// Parent node. If returns nil, then it is a root node.

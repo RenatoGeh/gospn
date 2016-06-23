@@ -6,7 +6,7 @@ type Sum struct {
 	// Children nodes.
 	ch []Node
 	// Edge weights.
-	w []float32
+	w []float64
 	// Parent node.
 	pa Node
 }
@@ -19,7 +19,7 @@ func NewSum(pa Node) *Sum {
 }
 
 // AddChild adds a new child to this sum node with a weight w.
-func (s *Sum) AddChild(c Node, w float32) {
+func (s *Sum) AddChild(c Node, w float64) {
 	s.ch = append(s.ch, c)
 	s.w = append(s.w, w)
 }
@@ -34,8 +34,8 @@ func (s *Sum) Pa() Node { return s.pa }
 func (s *Sum) Type() string { return "sum" }
 
 // Value returns the value of this SPN given a set of valuations.
-func (s *Sum) Value(valuation VarSet) float32 {
-	var v float32 = 0
+func (s *Sum) Value(valuation VarSet) float64 {
+	var v float64 = 0
 	n := len(s.ch)
 
 	for i := 0; i < n; i++ {
@@ -43,4 +43,19 @@ func (s *Sum) Value(valuation VarSet) float32 {
 	}
 
 	return v
+}
+
+// Max returns the MAP state given a valuation.
+func (s *Sum) Max(valuation VarSet) float64 {
+	var max float64 = 0
+	n := len(s.ch)
+
+	for i := 0; i < n; i++ {
+		cv := s.ch[i].Max(valuation)
+		if cv > max {
+			max = cv
+		}
+	}
+
+	return max
 }

@@ -31,12 +31,24 @@ func (p *Product) Pa() Node { return p.pa }
 func (p *Product) Type() string { return "product" }
 
 // Value returns the value of this SPN given a set of valuations.
-func (p *Product) Value(valuation VarSet) float32 {
-	var v float32 = 1
+func (p *Product) Value(valuation VarSet) float64 {
+	var v float64 = 1
 	n := len(p.ch)
 
 	for i := 0; i < n; i++ {
 		v *= (p.ch[i]).Value(valuation)
+	}
+
+	return v
+}
+
+// Max returns the MAP state given a valuation.
+func (p *Product) Max(valuation VarSet) float64 {
+	var v float64 = 1
+	n := len(p.ch)
+
+	for i := 0; i < n; i++ {
+		v *= (p.ch[i]).Max(valuation)
 	}
 
 	return v
