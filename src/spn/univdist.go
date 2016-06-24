@@ -41,29 +41,29 @@ func NewEmptyUnivDist(pa Node, varid, m int) *UnivDist {
 }
 
 // Ch returns the set of childre nodes. Since a node is a UnivDist iff it is a leaf, Ch=\emptyset.
-func (self *UnivDist) Ch() []Node { return nil }
+func (ud *UnivDist) Ch() []Node { return nil }
 
 // Pa returns the parent node.
-func (self *UnivDist) Pa() Node { return self.pa }
+func (ud *UnivDist) Pa() Node { return ud.pa }
 
 // Type return this node's type: 'leaf'.
-func (self *UnivDist) Type() string { return "leaf" }
+func (ud *UnivDist) Type() string { return "leaf" }
 
 // Returns the probability of a certain valuation. That is Pr(X=valuation[varid]), where
 // Pr=UnivDist.
-func (self *UnivDist) Value(valuation VarSet) float64 {
-	val, ok := valuation[self.varid]
+func (ud *UnivDist) Value(valuation VarSet) float64 {
+	val, ok := valuation[ud.varid]
 	if ok {
-		return self.pr[val]
+		return ud.pr[val]
 	}
 	return 1.0
 }
 
 // Max returns the MAP state given a valuation.
-func (self *UnivDist) Max(valuation VarSet) float64 {
-	val, ok := valuation[self.varid]
+func (ud *UnivDist) Max(valuation VarSet) float64 {
+	val, ok := valuation[ud.varid]
 	if ok {
-		return self.pr[val]
+		return ud.pr[val]
 	}
-	return self.mode
+	return ud.mode
 }
