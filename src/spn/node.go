@@ -8,10 +8,16 @@ type Node interface {
 	Value(valuation VarSet) float64
 	// Returns the MAP state given a valuation.
 	Max(valuation VarSet) float64
+	// Returns the argmax of the MAP state and the max to avoid recomputation.
+	ArgMax(valuation VarSet) (VarSet, float64)
 	// Set of children.
 	Ch() []Node
 	// Parent node. If returns nil, then it is a root node.
 	Pa() Node
+	// Scope of this node.
+	Sc() []int
 	// Node type: 'leaf', 'sum' or 'product'.
 	Type() string
+	// Adds a child node to this node.
+	AddChild(c Node)
 }

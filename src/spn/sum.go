@@ -9,12 +9,15 @@ type Sum struct {
 	w []float64
 	// Parent node.
 	pa Node
+	// Node scope.
+	sc []int
 }
 
 // NewSum returns an empty Sum node with given parent.
 func NewSum(pa Node) *Sum {
 	s := &Sum{}
 	s.pa = pa
+	s.sc = nil
 	return s
 }
 
@@ -22,6 +25,7 @@ func NewSum(pa Node) *Sum {
 func (s *Sum) AddChild(c Node, w float64) {
 	s.ch = append(s.ch, c)
 	s.w = append(s.w, w)
+	s.sc = nil
 }
 
 // Ch returns the set of children nodes.
@@ -32,6 +36,16 @@ func (s *Sum) Pa() Node { return s.pa }
 
 // Type returns the type of this node: 'sum'.
 func (s *Sum) Type() string { return "sum" }
+
+// Sc returns the scope of this node.
+func (s *Sum) Sc() []int {
+	if s.sc == nil {
+		// Since all sum nodes are complete, then all children must have the same scope (we consider
+		// the SPN definition by Gens and Domingos).
+		copy(s.sc, s.ch[0].Sc())
+	}
+	return s.sc
+}
 
 // Value returns the value of this SPN given a set of valuations.
 func (s *Sum) Value(valuation VarSet) float64 {
@@ -58,4 +72,28 @@ func (s *Sum) Max(valuation VarSet) float64 {
 	}
 
 	return max
+}
+
+// ArgMax returns both the arguments and the value of the MAP state given a certain valuation.
+func (s *Sum) ArgMax(valuation VarSet) (VarSet, float64) {
+	n, max := len(s.ch), 0.0
+	var mch Node = nil
+
+	// Since a sum node must be complete, there can never be a leaf adjacent to a sum node, as that
+	// would imply that all its children would also have to be leaves with the same scope as each
+	// other. Since leaves are univariate distributions, this would mean a clustering over the same
+	// variable, which would annul the clustering done in learning and leave us with either a
+	// supercluster or the full distribution. And that makes no sense. Therefore all children from a
+	// sum node must not be leaves. For this reason we seek only the max edge instead and delegate
+	// to its children.
+	for i := 0; i < n; i++ {
+		ch := s.ch[i]
+		m := s.w[i] * ch.Max(valuation)
+		if m > max {
+			max = m
+			mch = ch
+		}
+	}
+
+	return mch.ArgMax(valuation)
 }
