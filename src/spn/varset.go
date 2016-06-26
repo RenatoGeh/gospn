@@ -1,4 +1,3 @@
-// Package spn contains the structure of an SPN.
 package spn
 
 // A VarSet is a variable set specifying variables and their respective instantiations.

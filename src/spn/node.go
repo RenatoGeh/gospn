@@ -1,4 +1,3 @@
-// Package spn contains the structure of an SPN.
 package spn
 
 // A node represents a node in a DAG. There can only be three types of nodes: a univariate

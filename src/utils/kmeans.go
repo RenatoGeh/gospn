@@ -1,5 +1,3 @@
-// Package learn contains the structural learning algorithm as well as a k-means clustering
-// and a independence test.
 package utils
 
 import (
@@ -25,12 +23,12 @@ func (f Float) Distance(mean float64) float64 {
 // Returns k slices each containing a map of elements belonging to their corresponding clusters,
 // where this map has keys corresponding to indeces of instances in data and values as the actual
 // instance values.
-func KMeans(k int, data []float64) []map[int]float64 {
+func KMeans(k int, data []int) []map[int]int {
 	n := len(data)
 
 	// Initializes using the Forgy method.
 	chkrnd := make(map[int]bool)
-	clusters := make([]map[int]float64, k)
+	clusters := make([]map[int]int, k)
 	means := make([]float64, k)
 	for i := 0; i < k; i++ {
 		var r int
@@ -38,10 +36,10 @@ func KMeans(k int, data []float64) []map[int]float64 {
 			r = rand.Intn(n)
 		}
 		m := data[r]
-		clusters[i] = make(map[int]float64)
+		clusters[i] = make(map[int]int)
 		// Key is index r of data instance. Value is the actual value of r.
 		clusters[i][r] = m
-		means[i] = m
+		means[i] = float64(m)
 		chkrnd[r] = true
 	}
 
@@ -81,7 +79,7 @@ func KMeans(k int, data []float64) []map[int]float64 {
 			// Iterate over map clusters[i]
 			var m float64 = 0
 			for _, value := range clusters[i] {
-				m += value
+				m += float64(value)
 			}
 			// Compute the centroid of each cluster.
 			m /= float64(len(clusters[i]))

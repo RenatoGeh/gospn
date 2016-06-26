@@ -1,5 +1,3 @@
-// Package learn contains the structural learning algorithm as well as a k-means clustering
-// and a independence test.
 package utils
 
 import "math"
@@ -162,23 +160,26 @@ func Chisquare(df int, cv float64) float64 {
 	return 1.0 - pval
 }
 
-// ChiSquareTest returns whether variable x and y are statistically independent.
-// We use the Chi-Square test to find correlations between the two variables.
-// Argument data is a table with the counting of each variable category, where the first axis is
-// the counting of each category of variable x and the second axis of variable y. The last element
-// of each row and column is the total counting. E.g.:
-//
-// +------------------------+
-// |      X_1 X_2 X_3 total |
-// | Y_1  100 200 100  400  |
-// | Y_2   50 300  25  375  |
-// |total 150 500 125  775  |
-// +------------------------+
-//
-// Argument p is the number of categories (or levels) in x
-// Argument q is the number of categories (or levels) in y
-//
-// Returns true if independent and false otherwise.
+/*
+ChiSquareTest returns whether variable x and y are statistically independent.
+We use the Chi-Square test to find correlations between the two variables.
+Argument data is a table with the counting of each variable category, where the first axis is
+the counting of each category of variable x and the second axis of variable y. The last element
+of each row and column is the total counting. E.g.:
+
+		+------------------------+
+		|      X_1 X_2 X_3 total |
+		| Y_1  100 200 100  400  |
+		| Y_2   50 300  25  375  |
+		|total 150 500 125  775  |
+		+------------------------+
+
+Argument p is the number of categories (or levels) in x.
+
+Argument q is the number of categories (or levels) in y.
+
+Returns true if independent and false otherwise.
+*/
 func ChiSquareTest(p, q int, data [][]float64) bool {
 
 	// df is the degree of freedom.

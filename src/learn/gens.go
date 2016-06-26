@@ -1,4 +1,3 @@
-// Package learn contains learning algorithms.
 package learn
 
 // We refer to this structural learning algorithm as the Gens Algorithm for structural learning.

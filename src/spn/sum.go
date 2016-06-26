@@ -1,4 +1,3 @@
-// Package spn contains the structure of an SPN.
 package spn
 
 // Sum represents an SPN sum node.

@@ -1,4 +1,3 @@
-// Package spn contains the structure of an SPN.
 package spn
 
 // Product represents an SPN product node.
@@ -81,6 +80,11 @@ func (p *Product) ArgMax(valuation VarSet) (VarSet, float64) {
 	n := len(p.ch)
 	pmap := 1.0
 
+	// Only a product node may have leaves as children. We must iterate through all children and
+	// recurse through them. Since a product node's children must have disjoint scopes, each child
+	// has different variables to be considered. If child is a leaf, then return its corresponding
+	// MAP (trivial base case). Else we have a node with scope size greater than one and we must
+	// recurse once again.
 	for i := 0; i < n; i++ {
 		chargs, chmap := p.ch[i].ArgMax(valuation)
 		pmap *= chmap
