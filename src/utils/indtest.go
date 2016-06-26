@@ -180,7 +180,7 @@ Argument q is the number of categories (or levels) in y.
 
 Returns true if independent and false otherwise.
 */
-func ChiSquareTest(p, q int, data [][]float64) bool {
+func ChiSquareTest(p, q int, data [][]int) bool {
 
 	// df is the degree of freedom.
 	df := (p - 1) * (q - 1)
@@ -201,7 +201,7 @@ func ChiSquareTest(p, q int, data [][]float64) bool {
 	var chi float64 = 0
 	for i := 0; i < p; i++ {
 		for j := 0; j < q; j++ {
-			diff := float64(data[i][j] - E[i][j])
+			diff := float64(data[i][j]) - E[i][j]
 			chi += (diff * diff) / E[i][j]
 		}
 	}

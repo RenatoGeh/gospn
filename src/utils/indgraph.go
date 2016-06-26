@@ -45,4 +45,115 @@ of each other. Return these k-sets.
 type IndepGraph struct {
 	// Adjacency list containing each vertex and to which other vertices it is connected to and from.
 	adjlist map[int][]int
+	// This k-set contains the connected subgraphs that are completely separated from each other.
+	Kset []int
+}
+
+// Constructs a new IndepGraph given a DataGroup.
+func NewIndepGraph(data DataGroup) *IndepGraph {
+	igraph := IndepGraph{make(map[int][]int), []int{}}
+	n := len(data)
+
+	for i := 0; i < n; i++ {
+		igraph.adjlist[i] = []int{}
+	}
+
+	// Construct the indepedency graph by adding an edge if there exists a dependency relation.
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			// Pairs of variables must be distinct.
+			if i == j {
+				continue
+			}
+
+			// Initialize the count matrix mdata.
+			p, q := data[i].Categories, data[j].Categories
+			mdata := make([][]int, p+1)
+			for k := 0; k < p; k++ {
+				mdata[i] = make([]int, q+1)
+			}
+
+			// len(data[i].Data) == len(data[j].Data) by definition.
+			m := len(data[i].Data)
+			for k := 0; k < m; k++ {
+				mdata[data[i].Data[k]][data[j].Data[k]]++
+			}
+			// Total on the x axis, y axis and x+y respectively.
+			tx, ty, tt := make([]int, q), 0, 0
+			for x := 0; x < p; x++ {
+				ty = 0
+				for y := 0; y < q; y++ {
+					ty += mdata[x][y]
+					tx[y] += mdata[x][y]
+				}
+				mdata[x][q] = ty
+			}
+			// Compute total on the x axis.
+			for y := 0; y < q; y++ {
+				mdata[p][y] = tx[y]
+				tt += tx[y]
+			}
+			// Total total.
+			mdata[p][q] = tt
+
+			// Checks if variables i, j are independent.
+			indep := ChiSquareTest(p, q, mdata)
+
+			// If not independent, then add an undirected edge i-j.
+			if !indep {
+				igraph.adjlist[i] = append(igraph.adjlist[i], j)
+				igraph.adjlist[j] = append(igraph.adjlist[j], i)
+			}
+		}
+	}
+
+	// Union-Find to discriminate each set of connected variables that are fully disconnected of
+	// another set of connected set of variables
+
+	// Set of Union-Find trees.
+	sets := make([]*UFNode, n)
+	// Number of k remaining sets. At first k = n.
+	k := n
+
+	// At first every vertex has its own set.
+	for i := 0; i < n; i++ {
+		sets[i] = MakeSet(i)
+	}
+
+	// If a vertex u has an edge with another vertex v, then union sets that contain u and v.
+	for i := 0; i < n; i++ {
+		m := len(igraph.adjlist[i])
+		for j := 0; j < m; j++ {
+			f, s := i, igraph.adjlist[i][j]
+			if sets[f] == nil {
+				break
+			}
+			if sets[s] == nil {
+				continue
+			}
+			// Union already ignores cases when u and v are in the same set.
+			_, p := Union(sets[f], sets[s])
+			if p == 1 {
+				sets[s] = nil
+			} else if p == 2 {
+				sets[f] = nil
+			}
+			// Everytime we apply the union of two sets we decrease the total amount of sets by one.
+			if p > 0 {
+				k--
+			}
+		}
+	}
+
+	// Reformat sets to integer form.
+	igraph.Kset = make([]int, k)
+	j := 0
+	for i := 0; i < k; i++ {
+		if sets[i] != nil {
+			igraph.Kset[j] = sets[i].varid
+			j++
+		}
+	}
+
+	return &igraph
 }

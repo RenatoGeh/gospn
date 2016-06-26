@@ -20,3 +20,6 @@ type Node interface {
 	// Adds a child node to this node.
 	AddChild(c Node)
 }
+
+// An SPN is the root node of the DAG.
+type SPN Node
