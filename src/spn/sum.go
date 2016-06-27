@@ -13,19 +13,34 @@ type Sum struct {
 }
 
 // NewSum returns an empty Sum node with given parent.
-func NewSum(pa Node) *Sum {
+func NewSum() *Sum {
 	s := &Sum{}
-	s.pa = pa
-	s.sc = nil
+	s.pa, s.sc = nil, nil
 	return s
 }
 
-// AddChild adds a new child to this sum node with a weight w.
-func (s *Sum) AddChild(c Node, w float64) {
+// Adds a child without adding weight. After this function call you must call AddWeight (or call
+// AddChildW instead.
+func (s *Sum) AddChild(c Node) {
 	s.ch = append(s.ch, c)
-	s.w = append(s.w, w)
+	c.SetParent(s)
 	s.sc = nil
 }
+
+func (s *Sum) AddWeight(w float64) {
+	s.w = append(s.w, w)
+}
+
+// AddChild adds a new child to this sum node with a weight w.
+func (s *Sum) AddChildW(c Node, w float64) {
+	s.ch = append(s.ch, c)
+	s.w = append(s.w, w)
+	c.SetParent(s)
+	s.sc = nil
+}
+
+// Sets the parent node.
+func (s *Sum) SetParent(pa Node) { s.pa = pa }
 
 // Ch returns the set of children nodes.
 func (s *Sum) Ch() []Node { return s.ch }

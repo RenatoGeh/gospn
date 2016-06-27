@@ -22,7 +22,7 @@ This project aims to provide a simple implementation of structural
 learning of SPNs. We seek to follow the paper *Learning the Structure of
 Sum-Product Networks* by Robert Gens and Pedro Domingos (ICML 2013) and
 implement our own version of structural learning based on the schema
-provided on the article.
+provided by the article.
 
 Our objective is not only educational - in the sense that we wish to
 learn more about the peculiarities of SPNs - but also documentational,

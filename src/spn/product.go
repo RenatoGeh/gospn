@@ -11,18 +11,21 @@ type Product struct {
 }
 
 // NewProduct returns an empty Product node with given parent.
-func NewProduct(pa Node) *Product {
+func NewProduct() *Product {
 	p := &Product{}
-	p.pa = pa
-	p.sc = nil
+	p.pa, p.sc = nil, nil
 	return p
 }
 
 // AddChild adds a new child to this product node.
 func (p *Product) AddChild(c Node) {
 	p.ch = append(p.ch, c)
+	p.SetParent(p)
 	p.sc = nil
 }
+
+// Sets the parent node.
+func (p *Product) SetParent(pa Node) { p.pa = pa }
 
 // Ch returns the set of children nodes.
 func (p *Product) Ch() []Node { return p.ch }

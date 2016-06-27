@@ -24,7 +24,7 @@ type UnivDist struct {
 }
 
 // Constructs a new UnivDist.
-func NewUnivDist(pa Node, varid int, dist []float64) *UnivDist {
+func NewUnivDist(varid int, dist []float64) *UnivDist {
 	n := len(dist)
 	var m float64 = 0
 	var mi int = 0
@@ -36,19 +36,19 @@ func NewUnivDist(pa Node, varid int, dist []float64) *UnivDist {
 		}
 	}
 
-	return &UnivDist{pa, varid, dist, Mode{mi, m}, []int{varid}}
+	return &UnivDist{nil, varid, dist, Mode{mi, m}, []int{varid}}
 }
 
 // Constructs a new empty UnivDist for learning. We initialize pr to a uniform distribution.
 // Argument m is the cardinality of varid.
-func NewEmptyUnivDist(pa Node, varid, m int) *UnivDist {
+func NewEmptyUnivDist(varid, m int) *UnivDist {
 	pr := make([]float64, m)
 
 	for i := 0; i < m; i++ {
 		pr[i] = 1.0 / float64(m)
 	}
 
-	return &UnivDist{pa, varid, pr, Mode{0, pr[0]}, []int{varid}}
+	return &UnivDist{nil, varid, pr, Mode{0, pr[0]}, []int{varid}}
 }
 
 // Ch returns the set of childre nodes. Since a node is a UnivDist iff it is a leaf, Ch=\emptyset.
@@ -60,10 +60,17 @@ func (ud *UnivDist) Pa() Node { return ud.pa }
 // Type return this node's type: 'leaf'.
 func (ud *UnivDist) Type() string { return "leaf" }
 
+// Sc returns this node's scope.
 func (ud *UnivDist) Sc() []int {
 	// A univariate distribution has unary scope by definition.
 	return ud.sc
 }
+
+// Sets the parent node.
+func (ud *UnivDist) SetParent(pa Node) { ud.pa = pa }
+
+// Adds a child, but actually doesn't since it's a leaf.
+func (ud *UnivDist) AddChild(c Node) {}
 
 // Returns the probability of a certain valuation. That is Pr(X=valuation[varid]), where
 // Pr=UnivDist.

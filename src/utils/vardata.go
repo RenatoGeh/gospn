@@ -16,9 +16,3 @@ type VarData struct {
 func NewVarData(varid, categories int, data []int) *VarData {
 	return &VarData{varid, categories, data}
 }
-
-// DataGroup is the full observed data.
-type DataGroup []VarData
-
-// Constructs a new DataGroup with n VarDatas.
-func NewDataGroup(n int) DataGroup { return make(DataGroup, n) }

@@ -19,6 +19,8 @@ type Node interface {
 	Type() string
 	// Adds a child node to this node.
 	AddChild(c Node)
+	// Sets the parent node.
+	SetParent(pa Node)
 }
 
 // An SPN is the root node of the DAG.

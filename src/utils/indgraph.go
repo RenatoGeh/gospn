@@ -1,5 +1,7 @@
 package utils
 
+import "sort"
+
 /*
 IndepGraph represents an independence graph.
 
@@ -46,12 +48,12 @@ type IndepGraph struct {
 	// Adjacency list containing each vertex and to which other vertices it is connected to and from.
 	adjlist map[int][]int
 	// This k-set contains the connected subgraphs that are completely separated from each other.
-	Kset []int
+	Kset [][]int
 }
 
 // Constructs a new IndepGraph given a DataGroup.
-func NewIndepGraph(data DataGroup) *IndepGraph {
-	igraph := IndepGraph{make(map[int][]int), []int{}}
+func NewIndepGraph(data []*VarData) *IndepGraph {
+	igraph := IndepGraph{make(map[int][]int), nil}
 	n := len(data)
 
 	for i := 0; i < n; i++ {
@@ -115,9 +117,13 @@ func NewIndepGraph(data DataGroup) *IndepGraph {
 	// Number of k remaining sets. At first k = n.
 	k := n
 
+	// Keys are the representative of the set. Value is a list of variables in the set.
+	kmap := make(map[int][]int)
+
 	// At first every vertex has its own set.
 	for i := 0; i < n; i++ {
 		sets[i] = MakeSet(i)
+		kmap[i] = []int{i}
 	}
 
 	// If a vertex u has an edge with another vertex v, then union sets that contain u and v.
@@ -135,8 +141,11 @@ func NewIndepGraph(data DataGroup) *IndepGraph {
 			_, p := Union(sets[f], sets[s])
 			if p == 1 {
 				sets[s] = nil
+				kmap[f] = append(kmap[f], kmap[s]...)
+				delete(kmap, s)
 			} else if p == 2 {
 				sets[f] = nil
+				kmap[s] = append(kmap[s], kmap[f]...)
 			}
 			// Everytime we apply the union of two sets we decrease the total amount of sets by one.
 			if p > 0 {
@@ -145,14 +154,16 @@ func NewIndepGraph(data DataGroup) *IndepGraph {
 		}
 	}
 
-	// Reformat sets to integer form.
-	igraph.Kset = make([]int, k)
+	// Reformat sets to slice form.
+	igraph.Kset = make([][]int, k)
 	j := 0
+	for _, v := range kmap {
+		igraph.Kset[j] = make([]int, len(v))
+		copy(igraph.Kset[j], v)
+		j++
+	}
 	for i := 0; i < k; i++ {
-		if sets[i] != nil {
-			igraph.Kset[j] = sets[i].varid
-			j++
-		}
+		sort.Ints(igraph.Kset[i])
 	}
 
 	return &igraph
