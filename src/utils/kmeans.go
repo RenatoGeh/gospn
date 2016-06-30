@@ -10,13 +10,97 @@ type Distancer interface {
 	Distance(mean float64) float64
 }
 
-// Little hack to allow interface Distancer to allow float64.
+// Little hack to allow interface Distancer to allow float64 and []float64.
 type Float float64
+type FSlice []float64
 
 // Distance between value Float and a given float64 mean.
 func (f Float) Distance(mean float64) float64 {
 	dist := math.Abs(float64(f) - mean)
 	return dist * dist
+}
+
+// Distance between the mean of a float slice and a mean.
+func (v FSlice) Distance(mean float64) float64 {
+	m, n := 0.0, len(v)
+	for i := 0; i < n; i++ {
+		m += v[i]
+	}
+	d := math.Abs(m/float64(n) - mean)
+	return d * d
+}
+
+func KMeansV(k int, data [][]int) []map[int][]int {
+	n := len(data)
+
+	// Initializes using the Forgy method.
+	chkrnd := make(map[int]bool)
+	clusters := make([]map[int][]int, k)
+	means := make([]float64, k)
+	chkdata := make(map[int]int)
+	for i := 0; i < k; i++ {
+		var r int
+		for ok := false; !ok; ok = chkrnd[r] {
+			r = rand.Intn(n)
+		}
+		m := data[r]
+		clusters[i] = make(map[int][]int)
+		chkrnd[r], chkdata[r] = true, i
+		clusters[i][r] = m
+		mean, s := 0.0, len(m)
+		for j := 0; j < s; j++ {
+			mean += float64(m[j])
+		}
+		means[i] = mean / float64(s)
+	}
+
+	diff, diffsum := make([]float64, k), 0.0
+
+	for diffsum != 0 {
+		for i := 0; i < n; i++ {
+			min, mean, s, which := math.Inf(1), 0.0, len(data[i]), -1
+			for j := 0; j < s; j++ {
+				mean += float64(data[i][j])
+			}
+			mean /= float64(s)
+			for j := 0; j < k; j++ {
+				t := Float(mean).Distance(means[j])
+				if t < min {
+					min, which = t, j
+				}
+			}
+			v, ok := chkdata[i]
+			// Instance i has no attached cluster.
+			if !ok {
+				chkdata[i] = which
+				clusters[which][i] = data[i]
+			} else if v != which {
+				// If instance has an earlier attached cluster.
+				delete(clusters[v], i)
+				clusters[which][i] = data[i]
+				chkdata[i] = which
+			}
+		}
+
+		// Recompute means and diff.
+		diffsum = 0
+		for i := 0; i < k; i++ {
+			mean, s := 0.0, 0
+			for _, value := range clusters[i] {
+				m := len(clusters[i])
+				s += m
+				for j := 0; j < m; j++ {
+					mean += float64(value[j])
+				}
+			}
+			md := mean / float64(s)
+			diff[i] = math.Abs(means[i] - md)
+			diffsum += diff[i]
+			means[i] = md
+		}
+	}
+
+	return clusters
 }
 
 // KMeans clusters data into k clusters.

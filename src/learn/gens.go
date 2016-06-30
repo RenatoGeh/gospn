@@ -1,6 +1,8 @@
 package learn
 
 import (
+	"math"
+
 	spn "github.com/RenatoGeh/gospn/src/spn"
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
@@ -115,5 +117,23 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 		return prod
 	}
 
-	return nil
+	// Else we perform k-clustering on the instances.
+	sum := spn.NewSum()
+
+	clusters := utils.KMeansV(int(math.Max(float64(len(data)/5.0), 2.0)), data)
+	k := len(clusters)
+
+	for i := 0; i < k; i++ {
+		s, l := len(clusters[i]), 0
+		ndata := make([][]int, s)
+		for _, value := range clusters[i] {
+			t := len(value)
+			ndata[l] = make([]int, t)
+			copy(ndata[l], value)
+			l++
+		}
+		sum.AddChild(Gens(sc, ndata))
+	}
+
+	return sum
 }
