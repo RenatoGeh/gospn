@@ -57,5 +57,7 @@ func ParseData(filename string) (map[int]learn.Variable, [][]int) {
 		line = scanner.Text()
 	}
 
+	file.Close()
+
 	return sc, data
 }

@@ -132,7 +132,7 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 			copy(ndata[l], value)
 			l++
 		}
-		sum.AddChild(Gens(sc, ndata))
+		sum.AddChildW(Gens(sc, ndata), float64(s)/float64(n))
 	}
 
 	return sum
