@@ -36,6 +36,9 @@ func (p *Product) Pa() Node { return p.pa }
 // Type returns the type of this node: 'product'.
 func (p *Product) Type() string { return "product" }
 
+// Returns nil, since product nodes have no weights.
+func (p *Product) Weights() []float64 { return nil }
+
 // Sc returns the scope of this node.
 func (p *Product) Sc() []int {
 	if p.sc == nil {

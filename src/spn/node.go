@@ -21,6 +21,8 @@ type Node interface {
 	AddChild(c Node)
 	// Sets the parent node.
 	SetParent(pa Node)
+	// Get weights. Returns nil if no weights.
+	Weights() []float64
 }
 
 // An SPN is the root node of the DAG.

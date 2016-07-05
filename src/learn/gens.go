@@ -1,6 +1,7 @@
 package learn
 
 import (
+	"fmt"
 	"math"
 
 	spn "github.com/RenatoGeh/gospn/src/spn"
@@ -47,6 +48,8 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 
 	// If the data's scope is unary, then we return a leaf (i.e. a univariate distribution).
 	if n == 1 {
+		fmt.Println("Creating new leaf...")
+
 		// m number of instantiations.
 		m := len(data)
 		// pr is the univariate probability distribution.
@@ -63,13 +66,16 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 		}
 
 		leaf := spn.NewUnivDist(tv.Varid, pr)
+		fmt.Println("Leaf created.")
 		return leaf
 	}
 
 	// Else we check for independent subsets of variables. We separate variables in k partitions,
 	// where every partition is pairwise indepedent with another.
+	fmt.Println("Preparing to create new product node...")
 
 	// vdata is the transpose of data.
+	fmt.Println("Creating VarDatas for Independency Test...")
 	vdata, l := make([]*utils.VarData, n), 0
 	for _, v := range sc {
 		tn := len(data)
@@ -82,12 +88,14 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 		l++
 	}
 
+	fmt.Println("Creating new Independency graph...")
 	// Independency graph.
 	igraph := utils.NewIndepGraph(vdata)
 
 	// If true, then we can partition the set of variables in data into independent subsets. This
 	// means we can create a product node (since product nodes' children have disjoint scopes).
 	if len(igraph.Kset) > 1 {
+		fmt.Println("Found independency between variables. Creating new product node...")
 		// prod is the new product node. m is the number of disjoint sets. kset is a shortcut.
 		prod, m, kset := spn.NewProduct(), len(igraph.Kset), &igraph.Kset
 		tn := len(data)
@@ -111,6 +119,7 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 			}
 			var ndata [][]int
 			copy(ndata, tdata)
+			fmt.Println("Product node created. Recursing...")
 			// Adds the recursive calls as children of this new product node.
 			prod.AddChild(Gens(nsc, ndata))
 		}
@@ -118,11 +127,13 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 	}
 
 	// Else we perform k-clustering on the instances.
+	fmt.Println("No independency found. Preparing for clustering...")
 	sum := spn.NewSum()
 
 	clusters := utils.KMeansV(int(math.Max(float64(len(data)/5.0), 2.0)), data)
 	k := len(clusters)
 
+	fmt.Println("Reformating clusters to appropriate format and creating sum nodes...")
 	for i := 0; i < k; i++ {
 		s, l := len(clusters[i]), 0
 		ndata := make([][]int, s)
@@ -132,6 +143,7 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 			copy(ndata[l], value)
 			l++
 		}
+		fmt.Println("Created new sum node. Recursing...")
 		sum.AddChildW(Gens(sc, ndata), float64(s)/float64(n))
 	}
 

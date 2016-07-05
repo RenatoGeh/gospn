@@ -61,6 +61,9 @@ func (s *Sum) Sc() []int {
 	return s.sc
 }
 
+// Returns weights.
+func (s *Sum) Weights() []float64 { return s.w }
+
 // Value returns the value of this SPN given a set of valuations.
 func (s *Sum) Value(valuation VarSet) float64 {
 	var v float64 = 0

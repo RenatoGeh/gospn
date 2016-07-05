@@ -69,6 +69,9 @@ func (ud *UnivDist) Sc() []int {
 // Sets the parent node.
 func (ud *UnivDist) SetParent(pa Node) { ud.pa = pa }
 
+// Returns nil. Leaves have no weights.
+func (ud *UnivDist) Weights() []float64 { return nil }
+
 // Adds a child, but actually doesn't since it's a leaf.
 func (ud *UnivDist) AddChild(c Node) {}
 

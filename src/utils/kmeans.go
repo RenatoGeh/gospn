@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 )
@@ -34,13 +35,14 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 	n := len(data)
 
 	// Initializes using the Forgy method.
+	fmt.Println("Initializing K-means clustering via the Forgy method...")
 	chkrnd := make(map[int]bool)
 	clusters := make([]map[int][]int, k)
 	means := make([]float64, k)
 	chkdata := make(map[int]int)
 	for i := 0; i < k; i++ {
 		var r int
-		for ok := false; !ok; ok = chkrnd[r] {
+		for ok := false; ok; _, ok = chkrnd[r] {
 			r = rand.Intn(n)
 		}
 		m := data[r]
@@ -56,6 +58,7 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 
 	diff, diffsum := make([]float64, k), 0.0
 
+	fmt.Println("Starting K-means until convergence...")
 	for diffsum != 0 {
 		for i := 0; i < n; i++ {
 			min, mean, s, which := math.Inf(1), 0.0, len(data[i]), -1
@@ -99,6 +102,7 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 			means[i] = md
 		}
 	}
+	fmt.Println("Converged. Returning clusters...")
 
 	return clusters
 }

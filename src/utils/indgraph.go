@@ -1,6 +1,9 @@
 package utils
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+)
 
 /*
 IndepGraph represents an independence graph.
@@ -55,11 +58,14 @@ type IndepGraph struct {
 func NewIndepGraph(data []*VarData) *IndepGraph {
 	igraph := IndepGraph{make(map[int][]int), nil}
 	n := len(data)
+	ids := make([]int, n)
 
 	for i := 0; i < n; i++ {
-		igraph.adjlist[i] = []int{}
+		ids[i] = data[i].Varid
+		igraph.adjlist[ids[i]] = []int{}
 	}
 
+	fmt.Println("Constructing independency graph...")
 	// Construct the indepedency graph by adding an edge if there exists a dependency relation.
 	for i := 0; i < n; i++ {
 		for j := 0; j < n; j++ {
@@ -67,12 +73,14 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 			if i == j {
 				continue
 			}
+			v1, v2 := ids[i], ids[j]
 
 			// Initialize the count matrix mdata.
+			//fmt.Println("Initializing count matrix...")
 			p, q := data[i].Categories, data[j].Categories
 			mdata := make([][]int, p+1)
-			for k := 0; k < p; k++ {
-				mdata[i] = make([]int, q+1)
+			for k := 0; k < p+1; k++ {
+				mdata[k] = make([]int, q+1)
 			}
 
 			// len(data[i].Data) == len(data[j].Data) by definition.
@@ -80,8 +88,11 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 			for k := 0; k < m; k++ {
 				mdata[data[i].Data[k]][data[j].Data[k]]++
 			}
+
+			//fmt.Println("Counting totals and assigning to edges...")
 			// Total on the x axis, y axis and x+y respectively.
 			tx, ty, tt := make([]int, q), 0, 0
+			//fmt.Println("Y-axis...")
 			for x := 0; x < p; x++ {
 				ty = 0
 				for y := 0; y < q; y++ {
@@ -91,6 +102,7 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 				mdata[x][q] = ty
 			}
 			// Compute total on the x axis.
+			//fmt.Println("X-axis...")
 			for y := 0; y < q; y++ {
 				mdata[p][y] = tx[y]
 				tt += tx[y]
@@ -99,18 +111,23 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 			mdata[p][q] = tt
 
 			// Checks if variables i, j are independent.
+			//fmt.Println("Checking for pairwise independency...")
 			indep := ChiSquareTest(p, q, mdata)
 
 			// If not independent, then add an undirected edge i-j.
 			if !indep {
-				igraph.adjlist[i] = append(igraph.adjlist[i], j)
-				igraph.adjlist[j] = append(igraph.adjlist[j], i)
+				//fmt.Println("Not independent. Creating edge...")
+				igraph.adjlist[v1] = append(igraph.adjlist[v1], v2)
+				igraph.adjlist[v2] = append(igraph.adjlist[v2], v1)
+			} else {
+				//fmt.Println("Independent. No edges.")
 			}
 		}
 	}
 
 	// Union-Find to discriminate each set of connected variables that are fully disconnected of
 	// another set of connected set of variables
+	fmt.Println("Finding disconnected subgraphs...")
 
 	// Set of Union-Find trees.
 	sets := make([]*UFNode, n)
@@ -123,14 +140,15 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 	// At first every vertex has its own set.
 	for i := 0; i < n; i++ {
 		sets[i] = MakeSet(i)
-		kmap[i] = []int{i}
+		kmap[ids[i]] = []int{ids[i]}
 	}
 
+	fmt.Println("Preparing to test each vertex of the independency graph for disconnectivity...")
 	// If a vertex u has an edge with another vertex v, then union sets that contain u and v.
 	for i := 0; i < n; i++ {
-		m := len(igraph.adjlist[i])
-		for j := 0; j < m; j++ {
-			f, s := i, igraph.adjlist[i][j]
+		v1 := ids[i]
+		for _, v2 := range igraph.adjlist[v1] {
+			f, s := i, v2
 			if sets[f] == nil {
 				break
 			}
@@ -146,6 +164,7 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 			} else if p == 2 {
 				sets[f] = nil
 				kmap[s] = append(kmap[s], kmap[f]...)
+				delete(kmap, f)
 			}
 			// Everytime we apply the union of two sets we decrease the total amount of sets by one.
 			if p > 0 {
@@ -155,14 +174,17 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 	}
 
 	// Reformat sets to slice form.
-	igraph.Kset = make([][]int, k)
+	fmt.Println("Reformating sets to slice form...")
+	igraph.Kset = make([][]int, len(kmap))
 	j := 0
 	for _, v := range kmap {
 		igraph.Kset[j] = make([]int, len(v))
 		copy(igraph.Kset[j], v)
 		j++
 	}
-	for i := 0; i < k; i++ {
+
+	fmt.Println("Sorting slice...")
+	for i := 0; i < len(kmap); i++ {
 		sort.Ints(igraph.Kset[i])
 	}
 

@@ -4,11 +4,24 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 
 	learn "github.com/RenatoGeh/gospn/src/learn"
+	utils "github.com/RenatoGeh/gospn/src/utils"
 )
+
+func GetPath(relpath, path string) string {
+	rp, err := filepath.Abs(relpath)
+
+	if err != nil {
+		fmt.Printf("Error retrieving path \"%s\".\n", relpath)
+		panic(err)
+	}
+
+	return utils.StringConcat(rp, path)
+}
 
 // Reads from a file named filename and returns a matrix of
 func ParseData(filename string) (map[int]learn.Variable, [][]int) {
