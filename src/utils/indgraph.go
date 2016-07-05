@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"sort"
 )
 
 /*
@@ -58,10 +57,14 @@ type IndepGraph struct {
 func NewIndepGraph(data []*VarData) *IndepGraph {
 	igraph := IndepGraph{make(map[int][]int), nil}
 	n := len(data)
+
+	// IDs and Reverse IDs.
 	ids := make([]int, n)
+	rids := make(map[int]int)
 
 	for i := 0; i < n; i++ {
 		ids[i] = data[i].Varid
+		rids[ids[i]] = i
 		igraph.adjlist[ids[i]] = []int{}
 	}
 
@@ -139,7 +142,7 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 
 	// At first every vertex has its own set.
 	for i := 0; i < n; i++ {
-		sets[i] = MakeSet(i)
+		sets[i] = MakeSet(ids[i])
 		kmap[ids[i]] = []int{ids[i]}
 	}
 
@@ -148,7 +151,7 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 	for i := 0; i < n; i++ {
 		v1 := ids[i]
 		for _, v2 := range igraph.adjlist[v1] {
-			f, s := i, v2
+			f, s := i, rids[v2]
 			if sets[f] == nil {
 				break
 			}
@@ -159,12 +162,14 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 			_, p := Union(sets[f], sets[s])
 			if p == 1 {
 				sets[s] = nil
-				kmap[f] = append(kmap[f], kmap[s]...)
-				delete(kmap, s)
+				kmap[v1] = append(kmap[v1], kmap[v2]...)
+				delete(kmap, v2)
 			} else if p == 2 {
 				sets[f] = nil
-				kmap[s] = append(kmap[s], kmap[f]...)
-				delete(kmap, f)
+				kmap[v2] = append(kmap[v2], kmap[v1]...)
+				delete(kmap, v1)
+			} else {
+				fmt.Printf("Something has gone terribly wrong.\n")
 			}
 			// Everytime we apply the union of two sets we decrease the total amount of sets by one.
 			if p > 0 {
@@ -183,10 +188,7 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 		j++
 	}
 
-	fmt.Println("Sorting slice...")
-	for i := 0; i < len(kmap); i++ {
-		sort.Ints(igraph.Kset[i])
-	}
+	fmt.Printf("v: %v\n", kmap)
 
 	return &igraph
 }

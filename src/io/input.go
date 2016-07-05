@@ -9,10 +9,9 @@ import (
 	"strconv"
 
 	learn "github.com/RenatoGeh/gospn/src/learn"
-	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
-func GetPath(relpath, path string) string {
+func GetPath(relpath string) string {
 	rp, err := filepath.Abs(relpath)
 
 	if err != nil {
@@ -20,7 +19,7 @@ func GetPath(relpath, path string) string {
 		panic(err)
 	}
 
-	return utils.StringConcat(rp, path)
+	return rp
 }
 
 // Reads from a file named filename and returns a matrix of

@@ -77,12 +77,12 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 	// vdata is the transpose of data.
 	fmt.Println("Creating VarDatas for Independency Test...")
 	vdata, l := make([]*utils.VarData, n), 0
-	for _, v := range sc {
+	for k, v := range sc {
 		tn := len(data)
-		// tdata is the transpose of data[l].
+		// tdata is the transpose of data[k].
 		tdata := make([]int, tn)
 		for j := 0; j < tn; j++ {
-			tdata[j] = data[j][l]
+			tdata[j] = data[j][k]
 		}
 		vdata[l] = utils.NewVarData(v.Varid, v.Categories, tdata)
 		l++

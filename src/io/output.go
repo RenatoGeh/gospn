@@ -160,8 +160,6 @@ func PBMFToData(dirname, dname string) {
 			}
 			defer f.Close()
 
-			fmt.Printf("Name: %s\n", utils.StringConcat(spath, sf[j]))
-
 			instreams = append(instreams, bufio.NewScanner(f))
 			labels = append(labels, i)
 		}
@@ -196,7 +194,6 @@ func PBMFToData(dirname, dname string) {
 	w, h := -1, -1
 	instreams[0].Scan()
 	fmt.Sscanf(instreams[0].Text(), "%d %d", &w, &h)
-	fmt.Printf("w: %d, h: %d\n", w, h)
 
 	nin := len(instreams)
 	// Move stream pointer to the right position.
@@ -210,6 +207,7 @@ func PBMFToData(dirname, dname string) {
 	for i := 0; i < tt; i++ {
 		fmt.Fprintf(out, "var %d 2\n", i)
 	}
+	fmt.Fprintf(out, "var %d %d\n", tt, nsdirs)
 
 	for i := 0; i < nin; i++ {
 		stream := instreams[i]
