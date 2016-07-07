@@ -31,7 +31,7 @@ func learn_test() {
 }
 
 func indep_test() {
-	fmt.Printf("Chi-square: %f\n", utils.Chisquare(2, 15.2))
+	fmt.Printf("Chi-square: %f\n", 1-utils.Chisquare(1, 6.73))
 
 	data := [][]int{
 		{200, 150, 50, 400},

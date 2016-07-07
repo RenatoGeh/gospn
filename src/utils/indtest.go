@@ -79,6 +79,42 @@ func ugamma(x, s float64, regularized bool) float64 {
 	}
 }
 
+type ifctn func(float64) float64
+
+func simpson38(f ifctn, a, b float64, n int) float64 {
+	h := (b - a) / float64(n)
+	h1 := h / 3
+	sum := f(a) + f(b)
+	for j := 3*n - 1; j > 0; j-- {
+		if j%3 == 0 {
+			sum += 2 * f(a+h1*float64(j))
+		} else {
+			sum += 3 * f(a+h1*float64(j))
+		}
+	}
+	return h * sum / 8
+}
+
+func gammaIncQ(a, x float64) float64 {
+	aa1 := a - 1
+	var f ifctn = func(t float64) float64 {
+		return math.Pow(t, aa1) * math.Exp(-t)
+	}
+	y := aa1
+	h := 1.5e-2
+	for f(y)*(x-y) > 2e-8 && y < x {
+		y += .4
+	}
+	if y > x {
+		y = x
+	}
+	return 1 - simpson38(f, 0, y, int(y/h/math.Gamma(a)))
+}
+
+func chisquare(dof int, distance float64) float64 {
+	return gammaIncQ(.5*float64(dof), .5*distance)
+}
+
 // Lower incomplete Gamma function.
 //func igamma(a, x float64) float64 {
 //var sum float64 = 0.0
@@ -223,12 +259,18 @@ func Chisquare(df int, cv float64) float64 {
 	k := float64(df) * 0.5
 	x := cv * 0.5
 
+	//if df == 1 {
+	//return math.Exp(-x/2.0) / (math.Sqrt2 * math.SqrtPi * math.Sqrt(x))
+	//return (math.Pow(x, (k/2.0)-1.0) * math.Exp(-x/2.0)) / (math.Pow(2, k/2.0) * math.Gamma(k/2.0))
+	//return lgamma(k/2.0, x/2.0, false) / math.Gamma(k/2.0)
+
+	//} else if df == 2 {
 	if df == 2 {
-		return math.Exp(-1.0 * x)
+		return math.Exp(-x)
 	}
 
 	//fmt.Println("Computing incomplete lower gamma function...")
-	pval := lgamma(k, x, false)
+	pval := lgamma(x, k, false)
 
 	if math.IsNaN(pval) || math.IsInf(pval, 0) || pval <= 1e-8 {
 		return 1e-14
@@ -239,6 +281,10 @@ func Chisquare(df int, cv float64) float64 {
 
 	//fmt.Println("Returning chi-square value...")
 	return 1.0 - pval
+}
+
+func Chisqr(df int, cv float64) float64 {
+	return lgamma(float64(df)/2.0, cv/2.0, false) / math.Gamma(float64(df)/2.0)
 }
 
 /*

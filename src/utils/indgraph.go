@@ -71,11 +71,7 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 	fmt.Println("Constructing independency graph...")
 	// Construct the indepedency graph by adding an edge if there exists a dependency relation.
 	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			// Pairs of variables must be distinct.
-			if i == j {
-				continue
-			}
+		for j := i + 1; j < n; j++ {
 			v1, v2 := ids[i], ids[j]
 
 			// Initialize the count matrix mdata.
@@ -122,9 +118,9 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 				//fmt.Println("Not independent. Creating edge...")
 				igraph.adjlist[v1] = append(igraph.adjlist[v1], v2)
 				igraph.adjlist[v2] = append(igraph.adjlist[v2], v1)
-			} else {
-				//fmt.Println("Independent. No edges.")
-			}
+			} //else {
+			//fmt.Println("Independent. No edges.")
+			//}
 		}
 	}
 
