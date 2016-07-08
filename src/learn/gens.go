@@ -2,7 +2,8 @@ package learn
 
 import (
 	"fmt"
-	"math"
+	//"math"
+	"sort"
 
 	spn "github.com/RenatoGeh/gospn/src/spn"
 	utils "github.com/RenatoGeh/gospn/src/utils"
@@ -43,8 +44,10 @@ import (
 //
 // Where X={X_1,...,X_n} is the set of variables and I={I_1,...,I_m} is the set of instances.
 // Each x_ij is the i-th observed instantiation of X_j.
-func Gens(sc map[int]Variable, data [][]int) spn.SPN {
+func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	n := len(sc)
+
+	fmt.Printf("Sample size: %d, scope size: %d\n", len(data), n)
 
 	// If the data's scope is unary, then we return a leaf (i.e. a univariate distribution).
 	if n == 1 {
@@ -57,11 +60,11 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 		for _, v := range sc {
 			tv = &v
 		}
-		pr := make([]float64, tv.Categories)
+		pr, l := make([]float64, tv.Categories), tv.Categories
 		for i := 0; i < m; i++ {
-			pr[data[i][0]]++
+			pr[data[i][tv.Varid]]++
 		}
-		for i := 0; i < m; i++ {
+		for i := 0; i < l; i++ {
 			pr[i] /= float64(m)
 		}
 
@@ -77,12 +80,12 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 	// vdata is the transpose of data.
 	fmt.Println("Creating VarDatas for Independency Test...")
 	vdata, l := make([]*utils.VarData, n), 0
-	for k, v := range sc {
+	for _, v := range sc {
 		tn := len(data)
 		// tdata is the transpose of data[k].
 		tdata := make([]int, tn)
 		for j := 0; j < tn; j++ {
-			tdata[j] = data[j][k]
+			tdata[j] = data[j][v.Varid]
 		}
 		vdata[l] = utils.NewVarData(v.Varid, v.Categories, tdata)
 		l++
@@ -101,14 +104,16 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 		tn := len(data)
 		for i := 0; i < m; i++ {
 			// Data slices of the relevant vectors.
-			tdata := make([][]int, tn)
+			tdata := make([]map[int]int, tn)
 			// Number of variables in set of variables kset[i].
 			s := len((*kset)[i])
 			for j := 0; j < tn; j++ {
-				tdata[i] = make([]int, s)
-				for k := 0; k < s; k++ {
+				tdata[j] = make(map[int]int)
+				for l := 0; l < s; l++ {
 					// Get the instanciations of variables in kset[i].
-					tdata[j][k] = data[j][(*kset)[i][k]]
+					//fmt.Printf("[%d][%d] => %v vs %v | %v vs %v\n", j, k, (*kset)[i][k], len(data[j]), len(tdata[j]), k)
+					k := (*kset)[i][l]
+					tdata[j][k] = data[j][k]
 				}
 			}
 			// Create new scope with new variables.
@@ -117,11 +122,10 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 				t := (*kset)[i][j]
 				nsc[t] = Variable{t, sc[t].Categories}
 			}
-			var ndata [][]int
-			copy(ndata, tdata)
+			fmt.Printf("LENGTH: %d\n", len(tdata))
 			fmt.Println("Product node created. Recursing...")
 			// Adds the recursive calls as children of this new product node.
-			prod.AddChild(Gens(nsc, ndata))
+			prod.AddChild(Gens(nsc, tdata))
 		}
 		return prod
 	}
@@ -130,18 +134,90 @@ func Gens(sc map[int]Variable, data [][]int) spn.SPN {
 	fmt.Println("No independency found. Preparing for clustering...")
 	sum := spn.NewSum()
 
-	clusters := utils.KMeansV(int(math.Max(float64(len(data)/5.0), 2.0)), data)
+	m := len(data)
+	mdata := make([][]int, m)
+	for i := 0; i < m; i++ {
+		lc := len(data[i])
+		mdata[i] = make([]int, lc)
+		l := 0
+		keys := make([]int, lc)
+		for k, _ := range data[i] {
+			keys[l] = k
+			l++
+		}
+		sort.Ints(keys)
+		l = 0
+		for j := 0; j < lc; j++ {
+			mdata[i][j] = data[i][keys[j]]
+		}
+	}
+
+	fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
+	const KClusters = 2
+	if len(mdata) < KClusters {
+		// Fully factorized form.
+		// All instances are approximately the same.
+		m := len(data)
+		for _, v := range sc {
+			pr, l := make([]float64, v.Categories), v.Categories
+			for i := 0; i < m; i++ {
+				pr[data[i][v.Varid]]++
+			}
+			for i := 0; i < l; i++ {
+				pr[i] /= float64(m)
+			}
+			leaf, w := spn.NewUnivDist(v.Varid, pr), 1.0/float64(n)
+			sum.AddChildW(leaf, w)
+		}
+		return sum
+	}
+	clusters := utils.KMeansV(KClusters, mdata)
 	k := len(clusters)
 
-	fmt.Println("Reformating clusters to appropriate format and creating sum nodes...")
+	emptyc := 0
+	var empties []int
 	for i := 0; i < k; i++ {
-		s, l := len(clusters[i]), 0
-		ndata := make([][]int, s)
-		for _, value := range clusters[i] {
-			t := len(value)
-			ndata[l] = make([]int, t)
-			copy(ndata[l], value)
-			l++
+		if len(clusters[i]) == 0 {
+			emptyc++
+			empties = append(empties, i)
+		}
+	}
+
+	if emptyc == k-1 {
+		// All instances are approximately the same.
+		m := len(data)
+		for _, v := range sc {
+			pr, l := make([]float64, v.Categories), v.Categories
+			for i := 0; i < m; i++ {
+				pr[data[i][v.Varid]]++
+			}
+			for i := 0; i < l; i++ {
+				pr[i] /= float64(m)
+			}
+			leaf, w := spn.NewUnivDist(v.Varid, pr), 1.0/float64(n)
+			sum.AddChildW(leaf, w)
+		}
+		return sum
+	}
+
+	fmt.Println("Reformating clusters to appropriate format and creating sum nodes...")
+	e := 0
+	for i := 0; i < k; i++ {
+		if len(empties) > 0 && i == empties[e] {
+			e++
+			continue
+		}
+
+		s := len(clusters[i])
+		ndata := make([]map[int]int, s)
+		for j := 0; j < s; j++ {
+			ndata[j] = make(map[int]int)
+			// k is indices in original data. v is instance in data[k].
+			for k, _ := range clusters[i] {
+				for vi, inst := range data[k] {
+					ndata[j][vi] = inst
+				}
+			}
 		}
 		fmt.Println("Created new sum node. Recursing...")
 		sum.AddChildW(Gens(sc, ndata), float64(s)/float64(n))

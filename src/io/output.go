@@ -42,13 +42,14 @@ func DrawGraph(filename string, s spn.SPN) {
 
 		name := "N"
 		currt := curr.Type()
+		fmt.Printf("queue: %v, queue size: %d\n", queue, queue.Size())
 
 		// In case it is a sum node. Else product node.
 		if currt == "sum" {
 			name = fmt.Sprintf("S%d", nsums)
 			fmt.Fprintf(file, "%s [label="+",shape=circle];\n", name, nsums)
 			nsums++
-		} else {
+		} else if currt == "prod" {
 			name = fmt.Sprintf("P%d", nprods)
 			fmt.Fprintf(file, "%s [label=<&times;>,shape=circle];\n", name, nprods)
 			nprods++
@@ -56,13 +57,19 @@ func DrawGraph(filename string, s spn.SPN) {
 
 		// If pname is empty, then it is the root node. Else, link parent node to current node.
 		if pname != "" {
-			fmt.Fprintf(file, "%s -- %s [label=\"%.3f\"];\n", pname, name, pw)
+			if pw > 0 {
+				fmt.Fprintf(file, "%s -- %s [label=\"%.3f\"];\n", pname, name, pw)
+			} else {
+				fmt.Fprintf(file, "%s -- %s\n", pname, name)
+			}
 		}
 
 		w := curr.Weights()
+		fmt.Printf("nch: %d, ch: %v, nw: %d, w: %v\n", nch, ch, len(w), w)
 		// For each children, run the BFS.
 		for i := 0; i < nch; i++ {
 			c := ch[i]
+			fmt.Printf("parent: %v, child: %v\n", curr, c)
 
 			// If leaf, then simply write to the graphviz dot file. Else, recurse the BFS.
 			if c.Type() == "leaf" {
@@ -73,6 +80,7 @@ func DrawGraph(filename string, s spn.SPN) {
 			} else {
 				tw := -1.0
 				if w != nil {
+					fmt.Printf("lenw: %d, i: %d, nch: %d\n", len(w), i, nch)
 					tw = w[i]
 				}
 				queue.Enqueue(&utils.BFSPair{c, name, tw})

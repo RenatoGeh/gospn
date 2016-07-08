@@ -334,13 +334,16 @@ func ChiSquareTest(p, q int, data [][]int) bool {
 	var chi float64 = 0
 	for i := 0; i < p; i++ {
 		for j := 0; j < q; j++ {
+			if E[i][j] == 0 {
+				continue
+			}
 			diff := float64(data[i][j]) - E[i][j]
 			chi += (diff * diff) / E[i][j]
 		}
 	}
 
 	// Significance value.
-	const sigval = 0.05
+	const sigval = 0.01
 
 	// Compare cmd with sigval. If cmp < sigval, then dependent. Otherwise independent.
 	//fmt.Println("Computing integral of p-value on chi-square distribution...")

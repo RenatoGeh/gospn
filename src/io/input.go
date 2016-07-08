@@ -23,7 +23,7 @@ func GetPath(relpath string) string {
 }
 
 // Reads from a file named filename and returns a matrix of
-func ParseData(filename string) (map[int]learn.Variable, [][]int) {
+func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Printf("Error. Could not open file [%s].\n", filename)
@@ -69,5 +69,14 @@ func ParseData(filename string) (map[int]learn.Variable, [][]int) {
 		line = scanner.Text()
 	}
 
-	return sc, data
+	m, n := len(data), len(data[0])
+	cvntmap := make([]map[int]int, m)
+	for i := 0; i < m; i++ {
+		cvntmap[i] = make(map[int]int)
+		for j := 0; j < n; j++ {
+			cvntmap[i][j] = data[i][j]
+		}
+	}
+
+	return sc, cvntmap
 }

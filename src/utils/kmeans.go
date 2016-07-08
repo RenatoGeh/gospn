@@ -42,24 +42,29 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 	chkdata := make(map[int]int)
 	for i := 0; i < k; i++ {
 		var r int
-		for ok := false; ok; _, ok = chkrnd[r] {
+		for ok := true; ok; _, ok = chkrnd[r] {
 			r = rand.Intn(n)
 		}
-		m := data[r]
+		fmt.Printf("%d vs %d\n", n, r)
 		clusters[i] = make(map[int][]int)
 		chkrnd[r], chkdata[r] = true, i
-		clusters[i][r] = m
-		mean, s := 0.0, len(m)
+		clusters[i][r] = make([]int, len(data[r]))
+		copy(clusters[i][r], data[r])
+		mean, s := 0.0, len(data[r])
 		for j := 0; j < s; j++ {
-			mean += float64(m[j])
+			mean += float64(data[r][j])
 		}
 		means[i] = mean / float64(s)
+		fmt.Printf("init cluster(m=%f) size[%d]: %d\n", means[i], i, len(clusters[i]))
 	}
 
-	diff, diffsum := make([]float64, k), 0.0
+	diff, diffsum := make([]float64, k), -1.0
 
 	fmt.Println("Starting K-means until convergence...")
 	for diffsum != 0 {
+		for i := 0; i < k; i++ {
+			fmt.Printf("before cluster(m=%f) size[%d]: %d\n", means[i], i, len(clusters[i]))
+		}
 		for i := 0; i < n; i++ {
 			min, mean, s, which := math.Inf(1), 0.0, len(data[i]), -1
 			for j := 0; j < s; j++ {
@@ -73,34 +78,47 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 				}
 			}
 			v, ok := chkdata[i]
+			chg := true
 			// Instance i has no attached cluster.
 			if !ok {
 				chkdata[i] = which
-				clusters[which][i] = data[i]
+				clusters[which][i] = make([]int, len(data[i]))
+				copy(clusters[which][i], data[i])
 			} else if v != which {
 				// If instance has an earlier attached cluster.
 				delete(clusters[v], i)
-				clusters[which][i] = data[i]
+				clusters[which][i] = make([]int, len(data[i]))
+				copy(clusters[which][i], data[i])
 				chkdata[i] = which
+			} else {
+				chg = false
+			}
+
+			// Recompute means after a change.
+			if chg {
+				for j := 0; j < k; j++ {
+					mean, s := 0.0, 1
+					for _, value := range clusters[j] {
+						m := len(value)
+						s += m
+						for l := 0; l < m; l++ {
+							mean += float64(value[l])
+						}
+					}
+					md := mean / float64(s)
+					means[j] = md
+					fmt.Printf("after cluster(m=%f) size[%d]: %d\n", means[j], j, len(clusters[j]))
+				}
 			}
 		}
 
 		// Recompute means and diff.
 		diffsum = 0
 		for i := 0; i < k; i++ {
-			mean, s := 0.0, 0
-			for _, value := range clusters[i] {
-				m := len(clusters[i])
-				s += m
-				for j := 0; j < m; j++ {
-					mean += float64(value[j])
-				}
-			}
-			md := mean / float64(s)
-			diff[i] = math.Abs(means[i] - md)
-			diffsum += diff[i]
-			means[i] = md
+			diffsum += math.Abs(means[i] - diff[i])
+			diff[i] = means[i]
 		}
+		fmt.Printf("diffsum: %f\n", diffsum)
 	}
 	fmt.Println("Converged. Returning clusters...")
 

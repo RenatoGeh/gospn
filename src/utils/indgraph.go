@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"sort"
 )
 
 /*
@@ -113,6 +114,7 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 			//fmt.Println("Checking for pairwise independency...")
 			indep := ChiSquareTest(p, q, mdata)
 
+			//fmt.Printf("%t\n", indep)
 			// If not independent, then add an undirected edge i-j.
 			if !indep {
 				//fmt.Println("Not independent. Creating edge...")
@@ -131,7 +133,7 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 	// Set of Union-Find trees.
 	sets := make([]*UFNode, n)
 	// Number of k remaining sets. At first k = n.
-	k := n
+	//k := n
 
 	// Keys are the representative of the set. Value is a list of variables in the set.
 	kmap := make(map[int][]int)
@@ -145,6 +147,33 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 	fmt.Println("Preparing to test each vertex of the independency graph for disconnectivity...")
 	// If a vertex u has an edge with another vertex v, then union sets that contain u and v.
 	for i := 0; i < n; i++ {
+		v1 := ids[i]
+		m := len(igraph.adjlist[v1])
+		for j := 0; j < m; j++ {
+			v2 := igraph.adjlist[v1][j]
+			rv2 := rids[v2]
+
+			if sets[i] == nil {
+				break
+			} else if sets[rv2] == nil {
+				continue
+			}
+
+			_, p := Union(sets[i], sets[rv2])
+			if p == 1 {
+				sets[rv2] = nil
+				kmap[v1] = append(kmap[v1], kmap[v2]...)
+				delete(kmap, v2)
+			} else if p == 2 {
+				sets[i] = nil
+				kmap[v2] = append(kmap[v2], kmap[v1]...)
+				delete(kmap, v1)
+				break
+			}
+		}
+	}
+
+	/*(for i := 0; i < n; i++ {
 		v1 := ids[i]
 		for _, v2 := range igraph.adjlist[v1] {
 			f, s := i, rids[v2]
@@ -172,16 +201,24 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 				k--
 			}
 		}
-	}
+	}*/
 
 	// Reformat sets to slice form.
 	fmt.Println("Reformating sets to slice form...")
-	igraph.Kset = make([][]int, len(kmap))
-	j := 0
-	for _, v := range kmap {
-		igraph.Kset[j] = make([]int, len(v))
-		copy(igraph.Kset[j], v)
-		j++
+	var keys []int
+	for k, v := range kmap {
+		s := len(v)
+		if s > 0 {
+			keys = append(keys, k)
+		}
+	}
+	sort.Ints(keys)
+	m := len(keys)
+	igraph.Kset = make([][]int, m)
+	for i := 0; i < m; i++ {
+		v := kmap[keys[i]]
+		igraph.Kset[i] = make([]int, len(v))
+		copy(igraph.Kset[i], v)
 	}
 
 	fmt.Printf("v: %v\n", kmap)
