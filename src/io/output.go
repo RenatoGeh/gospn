@@ -37,27 +37,26 @@ func DrawGraph(filename string, s spn.SPN) {
 	for !queue.Empty() {
 		currpair := queue.Dequeue()
 		curr, pname, pw := currpair.Spn, currpair.Pname, currpair.Weight
-		ch := s.Ch()
+		ch := curr.Ch()
 		nch := len(ch)
 
 		name := "N"
 		currt := curr.Type()
-		fmt.Printf("queue: %v, queue size: %d\n", queue, queue.Size())
 
 		// In case it is a sum node. Else product node.
 		if currt == "sum" {
 			name = fmt.Sprintf("S%d", nsums)
-			fmt.Fprintf(file, "%s [label="+",shape=circle];\n", name, nsums)
+			fmt.Fprintf(file, "%s [label=\"+\",shape=circle];\n", name)
 			nsums++
-		} else if currt == "prod" {
+		} else if currt == "product" {
 			name = fmt.Sprintf("P%d", nprods)
-			fmt.Fprintf(file, "%s [label=<&times;>,shape=circle];\n", name, nprods)
+			fmt.Fprintf(file, "%s [label=<&times;>,shape=circle];\n", name)
 			nprods++
 		}
 
 		// If pname is empty, then it is the root node. Else, link parent node to current node.
 		if pname != "" {
-			if pw > 0 {
+			if pw >= 0 {
 				fmt.Fprintf(file, "%s -- %s [label=\"%.3f\"];\n", pname, name, pw)
 			} else {
 				fmt.Fprintf(file, "%s -- %s\n", pname, name)
@@ -65,22 +64,24 @@ func DrawGraph(filename string, s spn.SPN) {
 		}
 
 		w := curr.Weights()
-		fmt.Printf("nch: %d, ch: %v, nw: %d, w: %v\n", nch, ch, len(w), w)
+		_ = "breakpoint"
 		// For each children, run the BFS.
 		for i := 0; i < nch; i++ {
 			c := ch[i]
-			fmt.Printf("parent: %v, child: %v\n", curr, c)
 
 			// If leaf, then simply write to the graphviz dot file. Else, recurse the BFS.
 			if c.Type() == "leaf" {
 				cname := fmt.Sprintf("X%d", nvars)
 				fmt.Fprintf(file, "%s [label=<X<sub>%d</sub>>,shape=circle];\n", cname, nvars)
 				nvars++
-				fmt.Fprintf(file, "%s -- %s\n", name, cname)
+				if currt == "sum" {
+					fmt.Fprintf(file, "%s -- %s [label=\"%.3f\"]\n", name, cname, w[i])
+				} else {
+					fmt.Fprintf(file, "%s -- %s\n", name, cname)
+				}
 			} else {
 				tw := -1.0
 				if w != nil {
-					fmt.Printf("lenw: %d, i: %d, nch: %d\n", len(w), i, nch)
 					tw = w[i]
 				}
 				queue.Enqueue(&utils.BFSPair{c, name, tw})

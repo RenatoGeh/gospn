@@ -11,17 +11,17 @@ import (
 )
 
 func learn_test() {
-	comps, err := filepath.Abs("../data/crtsf/compiled")
+	comps, err := filepath.Abs("../data/simple/compiled")
 
 	if err != nil {
-		fmt.Printf("Error on finding data/crtsf/compiled.\n")
+		fmt.Printf("Error on finding data/simple/compiled.\n")
 		panic(err)
 	}
 
-	res, err := filepath.Abs("../results/crtsf/models/all")
+	res, err := filepath.Abs("../results/simple/models/all")
 
 	if err != nil {
-		fmt.Printf("Error on finding results/crt/models.\n")
+		fmt.Printf("Error on finding results/simple/models.\n")
 		panic(err)
 	}
 
@@ -58,7 +58,7 @@ func parse_test() {
 }
 
 func convert_imgs() {
-	cmn, _ := filepath.Abs("../data/crtsf/")
+	cmn, _ := filepath.Abs("../data/simple/")
 	io.PBMFToData(cmn, "all.data")
 }
 
@@ -92,15 +92,34 @@ func queue_test() {
 	for !queue.Empty() {
 		e := queue.Dequeue()
 		fmt.Printf("\"%s\" - %f\n", e.Pname, e.Weight)
+		fmt.Printf("Size: %d\n", queue.Size())
 	}
 	fmt.Printf("Size: %d\n", queue.Size())
+
+	queue.Enqueue(&utils.BFSPair{nil, "4", 4})
+	fmt.Printf("Size: %d\n", queue.Size())
+	queue.Enqueue(&utils.BFSPair{nil, "5", 5})
+	fmt.Printf("Size: %d\n", queue.Size())
+	t := queue.Dequeue()
+	fmt.Printf("\"%s\" - %f\n", t.Pname, t.Weight)
+	fmt.Printf("Size: %d\n", queue.Size())
+	queue.Enqueue(&utils.BFSPair{nil, "6", 6})
+	t = queue.Dequeue()
+	fmt.Printf("\"%s\" - %f\n", t.Pname, t.Weight)
+	fmt.Printf("Size: %d\n", queue.Size())
+
+	for !queue.Empty() {
+		e := queue.Dequeue()
+		fmt.Printf("\"%s\" - %f\n", e.Pname, e.Weight)
+		fmt.Printf("Size: %d\n", queue.Size())
+	}
 }
 
 func main() {
 	//indep_test()
-	//learn_test()
+	learn_test()
 	//convert_imgs()
 	//parse_test()
-	drawgraph_test()
+	//drawgraph_test()
 	//queue_test()
 }
