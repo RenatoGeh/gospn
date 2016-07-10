@@ -31,6 +31,19 @@ func (v FSlice) Distance(mean float64) float64 {
 	return d * d
 }
 
+func recompute_mean(which int, means []float64, clusters []map[int][]int) {
+	mean, s := 0.0, 0
+	for _, v := range clusters[which] {
+		l := len(v)
+		s += l
+		for k := 0; k < l; k++ {
+			mean += float64(v[k])
+		}
+	}
+	means[which] = mean / float64(s)
+	fmt.Printf("change cluster(m=%f) size[%d]: %d\n", means[which], which, len(clusters[which]))
+}
+
 func KMeansV(k int, data [][]int) []map[int][]int {
 	n := len(data)
 
@@ -55,18 +68,24 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 			mean += float64(data[r][j])
 		}
 		means[i] = mean / float64(s)
-		fmt.Printf("init cluster(m=%f) size[%d]: %d\n", means[i], i, len(clusters[i]))
 	}
 
 	diff, diffsum := make([]float64, k), -1.0
 
 	fmt.Println("Starting K-means until convergence...")
 	for diffsum != 0 {
-		for i := 0; i < k; i++ {
-			fmt.Printf("before cluster(m=%f) size[%d]: %d\n", means[i], i, len(clusters[i]))
-		}
 		for i := 0; i < n; i++ {
 			min, mean, s, which := math.Inf(1), 0.0, len(data[i]), -1
+			if chk, ok := chkdata[i]; ok {
+				which = chk
+				l := len(clusters[which][i])
+				min = 0
+				for j := 0; j < l; j++ {
+					min += float64(clusters[which][i][j])
+				}
+				min = Float(min / float64(l)).Distance(means[which])
+			}
+
 			for j := 0; j < s; j++ {
 				mean += float64(data[i][j])
 			}
@@ -78,37 +97,20 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 				}
 			}
 			v, ok := chkdata[i]
-			chg := true
 			// Instance i has no attached cluster.
 			if !ok {
 				chkdata[i] = which
 				clusters[which][i] = make([]int, len(data[i]))
 				copy(clusters[which][i], data[i])
+				recompute_mean(which, means, clusters)
 			} else if v != which {
 				// If instance has an earlier attached cluster.
 				delete(clusters[v], i)
 				clusters[which][i] = make([]int, len(data[i]))
 				copy(clusters[which][i], data[i])
 				chkdata[i] = which
-			} else {
-				chg = false
-			}
-
-			// Recompute means after a change.
-			if chg {
-				for j := 0; j < k; j++ {
-					mean, s := 0.0, 1
-					for _, value := range clusters[j] {
-						m := len(value)
-						s += m
-						for l := 0; l < m; l++ {
-							mean += float64(value[l])
-						}
-					}
-					md := mean / float64(s)
-					means[j] = md
-					fmt.Printf("after cluster(m=%f) size[%d]: %d\n", means[j], j, len(clusters[j]))
-				}
+				recompute_mean(which, means, clusters)
+				recompute_mean(v, means, clusters)
 			}
 		}
 

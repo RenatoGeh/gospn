@@ -132,7 +132,6 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 
 	// Else we perform k-clustering on the instances.
 	fmt.Println("No independency found. Preparing for clustering...")
-	sum := spn.NewSum()
 
 	m := len(data)
 	mdata := make([][]int, m)
@@ -153,10 +152,11 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	}
 
 	fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
-	const KClusters = 2
+	KClusters := 4
 	if len(mdata) < KClusters {
 		// Fully factorized form.
 		// All instances are approximately the same.
+		prod := spn.NewProduct()
 		m := len(data)
 		for _, v := range sc {
 			pr, l := make([]float64, v.Categories), v.Categories
@@ -166,10 +166,10 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 			for i := 0; i < l; i++ {
 				pr[i] /= float64(m)
 			}
-			leaf, w := spn.NewUnivDist(v.Varid, pr), 1.0/float64(n)
-			sum.AddChildW(leaf, w)
+			leaf := spn.NewUnivDist(v.Varid, pr)
+			prod.AddChild(leaf)
 		}
-		return sum
+		return prod
 	}
 	clusters := utils.KMeansV(KClusters, mdata)
 	k := len(clusters)
@@ -177,7 +177,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	emptyc := 0
 	var empties []int
 	for i := 0; i < k; i++ {
-		if len(clusters[i]) == 0 {
+		if len(clusters[i]) == 1 {
 			emptyc++
 			empties = append(empties, i)
 		}
@@ -185,6 +185,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 
 	if emptyc == k-1 {
 		// All instances are approximately the same.
+		prod := spn.NewProduct()
 		m := len(data)
 		for _, v := range sc {
 			pr, l := make([]float64, v.Categories), v.Categories
@@ -194,20 +195,15 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 			for i := 0; i < l; i++ {
 				pr[i] /= float64(m)
 			}
-			leaf, w := spn.NewUnivDist(v.Varid, pr), 1.0/float64(n)
-			sum.AddChildW(leaf, w)
+			leaf := spn.NewUnivDist(v.Varid, pr)
+			prod.AddChild(leaf)
 		}
-		return sum
+		return prod
 	}
 
-	fmt.Println("Reformating clusters to appropriate format and creating sum nodes...")
-	e := 0
+	fmt.Println("Reformating clusters to appropriate format and creating sum node...")
+	sum := spn.NewSum()
 	for i := 0; i < k; i++ {
-		if len(empties) > 0 && i == empties[e] {
-			e++
-			continue
-		}
-
 		s := len(clusters[i])
 		ndata := make([]map[int]int, s)
 		for j := 0; j < s; j++ {
@@ -219,7 +215,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 				}
 			}
 		}
-		fmt.Println("Created new sum node. Recursing...")
+		fmt.Println("Created new sum node child. Recursing...")
 		sum.AddChildW(Gens(sc, ndata), float64(s)/float64(n))
 	}
 
