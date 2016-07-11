@@ -72,7 +72,7 @@ func DrawGraph(filename string, s spn.SPN) {
 			// If leaf, then simply write to the graphviz dot file. Else, recurse the BFS.
 			if c.Type() == "leaf" {
 				cname := fmt.Sprintf("X%d", nvars)
-				fmt.Fprintf(file, "%s [label=<X<sub>%d</sub>>,shape=circle];\n", cname, nvars)
+				fmt.Fprintf(file, "%s [label=<X<sub>%d</sub>>,shape=circle];\n", cname, c.Sc()[0])
 				nvars++
 				if currt == "sum" {
 					fmt.Fprintf(file, "%s -- %s [label=\"%.3f\"]\n", name, cname, w[i])
@@ -312,5 +312,143 @@ func PBMToData(dirname, dname string, class int) {
 		} else {
 			fmt.Fprintf(out, "\n")
 		}
+	}
+}
+
+func PBMFToEvidence(dirname, dname string) {
+	sdir, err := os.Open(dirname)
+
+	if err != nil {
+		fmt.Printf("Error. Could not open superdirectory [%s].\n", dirname)
+		panic(err)
+	}
+	defer sdir.Close()
+
+	subdirs, err := sdir.Readdirnames(-1)
+
+	if err != nil {
+		fmt.Printf("Error. Could not extract subdirectories from directory [%s].\n", dirname)
+		panic(err)
+	}
+
+	nsdirs := len(subdirs)
+	tpath := utils.StringConcat(dirname, "/")
+	var mrkrm []int
+	// Reserved dirname compiled for output. Also remove non-dirs.
+	for i := 0; i < nsdirs; i++ {
+		// m marks the spot.
+		// Since for every removed item the slice shrinks by one, we keep track of the indices by
+		// taking into account the subslices "translated" at the right moment.
+		if subdirs[i] == "compiled" {
+			var m int = i
+			if len(mrkrm) > 0 {
+				m = i - 1
+			}
+			mrkrm = append(mrkrm, m)
+		} else if fi, _ := os.Stat(utils.StringConcat(tpath, subdirs[i])); !fi.IsDir() {
+			var m int = i
+			if len(mrkrm) > 0 {
+				m = i - 1
+			}
+			mrkrm = append(mrkrm, m)
+		}
+	}
+
+	// Remove marked elements.
+	for i := 0; i < len(mrkrm); i++ {
+		j := mrkrm[i]
+		subdirs, nsdirs = append(subdirs[:j], subdirs[j+1:]...), nsdirs-1
+	}
+
+	// Memorize all subfiles.
+	var instreams []*bufio.Scanner = nil
+	var labels []int = nil
+	for i := 0; i < nsdirs; i++ {
+		sd, err := os.Open(utils.StringConcat(tpath, subdirs[i]))
+
+		if err != nil {
+			fmt.Printf("Error. Failed to open subdirectory [%s].\n", subdirs[i])
+			panic(err)
+		}
+		defer sd.Close()
+
+		sf, err := sd.Readdirnames(-1)
+
+		if err != nil {
+			fmt.Printf("Error. Failed to read files under [%s].\n", subdirs[i])
+			panic(err)
+		}
+
+		spath := utils.StringConcat(utils.StringConcat(tpath, subdirs[i]), "/")
+		nsf := len(sf)
+		for j := 0; j < nsf; j++ {
+			f, err := os.Open(utils.StringConcat(spath, sf[j]))
+
+			if err != nil {
+				fmt.Printf("Error. Failed to open file [%s%s].\n", spath, sf[j])
+				panic(err)
+			}
+			defer f.Close()
+
+			instreams = append(instreams, bufio.NewScanner(f))
+			labels = append(labels, i)
+		}
+	}
+
+	// Create compiled folder.
+	cmpname, err := filepath.Abs(dirname)
+
+	if err != nil {
+		fmt.Printf("Error retrieving path [%s].\n", dirname)
+		panic(err)
+	}
+
+	cmpname = utils.StringConcat(cmpname, "/compiled")
+	if _, err := os.Stat(cmpname); os.IsNotExist(err) {
+		os.Mkdir(cmpname, 0777)
+	}
+
+	cmpname = utils.StringConcat(cmpname, "/")
+	out, err := os.Create(utils.StringConcat(cmpname, dname))
+
+	if err != nil {
+		fmt.Printf("Error creating output file [%s/%s].\n", cmpname, dname)
+		panic(err)
+	}
+	defer out.Close()
+
+	// Deal with P1.
+	instreams[0].Scan()
+
+	// Read width and height.
+	w, h := -1, -1
+	instreams[0].Scan()
+	fmt.Sscanf(instreams[0].Text(), "%d %d", &w, &h)
+
+	nin := len(instreams)
+	// Move stream pointer to the right position.
+	for i := 1; i < nin; i++ {
+		instreams[i].Scan()
+		instreams[i].Scan()
+	}
+
+	// Declare variables to data file.
+	tt := w * h
+	for i := 0; i < tt; i++ {
+		fmt.Fprintf(out, "var %d 2\n", i)
+	}
+
+	for i := 0; i < nin; i++ {
+		stream := instreams[i]
+
+		for stream.Scan() {
+			line := stream.Text()
+			nline := len(line)
+			for j := 0; j < nline; j++ {
+				fmt.Fprintf(out, "%c ", line[j])
+			}
+		}
+
+		fmt.Fprintf(out, "\n")
 	}
 }

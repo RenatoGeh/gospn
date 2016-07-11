@@ -74,10 +74,9 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	}
 
 	// Else we check for independent subsets of variables. We separate variables in k partitions,
-	// where every partition is pairwise indepedent with another.
+	// where every partition is pairwise indepedent with each other.
 	fmt.Println("Preparing to create new product node...")
 
-	// vdata is the transpose of data.
 	fmt.Println("Creating VarDatas for Independency Test...")
 	vdata, l := make([]*utils.VarData, n), 0
 	for _, v := range sc {
@@ -216,7 +215,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 			}
 		}
 		fmt.Println("Created new sum node child. Recursing...")
-		sum.AddChildW(Gens(sc, ndata), float64(s)/float64(n))
+		sum.AddChildW(Gens(sc, ndata), float64(s)/float64(len(data)))
 	}
 
 	return sum

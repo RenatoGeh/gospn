@@ -10,18 +10,18 @@ import (
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
-func learn_test() {
-	comps, err := filepath.Abs("../data/simple/compiled")
+func learn_test() spn.SPN {
+	comps, err := filepath.Abs("../data/digits/compiled")
 
 	if err != nil {
-		fmt.Printf("Error on finding data/simple/compiled.\n")
+		fmt.Printf("Error on finding data/digits/compiled.\n")
 		panic(err)
 	}
 
-	res, err := filepath.Abs("../results/simple/models/all")
+	res, err := filepath.Abs("../results/digits/models/all")
 
 	if err != nil {
-		fmt.Printf("Error on finding results/simple/models.\n")
+		fmt.Printf("Error on finding results/digits/models.\n")
 		panic(err)
 	}
 
@@ -29,6 +29,8 @@ func learn_test() {
 	s := learn.Gens(io.ParseData(utils.StringConcat(comps, "/all.data")))
 	fmt.Printf("Drawing graph...\n")
 	io.DrawGraph(utils.StringConcat(res, "/all.dot"), s)
+
+	return s
 }
 
 func indep_test() {
@@ -58,8 +60,13 @@ func parse_test() {
 }
 
 func convert_imgs() {
-	cmn, _ := filepath.Abs("../data/simple/")
+	cmn, _ := filepath.Abs("../data/digits/")
 	io.PBMFToData(cmn, "all.data")
+}
+
+func cvntev_imgs() {
+	cmn, _ := filepath.Abs("../data/digits_test/")
+	io.PBMFToEvidence(cmn, "all.data")
 }
 
 func drawgraph_test() {
@@ -81,6 +88,12 @@ func drawgraph_test() {
 
 	path, _ := filepath.Abs("../results/crtsf/models/all")
 	io.DrawGraph(utils.StringConcat(path, "/all.dot"), s)
+
+	fmt.Println("Testing probabilities...")
+
+	vset := make(spn.VarSet)
+	vset[2], vset[1], vset[4] = 1, 0, 1
+	fmt.Printf("Pr(X_1=0, X_2=1, X_4=1)=%f.\n", s.Value(vset))
 }
 
 func queue_test() {
@@ -115,11 +128,32 @@ func queue_test() {
 	}
 }
 
+func classify_test() {
+	s := learn_test()
+	sc, ev := io.ParseEvidence(io.GetPath("../data/digits_test/compiled/all.data"))
+
+	nv, nsc := 3, len(sc)
+
+	for i := 0; i < nv; i++ {
+		vset := make(spn.VarSet)
+		for k, v := range ev[i] {
+			vset[k] = v
+		}
+		vset[nsc+1] = i
+		pz := s.Value(ev[i])
+		px := s.Value(vset)
+		pr := px / pz
+		fmt.Printf("Pr(X=%d|E)=%f/%f=%f\n", i, px, pz, pr)
+	}
+}
+
 func main() {
 	//indep_test()
-	learn_test()
+	//learn_test()
 	//convert_imgs()
+	//cvntev_imgs()
 	//parse_test()
 	//drawgraph_test()
 	//queue_test()
+	classify_test()
 }

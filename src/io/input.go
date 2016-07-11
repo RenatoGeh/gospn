@@ -22,7 +22,7 @@ func GetPath(relpath string) string {
 	return rp
 }
 
-// Reads from a file named filename and returns a matrix of
+// Reads from a file named filename and returns the scope and data map of the parsed data file.
 func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -79,4 +79,13 @@ func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 	}
 
 	return sc, cvntmap
+}
+
+// An evidence file contains the instantiations of a subset of variables as evidence to be computed
+// during inference. It may contain multiple instantiations.
+//
+// Returns a slice of maps, with each key corresponding to a variable ID and each associated value
+// as the valuation of such variable; and the scope.
+func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int) {
+	return ParseData(filename)
 }
