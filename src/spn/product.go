@@ -1,5 +1,9 @@
 package spn
 
+import (
+	"fmt"
+)
+
 // Product represents an SPN product node.
 type Product struct {
 	// Children nodes.
@@ -62,9 +66,12 @@ func (p *Product) Value(valuation VarSet) float64 {
 	n := len(p.ch)
 
 	for i := 0; i < n; i++ {
-		v *= (p.ch[i]).Value(valuation)
+		vch := (p.ch[i]).Value(valuation)
+		fmt.Printf("ch[%d] of type \"%s\" pa \"%s\": %f\n", i, p.ch[i].Type(), "product", vch)
+		v *= vch
 	}
 
+	fmt.Printf("Value of product node: %f\n", v)
 	return v
 }
 

@@ -9,15 +9,15 @@ endif
 set shortmess=aoO
 badd +122 learn/gens.go
 badd +58 utils/indgraph.go
-badd +27 main.go
+badd +150 main.go
 badd +85 io/input.go
-badd +49 io/output.go
-badd +19 utils/unionfind.go
-badd +345 utils/indtest.go
+badd +75 io/output.go
+badd +16 utils/unionfind.go
+badd +355 utils/indtest.go
 badd +10 utils/kmeans.go
-badd +8 spn/sum.go
+badd +91 spn/sum.go
 badd +61 spn/product.go
-badd +64 spn/univdist.go
+badd +53 spn/univdist.go
 badd +25 spn/node.go
 badd +2 spn/varset.go
 argglobal
@@ -64,12 +64,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 39 - ((0 * winheight(0) + 29) / 58)
+let s:l = 63 - ((36 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-39
-normal! 015|
+63
+normal! 027|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 2wincmd w
@@ -102,7 +102,7 @@ if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
 75
-normal! 089|
+normal! 087|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
@@ -162,12 +162,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 91 - ((27 * winheight(0) + 14) / 28)
+let s:l = 78 - ((17 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-91
-normal! 0
+78
+normal! 086|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
@@ -181,11 +181,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 158 - ((27 * winheight(0) + 14) / 29)
+let s:l = 148 - ((14 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-158
+148
 normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -200,16 +200,16 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 57 - ((28 * winheight(0) + 14) / 29)
+let s:l = 46 - ((5 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-57
-normal! 0
+46
+normal! 048|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
-edit ~/go/src/github.com/RenatoGeh/gospn/src/spn/univdist.go
+edit ~/go/src/github.com/RenatoGeh/gospn/src/spn/product.go
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -219,12 +219,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 53 - ((27 * winheight(0) + 14) / 28)
+let s:l = 69 - ((14 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-53
-normal! 0
+69
+normal! 011|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 exe '1resize ' . ((&lines * 28 + 30) / 61)

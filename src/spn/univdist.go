@@ -1,5 +1,9 @@
 package spn
 
+import (
+	"fmt"
+)
+
 // Mode of a univariate distribution.
 type Mode struct {
 	// Value of variable when it is the highest.
@@ -37,6 +41,33 @@ func NewUnivDist(varid int, dist []float64) *UnivDist {
 	}
 
 	return &UnivDist{nil, varid, dist, Mode{mi, m}, []int{varid}}
+}
+
+func NewCountingUnivDist(varid int, counts []int) *UnivDist {
+	n := len(counts)
+
+	pr := make([]float64, n)
+	s := 0.0
+	for i := 0; i < n; i++ {
+		s += 1.0 + float64(counts[i])
+		pr[i] = float64(1 + counts[i])
+	}
+
+	for i := 0; i < n; i++ {
+		pr[i] /= float64(s)
+	}
+
+	var m float64 = 0
+	var mi int = 0
+
+	for i := 0; i < n; i++ {
+		if pr[i] > m {
+			m = pr[i]
+			mi = i
+		}
+	}
+
+	return &UnivDist{nil, varid, pr, Mode{mi, m}, []int{varid}}
 }
 
 // Constructs a new empty UnivDist for learning. We initialize pr to a uniform distribution.
@@ -80,8 +111,10 @@ func (ud *UnivDist) AddChild(c Node) {}
 func (ud *UnivDist) Value(valuation VarSet) float64 {
 	val, ok := valuation[ud.varid]
 	if ok {
+		fmt.Printf("Value of leaf node: %f\n", ud.pr[val])
 		return ud.pr[val]
 	}
+	fmt.Printf("Value of leaf node: 1.00\n")
 	return 1.0
 }
 

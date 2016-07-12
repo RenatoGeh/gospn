@@ -60,15 +60,12 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 		for _, v := range sc {
 			tv = &v
 		}
-		pr, l := make([]float64, tv.Categories), tv.Categories
+		counts := make([]int, tv.Categories)
 		for i := 0; i < m; i++ {
-			pr[data[i][tv.Varid]]++
-		}
-		for i := 0; i < l; i++ {
-			pr[i] /= float64(m)
+			counts[data[i][tv.Varid]]++
 		}
 
-		leaf := spn.NewUnivDist(tv.Varid, pr)
+		leaf := spn.NewCountingUnivDist(tv.Varid, counts)
 		fmt.Println("Leaf created.")
 		return leaf
 	}
@@ -158,14 +155,11 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 		prod := spn.NewProduct()
 		m := len(data)
 		for _, v := range sc {
-			pr, l := make([]float64, v.Categories), v.Categories
+			counts := make([]int, v.Categories)
 			for i := 0; i < m; i++ {
-				pr[data[i][v.Varid]]++
+				counts[data[i][v.Varid]]++
 			}
-			for i := 0; i < l; i++ {
-				pr[i] /= float64(m)
-			}
-			leaf := spn.NewUnivDist(v.Varid, pr)
+			leaf := spn.NewCountingUnivDist(v.Varid, counts)
 			prod.AddChild(leaf)
 		}
 		return prod
@@ -182,19 +176,16 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 		}
 	}
 
-	if emptyc == k-1 {
+	if emptyc >= k-1 {
 		// All instances are approximately the same.
 		prod := spn.NewProduct()
 		m := len(data)
 		for _, v := range sc {
-			pr, l := make([]float64, v.Categories), v.Categories
+			counts := make([]int, v.Categories)
 			for i := 0; i < m; i++ {
-				pr[data[i][v.Varid]]++
+				counts[data[i][v.Varid]]++
 			}
-			for i := 0; i < l; i++ {
-				pr[i] /= float64(m)
-			}
-			leaf := spn.NewUnivDist(v.Varid, pr)
+			leaf := spn.NewCountingUnivDist(v.Varid, counts)
 			prod.AddChild(leaf)
 		}
 		return prod

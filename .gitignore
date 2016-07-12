@@ -1,3 +1,7 @@
+# Output files.
+src/out.put
+out.put
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a

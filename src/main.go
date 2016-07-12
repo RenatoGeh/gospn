@@ -145,6 +145,10 @@ func classify_test() {
 		pr := px / pz
 		fmt.Printf("Pr(X=%d|E)=%f/%f=%f\n", i, px, pz, pr)
 	}
+
+	argmax, max := s.ArgMax(ev[0])
+	arg, ok := argmax[600]
+	fmt.Printf("argmax_X Pr(X|E) = [%t, %d] %f\n", ok, arg, max)
 }
 
 func main() {

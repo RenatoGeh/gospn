@@ -1,5 +1,9 @@
 package spn
 
+import (
+	"fmt"
+)
+
 // Sum represents an SPN sum node.
 type Sum struct {
 	// Children nodes.
@@ -70,9 +74,12 @@ func (s *Sum) Value(valuation VarSet) float64 {
 	n := len(s.ch)
 
 	for i := 0; i < n; i++ {
-		v += s.w[i] * (s.ch[i]).Value(valuation)
+		vch := (s.ch[i]).Value(valuation)
+		fmt.Printf("ch[%d] of type \"%s\" pa \"%s\": %f\n", i, s.ch[i].Type(), "sum", vch)
+		v += s.w[i] * vch
 	}
 
+	fmt.Printf("Value of sum node: %f\n", v)
 	return v
 }
 
