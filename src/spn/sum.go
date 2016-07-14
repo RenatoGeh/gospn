@@ -2,6 +2,8 @@ package spn
 
 import (
 	"fmt"
+
+	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
 // Sum represents an SPN sum node.
@@ -70,22 +72,30 @@ func (s *Sum) Weights() []float64 { return s.w }
 
 // Value returns the value of this SPN given a set of valuations.
 func (s *Sum) Value(valuation VarSet) float64 {
-	var v float64 = 0
 	n := len(s.ch)
+	ch := s.Ch()
 
-	for i := 0; i < n; i++ {
-		vch := (s.ch[i]).Value(valuation)
-		fmt.Printf("ch[%d] of type \"%s\" pa \"%s\": %f\n", i, s.ch[i].Type(), "sum", vch)
-		v += s.w[i] * vch
+	p1 := utils.Log(s.w[0]) + ch[0].Value(valuation)
+	for i := 1; i < n; i++ {
+		p2 := utils.Log(s.w[i]) + ch[i].Value(valuation)
+		l := utils.LogSumPair(utils.AntiLog(p1), utils.AntiLog(p2))
+		p1 = l
 	}
 
-	fmt.Printf("Value of sum node: %f\n", v)
-	return v
+	//for i := 0; i < n; i++ {
+	//vch := (s.ch[i]).Value(valuation)
+	//v += utils.Log(s.w[i]) * vch
+	//fmt.Printf("ch[%d] of type \"%s\" pa \"%s\": %f\n", i, s.ch[i].Type(), "sum", vch)
+	//v += s.w[i] * vch
+	//}
+
+	fmt.Printf("Value of sum node: %f\n", p1)
+	return p1
 }
 
 // Max returns the MAP state given a valuation.
 func (s *Sum) Max(valuation VarSet) float64 {
-	var max float64 = 0
+	var max float64 = utils.Inf(-1)
 	n := len(s.ch)
 
 	for i := 0; i < n; i++ {

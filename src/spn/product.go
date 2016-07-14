@@ -2,6 +2,8 @@ package spn
 
 import (
 	"fmt"
+
+	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
 // Product represents an SPN product node.
@@ -62,14 +64,21 @@ func (p *Product) Sc() []int {
 
 // Value returns the value of this SPN given a set of valuations.
 func (p *Product) Value(valuation VarSet) float64 {
-	var v float64 = 1
 	n := len(p.ch)
+	ch := p.Ch()
+	v := 0.0
 
 	for i := 0; i < n; i++ {
-		vch := (p.ch[i]).Value(valuation)
-		fmt.Printf("ch[%d] of type \"%s\" pa \"%s\": %f\n", i, p.ch[i].Type(), "product", vch)
-		v *= vch
+		v += ch[i].Value(valuation)
 	}
+	//for i := 0; i < n; i++ {
+	//vch := (p.ch[i]).Value(valuation)
+	//cv[i] = vch
+	//fmt.Printf("ch[%d] of type \"%s\" pa \"%s\": %f\n", i, p.ch[i].Type(), "product", vch)
+	//v *= vch
+	//}
+
+	//v := utils.LogProd(cv...)
 
 	fmt.Printf("Value of product node: %f\n", v)
 	return v
@@ -77,12 +86,15 @@ func (p *Product) Value(valuation VarSet) float64 {
 
 // Max returns the MAP state given a valuation.
 func (p *Product) Max(valuation VarSet) float64 {
-	var v float64 = 1
 	n := len(p.ch)
+	cv := make([]float64, n)
 
 	for i := 0; i < n; i++ {
-		v *= (p.ch[i]).Max(valuation)
+		//v *= (p.ch[i]).Max(valuation)
+		cv[i] = (p.ch[i]).Max(valuation)
 	}
+
+	v := utils.LogProd(cv...)
 
 	return v
 }
@@ -91,7 +103,7 @@ func (p *Product) Max(valuation VarSet) float64 {
 func (p *Product) ArgMax(valuation VarSet) (VarSet, float64) {
 	argmax := make(VarSet)
 	n := len(p.ch)
-	pmap := 1.0
+	cv := make([]float64, n)
 
 	// Only a product node may have leaves as children. We must iterate through all children and
 	// recurse through them. Since a product node's children must have disjoint scopes, each child
@@ -100,11 +112,14 @@ func (p *Product) ArgMax(valuation VarSet) (VarSet, float64) {
 	// recurse once again.
 	for i := 0; i < n; i++ {
 		chargs, chmap := p.ch[i].ArgMax(valuation)
-		pmap *= chmap
+		cv[i] = chmap
+		//pmap *= chmap
 		for k, v := range chargs {
 			argmax[k] = v
 		}
 	}
+
+	pmap := utils.LogProd(cv...)
 
 	return argmax, pmap
 }

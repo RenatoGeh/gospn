@@ -1,4 +1,4 @@
-package utils
+package common
 
 import (
 	spn "github.com/RenatoGeh/gospn/src/spn"

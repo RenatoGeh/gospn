@@ -167,29 +167,29 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	clusters := utils.KMeansV(KClusters, mdata)
 	k := len(clusters)
 
-	emptyc := 0
-	var empties []int
-	for i := 0; i < k; i++ {
-		if len(clusters[i]) == 1 {
-			emptyc++
-			empties = append(empties, i)
-		}
-	}
+	//emptyc := 0
+	//var empties []int
+	//for i := 0; i < k; i++ {
+	//if len(clusters[i]) == 1 {
+	//emptyc++
+	//empties = append(empties, i)
+	//}
+	//}
 
-	if emptyc >= k-1 {
-		// All instances are approximately the same.
-		prod := spn.NewProduct()
-		m := len(data)
-		for _, v := range sc {
-			counts := make([]int, v.Categories)
-			for i := 0; i < m; i++ {
-				counts[data[i][v.Varid]]++
-			}
-			leaf := spn.NewCountingUnivDist(v.Varid, counts)
-			prod.AddChild(leaf)
-		}
-		return prod
-	}
+	//if emptyc >= k-1 {
+	//All instances are approximately the same.
+	//prod := spn.NewProduct()
+	//m := len(data)
+	//for _, v := range sc {
+	//counts := make([]int, v.Categories)
+	//for i := 0; i < m; i++ {
+	//counts[data[i][v.Varid]]++
+	//}
+	//leaf := spn.NewCountingUnivDist(v.Varid, counts)
+	//prod.AddChild(leaf)
+	//}
+	//return prod
+	//}
 
 	fmt.Println("Reformating clusters to appropriate format and creating sum node...")
 	sum := spn.NewSum()

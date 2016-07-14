@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"path/filepath"
 
+	common "github.com/RenatoGeh/gospn/src/common"
 	io "github.com/RenatoGeh/gospn/src/io"
 	learn "github.com/RenatoGeh/gospn/src/learn"
 	spn "github.com/RenatoGeh/gospn/src/spn"
@@ -97,10 +100,10 @@ func drawgraph_test() {
 }
 
 func queue_test() {
-	queue := utils.QueueBFSPair{}
-	queue.Enqueue(&utils.BFSPair{nil, "1", 1})
-	queue.Enqueue(&utils.BFSPair{nil, "2", 2})
-	queue.Enqueue(&utils.BFSPair{nil, "3", 3})
+	queue := common.QueueBFSPair{}
+	queue.Enqueue(&common.BFSPair{nil, "1", 1})
+	queue.Enqueue(&common.BFSPair{nil, "2", 2})
+	queue.Enqueue(&common.BFSPair{nil, "3", 3})
 
 	for !queue.Empty() {
 		e := queue.Dequeue()
@@ -109,14 +112,14 @@ func queue_test() {
 	}
 	fmt.Printf("Size: %d\n", queue.Size())
 
-	queue.Enqueue(&utils.BFSPair{nil, "4", 4})
+	queue.Enqueue(&common.BFSPair{nil, "4", 4})
 	fmt.Printf("Size: %d\n", queue.Size())
-	queue.Enqueue(&utils.BFSPair{nil, "5", 5})
+	queue.Enqueue(&common.BFSPair{nil, "5", 5})
 	fmt.Printf("Size: %d\n", queue.Size())
 	t := queue.Dequeue()
 	fmt.Printf("\"%s\" - %f\n", t.Pname, t.Weight)
 	fmt.Printf("Size: %d\n", queue.Size())
-	queue.Enqueue(&utils.BFSPair{nil, "6", 6})
+	queue.Enqueue(&common.BFSPair{nil, "6", 6})
 	t = queue.Dequeue()
 	fmt.Printf("\"%s\" - %f\n", t.Pname, t.Weight)
 	fmt.Printf("Size: %d\n", queue.Size())
@@ -140,15 +143,38 @@ func classify_test() {
 			vset[k] = v
 		}
 		vset[nsc+1] = i
+		_ = "breakpoint"
 		pz := s.Value(ev[i])
 		px := s.Value(vset)
-		pr := px / pz
-		fmt.Printf("Pr(X=%d|E)=%f/%f=%f\n", i, px, pz, pr)
+		pr := px - pz
+		_ = "breakpoint"
+		fmt.Printf("Pr(X=%d|E)=%.50f/%.50f=%f\n", i, px, pz, utils.AntiLog(pr))
 	}
 
-	argmax, max := s.ArgMax(ev[0])
-	arg, ok := argmax[600]
-	fmt.Printf("argmax_X Pr(X|E) = [%t, %d] %f\n", ok, arg, max)
+	//argmax, max := s.ArgMax(ev[0])
+	//arg, ok := argmax[600]
+	//fmt.Printf("argmax_X Pr(X|E) = [%t, %d] %f\n", ok, arg, utils.AntiLog(max))
+}
+
+func log_test() {
+	const n = 50
+	pr, w := make([]float64, n), make([]float64, n)
+	for i := 0; i < n; i++ {
+		pr[i] = rand.Float64()
+		w[i] = rand.Float64()
+	}
+	sumv, sum, prod := make([]float64, n), 0.0, 1.0
+	for i := 0; i < n; i++ {
+		sumv[i] = w[i] * pr[i]
+		sum += w[i] * pr[i]
+		prod *= pr[i]
+	}
+	ls, s := utils.AntiLog(utils.LogSum(sumv...)), sum
+	lp, p := utils.AntiLog(utils.LogProd(pr...)), prod
+	fmt.Printf("SUM:  (Lval=%.50f) == (Rval=%.50f) ? %t\n  DIFF: %.50f\n",
+		ls, s, ls == s, math.Abs(ls-s))
+	fmt.Printf("PROD: (Lval=%.50f) == (Rval=%.50f) ? %t\n  DIFF: %.50f\n",
+		lp, p, lp == p, math.Abs(lp-p))
 }
 
 func main() {
@@ -160,4 +186,5 @@ func main() {
 	//drawgraph_test()
 	//queue_test()
 	classify_test()
+	//log_test()
 }

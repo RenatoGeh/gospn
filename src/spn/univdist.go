@@ -2,6 +2,8 @@ package spn
 
 import (
 	"fmt"
+
+	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
 // Mode of a univariate distribution.
@@ -112,19 +114,21 @@ func (ud *UnivDist) Value(valuation VarSet) float64 {
 	val, ok := valuation[ud.varid]
 	if ok {
 		fmt.Printf("Value of leaf node: %f\n", ud.pr[val])
-		return ud.pr[val]
+		return utils.Log(ud.pr[val])
 	}
 	fmt.Printf("Value of leaf node: 1.00\n")
-	return 1.0
+
+	//	return 1.0
+	return 0.0 // ln(1.0) = 0.0
 }
 
 // Max returns the MAP state given a valuation.
 func (ud *UnivDist) Max(valuation VarSet) float64 {
 	val, ok := valuation[ud.varid]
 	if ok {
-		return ud.pr[val]
+		return utils.Log(ud.pr[val])
 	}
-	return ud.mode.val
+	return utils.Log(ud.mode.val)
 }
 
 // ArgMax returns both the arguments and the value of the MAP state given a certain valuation.
@@ -134,9 +138,9 @@ func (ud *UnivDist) ArgMax(valuation VarSet) (VarSet, float64) {
 
 	if ok {
 		retval[ud.varid] = val
-		return retval, ud.pr[val]
+		return retval, utils.Log(ud.pr[val])
 	}
 
 	retval[ud.varid] = ud.mode.index
-	return retval, ud.mode.val
+	return retval, utils.Log(ud.mode.val)
 }

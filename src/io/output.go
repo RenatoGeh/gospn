@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	common "github.com/RenatoGeh/gospn/src/common"
 	spn "github.com/RenatoGeh/gospn/src/spn"
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
@@ -32,8 +33,8 @@ func DrawGraph(filename string, s spn.SPN) {
 
 	// Else, BFS the SPN and write nodes to filename.
 	nvars, nsums, nprods := 0, 0, 0
-	queue := utils.QueueBFSPair{}
-	queue.Enqueue(&utils.BFSPair{s, "", -1.0})
+	queue := common.QueueBFSPair{}
+	queue.Enqueue(&common.BFSPair{s, "", -1.0})
 	for !queue.Empty() {
 		currpair := queue.Dequeue()
 		curr, pname, pw := currpair.Spn, currpair.Pname, currpair.Weight
@@ -84,7 +85,7 @@ func DrawGraph(filename string, s spn.SPN) {
 				if w != nil {
 					tw = w[i]
 				}
-				queue.Enqueue(&utils.BFSPair{c, name, tw})
+				queue.Enqueue(&common.BFSPair{c, name, tw})
 			}
 		}
 	}
