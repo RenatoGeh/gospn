@@ -43,7 +43,7 @@ func indep_test() {
 		{200, 150, 50, 400},
 		{250, 300, 50, 600},
 		{450, 450, 100, 1000}}
-	fmt.Printf("Indep? %t\n", utils.ChiSquareTest(2, 3, data))
+	fmt.Printf("Indep? %t\n", utils.ChiSquareTest(2, 3, data, 1))
 }
 
 func parse_test() {

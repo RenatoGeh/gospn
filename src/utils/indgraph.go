@@ -112,7 +112,7 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 
 			// Checks if variables i, j are independent.
 			//fmt.Println("Checking for pairwise independency...")
-			indep := ChiSquareTest(p, q, mdata)
+			indep := ChiSquareTest(p, q, mdata, n-1)
 
 			//fmt.Printf("%t\n", indep)
 			// If not independent, then add an undirected edge i-j.

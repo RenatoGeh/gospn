@@ -8,19 +8,19 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +122 learn/gens.go
-badd +58 utils/indgraph.go
+badd +115 utils/indgraph.go
 badd +150 main.go
 badd +85 io/input.go
-badd +75 io/output.go
+badd +453 io/output.go
 badd +16 utils/unionfind.go
-badd +346 utils/indtest.go
+badd +120 utils/indtest.go
 badd +10 utils/kmeans.go
-badd +78 spn/sum.go
+badd +106 spn/sum.go
 badd +61 spn/product.go
 badd +53 spn/univdist.go
 badd +25 spn/node.go
 badd +2 spn/varset.go
-badd +0 utils/log.go
+badd +49 utils/log.go
 argglobal
 silent! argdel *
 argadd learn/gens.go
@@ -72,12 +72,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 345 - ((8 * winheight(0) + 14) / 28)
+let s:l = 310 - ((7 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-345
-normal! 021|
+310
+normal! 048|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
@@ -91,15 +91,14 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 44 - ((0 * winheight(0) + 29) / 58)
+let s:l = 115 - ((43 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-44
-normal! 02|
+115
+normal! 07|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
-2wincmd w
 exe '1resize ' . ((&lines * 29 + 30) / 61)
 exe 'vert 1resize ' . ((&columns * 104 + 106) / 212)
 exe '2resize ' . ((&lines * 28 + 30) / 61)
@@ -127,12 +126,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 453 - ((57 * winheight(0) + 29) / 58)
+let s:l = 454 - ((57 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-453
-normal! 03|
+454
+normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
@@ -257,6 +256,7 @@ normal! zt
 normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
+2wincmd w
 exe '1resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 1resize ' . ((&columns * 104 + 106) / 212)
 exe '2resize ' . ((&lines * 29 + 30) / 61)
@@ -265,7 +265,7 @@ exe '3resize ' . ((&lines * 29 + 30) / 61)
 exe 'vert 3resize ' . ((&columns * 107 + 106) / 212)
 exe '4resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 4resize ' . ((&columns * 107 + 106) / 212)
-tabnext 1
+tabnext 3
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
 endif
