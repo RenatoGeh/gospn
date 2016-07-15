@@ -30,8 +30,8 @@ func learn_test() spn.SPN {
 
 	fmt.Printf("Input path:\n%s\nOutput path:\n%s\nLearning...\n", comps, res)
 	s := learn.Gens(io.ParseData(utils.StringConcat(comps, "/all.data")))
-	fmt.Printf("Drawing graph...\n")
-	io.DrawGraph(utils.StringConcat(res, "/all.dot"), s)
+	//fmt.Printf("Drawing graph...\n")
+	//io.DrawGraph(utils.StringConcat(res, "/all.dot"), s)
 
 	return s
 }
@@ -47,7 +47,7 @@ func indep_test() {
 }
 
 func parse_test() {
-	sc, data := io.ParseData(io.GetPath("../data/crtsf/compiled/all.data"))
+	sc, data := io.ParseData(io.GetPath("../data/digits/compiled/all.data"))
 
 	for k, v := range sc {
 		fmt.Printf("[k=%d] varid: %d, categories: %d\n", k, v.Varid, v.Categories)
@@ -96,7 +96,8 @@ func drawgraph_test() {
 
 	vset := make(spn.VarSet)
 	vset[2], vset[1], vset[4] = 1, 0, 1
-	fmt.Printf("Pr(X_1=0, X_2=1, X_4=1)=%f.\n", s.Value(vset))
+	val := s.Value(vset)
+	fmt.Printf("Pr(X_1=0, X_2=1, X_4=1)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
 }
 
 func queue_test() {
@@ -135,20 +136,24 @@ func classify_test() {
 	s := learn_test()
 	sc, ev := io.ParseEvidence(io.GetPath("../data/digits_test/compiled/all.data"))
 
-	nv, nsc := 3, len(sc)
+	nsc := len(sc)
+	nv := 3
 
-	for i := 0; i < nv; i++ {
-		vset := make(spn.VarSet)
-		for k, v := range ev[i] {
-			vset[k] = v
+	c := 0
+	for _, ve := range ev {
+		fmt.Printf("Test %d...\n", c)
+		for i := 0; i < nv; i++ {
+			vset := make(spn.VarSet)
+			for k, v := range ve {
+				vset[k] = v
+			}
+			vset[nsc] = i
+			pz := s.Value(ve)
+			px := s.Value(vset)
+			pr := px - pz
+			fmt.Printf("Pr(X=%d|E)=%f/%f=%.50f\n", i, px, pz, utils.AntiLog(pr))
 		}
-		vset[nsc+1] = i
-		_ = "breakpoint"
-		pz := s.Value(ev[i])
-		px := s.Value(vset)
-		pr := px - pz
-		_ = "breakpoint"
-		fmt.Printf("Pr(X=%d|E)=%.50f/%.50f=%f\n", i, px, pz, utils.AntiLog(pr))
+		c++
 	}
 
 	//argmax, max := s.ArgMax(ev[0])
@@ -180,8 +185,8 @@ func log_test() {
 func main() {
 	//indep_test()
 	//learn_test()
-	//convert_imgs()
-	//cvntev_imgs()
+	convert_imgs()
+	cvntev_imgs()
 	//parse_test()
 	//drawgraph_test()
 	//queue_test()

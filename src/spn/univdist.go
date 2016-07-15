@@ -1,7 +1,7 @@
 package spn
 
 import (
-	"fmt"
+	//"fmt"
 
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
@@ -113,10 +113,10 @@ func (ud *UnivDist) AddChild(c Node) {}
 func (ud *UnivDist) Value(valuation VarSet) float64 {
 	val, ok := valuation[ud.varid]
 	if ok {
-		fmt.Printf("Value of leaf node: %f\n", ud.pr[val])
+		//fmt.Printf("Value of leaf node: %f\n", ud.pr[val])
 		return utils.Log(ud.pr[val])
 	}
-	fmt.Printf("Value of leaf node: 1.00\n")
+	//fmt.Printf("Value of leaf node: 1.00\n")
 
 	//	return 1.0
 	return 0.0 // ln(1.0) = 0.0

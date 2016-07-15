@@ -1,0 +1,761 @@
+graph {
+P0 [label=<&times;>,shape=circle];
+X0 [label=<X<sub>3</sub>>,shape=circle];
+P0 -- X0
+X1 [label=<X<sub>7</sub>>,shape=circle];
+P0 -- X1
+X2 [label=<X<sub>12</sub>>,shape=circle];
+P0 -- X2
+X3 [label=<X<sub>16</sub>>,shape=circle];
+P0 -- X3
+X4 [label=<X<sub>19</sub>>,shape=circle];
+P0 -- X4
+X5 [label=<X<sub>21</sub>>,shape=circle];
+P0 -- X5
+X6 [label=<X<sub>22</sub>>,shape=circle];
+P0 -- X6
+X7 [label=<X<sub>24</sub>>,shape=circle];
+P0 -- X7
+X8 [label=<X<sub>25</sub>>,shape=circle];
+P0 -- X8
+S0 [label="+",shape=circle];
+P0 -- S0
+S1 [label="+",shape=circle];
+P0 -- S1
+S2 [label="+",shape=circle];
+P0 -- S2
+P1 [label=<&times;>,shape=circle];
+P0 -- P1
+X9 [label=<X<sub>0</sub>>,shape=circle];
+P1 -- X9
+X10 [label=<X<sub>20</sub>>,shape=circle];
+P1 -- X10
+S3 [label="+",shape=circle];
+P0 -- S3
+S4 [label="+",shape=circle];
+P0 -- S4
+P2 [label=<&times;>,shape=circle];
+S0 -- P2 [label="0.158"];
+X11 [label=<X<sub>1</sub>>,shape=circle];
+P2 -- X11
+X12 [label=<X<sub>2</sub>>,shape=circle];
+P2 -- X12
+P3 [label=<&times;>,shape=circle];
+S0 -- P3 [label="0.105"];
+X13 [label=<X<sub>1</sub>>,shape=circle];
+P3 -- X13
+X14 [label=<X<sub>2</sub>>,shape=circle];
+P3 -- X14
+P4 [label=<&times;>,shape=circle];
+S0 -- P4 [label="0.053"];
+X15 [label=<X<sub>2</sub>>,shape=circle];
+P4 -- X15
+X16 [label=<X<sub>1</sub>>,shape=circle];
+P4 -- X16
+S5 [label="+",shape=circle];
+S0 -- S5 [label="0.684"];
+S6 [label="+",shape=circle];
+S1 -- S6 [label="0.632"];
+P5 [label=<&times;>,shape=circle];
+S1 -- P5 [label="0.053"];
+X17 [label=<X<sub>6</sub>>,shape=circle];
+P5 -- X17
+X18 [label=<X<sub>11</sub>>,shape=circle];
+P5 -- X18
+P6 [label=<&times;>,shape=circle];
+S1 -- P6 [label="0.263"];
+X19 [label=<X<sub>6</sub>>,shape=circle];
+P6 -- X19
+X20 [label=<X<sub>11</sub>>,shape=circle];
+P6 -- X20
+P7 [label=<&times;>,shape=circle];
+S1 -- P7 [label="0.053"];
+X21 [label=<X<sub>6</sub>>,shape=circle];
+P7 -- X21
+X22 [label=<X<sub>11</sub>>,shape=circle];
+P7 -- X22
+S7 [label="+",shape=circle];
+S2 -- S7 [label="0.579"];
+S8 [label="+",shape=circle];
+S2 -- S8 [label="0.211"];
+P8 [label=<&times;>,shape=circle];
+S2 -- P8 [label="0.053"];
+X23 [label=<X<sub>4</sub>>,shape=circle];
+P8 -- X23
+X24 [label=<X<sub>14</sub>>,shape=circle];
+P8 -- X24
+X25 [label=<X<sub>9</sub>>,shape=circle];
+P8 -- X25
+P9 [label=<&times;>,shape=circle];
+S2 -- P9 [label="0.158"];
+X26 [label=<X<sub>9</sub>>,shape=circle];
+P9 -- X26
+X27 [label=<X<sub>4</sub>>,shape=circle];
+P9 -- X27
+X28 [label=<X<sub>14</sub>>,shape=circle];
+P9 -- X28
+S9 [label="+",shape=circle];
+P1 -- S9
+S10 [label="+",shape=circle];
+P1 -- S10
+S11 [label="+",shape=circle];
+S3 -- S11 [label="0.632"];
+P10 [label=<&times;>,shape=circle];
+S3 -- P10 [label="0.053"];
+X29 [label=<X<sub>13</sub>>,shape=circle];
+P10 -- X29
+X30 [label=<X<sub>8</sub>>,shape=circle];
+P10 -- X30
+P11 [label=<&times;>,shape=circle];
+S3 -- P11 [label="0.263"];
+X31 [label=<X<sub>8</sub>>,shape=circle];
+P11 -- X31
+X32 [label=<X<sub>13</sub>>,shape=circle];
+P11 -- X32
+P12 [label=<&times;>,shape=circle];
+S3 -- P12 [label="0.053"];
+X33 [label=<X<sub>13</sub>>,shape=circle];
+P12 -- X33
+X34 [label=<X<sub>8</sub>>,shape=circle];
+P12 -- X34
+S12 [label="+",shape=circle];
+S4 -- S12 [label="0.316"];
+S13 [label="+",shape=circle];
+S4 -- S13 [label="0.579"];
+P13 [label=<&times;>,shape=circle];
+S4 -- P13 [label="0.053"];
+X35 [label=<X<sub>23</sub>>,shape=circle];
+P13 -- X35
+X36 [label=<X<sub>18</sub>>,shape=circle];
+P13 -- X36
+P14 [label=<&times;>,shape=circle];
+S4 -- P14 [label="0.053"];
+X37 [label=<X<sub>23</sub>>,shape=circle];
+P14 -- X37
+X38 [label=<X<sub>18</sub>>,shape=circle];
+P14 -- X38
+S14 [label="+",shape=circle];
+S5 -- S14 [label="0.769"];
+P15 [label=<&times;>,shape=circle];
+S5 -- P15 [label="0.077"];
+X39 [label=<X<sub>1</sub>>,shape=circle];
+P15 -- X39
+X40 [label=<X<sub>2</sub>>,shape=circle];
+P15 -- X40
+P16 [label=<&times;>,shape=circle];
+S5 -- P16 [label="0.077"];
+X41 [label=<X<sub>1</sub>>,shape=circle];
+P16 -- X41
+X42 [label=<X<sub>2</sub>>,shape=circle];
+P16 -- X42
+P17 [label=<&times;>,shape=circle];
+S5 -- P17 [label="0.077"];
+X43 [label=<X<sub>1</sub>>,shape=circle];
+P17 -- X43
+X44 [label=<X<sub>2</sub>>,shape=circle];
+P17 -- X44
+S15 [label="+",shape=circle];
+S6 -- S15 [label="0.750"];
+P18 [label=<&times;>,shape=circle];
+S6 -- P18 [label="0.083"];
+X45 [label=<X<sub>6</sub>>,shape=circle];
+P18 -- X45
+X46 [label=<X<sub>11</sub>>,shape=circle];
+P18 -- X46
+P19 [label=<&times;>,shape=circle];
+S6 -- P19 [label="0.083"];
+X47 [label=<X<sub>6</sub>>,shape=circle];
+P19 -- X47
+X48 [label=<X<sub>11</sub>>,shape=circle];
+P19 -- X48
+P20 [label=<&times;>,shape=circle];
+S6 -- P20 [label="0.083"];
+X49 [label=<X<sub>6</sub>>,shape=circle];
+P20 -- X49
+X50 [label=<X<sub>11</sub>>,shape=circle];
+P20 -- X50
+S16 [label="+",shape=circle];
+S7 -- S16 [label="0.727"];
+P21 [label=<&times;>,shape=circle];
+S7 -- P21 [label="0.091"];
+X51 [label=<X<sub>9</sub>>,shape=circle];
+P21 -- X51
+X52 [label=<X<sub>4</sub>>,shape=circle];
+P21 -- X52
+X53 [label=<X<sub>14</sub>>,shape=circle];
+P21 -- X53
+P22 [label=<&times;>,shape=circle];
+S7 -- P22 [label="0.091"];
+X54 [label=<X<sub>9</sub>>,shape=circle];
+P22 -- X54
+X55 [label=<X<sub>4</sub>>,shape=circle];
+P22 -- X55
+X56 [label=<X<sub>14</sub>>,shape=circle];
+P22 -- X56
+P23 [label=<&times;>,shape=circle];
+S7 -- P23 [label="0.091"];
+X57 [label=<X<sub>9</sub>>,shape=circle];
+P23 -- X57
+X58 [label=<X<sub>4</sub>>,shape=circle];
+P23 -- X58
+X59 [label=<X<sub>14</sub>>,shape=circle];
+P23 -- X59
+P24 [label=<&times;>,shape=circle];
+S8 -- P24 [label="0.250"];
+X60 [label=<X<sub>4</sub>>,shape=circle];
+P24 -- X60
+X61 [label=<X<sub>14</sub>>,shape=circle];
+P24 -- X61
+X62 [label=<X<sub>9</sub>>,shape=circle];
+P24 -- X62
+P25 [label=<&times;>,shape=circle];
+S8 -- P25 [label="0.250"];
+X63 [label=<X<sub>9</sub>>,shape=circle];
+P25 -- X63
+X64 [label=<X<sub>4</sub>>,shape=circle];
+P25 -- X64
+X65 [label=<X<sub>14</sub>>,shape=circle];
+P25 -- X65
+P26 [label=<&times;>,shape=circle];
+S8 -- P26 [label="0.250"];
+X66 [label=<X<sub>9</sub>>,shape=circle];
+P26 -- X66
+X67 [label=<X<sub>4</sub>>,shape=circle];
+P26 -- X67
+X68 [label=<X<sub>14</sub>>,shape=circle];
+P26 -- X68
+P27 [label=<&times;>,shape=circle];
+S8 -- P27 [label="0.250"];
+X69 [label=<X<sub>4</sub>>,shape=circle];
+P27 -- X69
+X70 [label=<X<sub>14</sub>>,shape=circle];
+P27 -- X70
+X71 [label=<X<sub>9</sub>>,shape=circle];
+P27 -- X71
+S17 [label="+",shape=circle];
+S9 -- S17 [label="0.632"];
+P28 [label=<&times;>,shape=circle];
+S9 -- P28 [label="0.053"];
+X72 [label=<X<sub>15</sub>>,shape=circle];
+P28 -- X72
+X73 [label=<X<sub>10</sub>>,shape=circle];
+P28 -- X73
+S18 [label="+",shape=circle];
+S9 -- S18 [label="0.263"];
+P29 [label=<&times;>,shape=circle];
+S9 -- P29 [label="0.053"];
+X74 [label=<X<sub>15</sub>>,shape=circle];
+P29 -- X74
+X75 [label=<X<sub>10</sub>>,shape=circle];
+P29 -- X75
+S19 [label="+",shape=circle];
+S10 -- S19 [label="0.316"];
+P30 [label=<&times;>,shape=circle];
+S10 -- P30 [label="0.053"];
+X76 [label=<X<sub>17</sub>>,shape=circle];
+P30 -- X76
+X77 [label=<X<sub>5</sub>>,shape=circle];
+P30 -- X77
+S20 [label="+",shape=circle];
+S10 -- S20 [label="0.579"];
+P31 [label=<&times;>,shape=circle];
+S10 -- P31 [label="0.053"];
+X78 [label=<X<sub>17</sub>>,shape=circle];
+P31 -- X78
+X79 [label=<X<sub>5</sub>>,shape=circle];
+P31 -- X79
+S21 [label="+",shape=circle];
+S11 -- S21 [label="0.750"];
+P32 [label=<&times;>,shape=circle];
+S11 -- P32 [label="0.083"];
+X80 [label=<X<sub>13</sub>>,shape=circle];
+P32 -- X80
+X81 [label=<X<sub>8</sub>>,shape=circle];
+P32 -- X81
+P33 [label=<&times;>,shape=circle];
+S11 -- P33 [label="0.083"];
+X82 [label=<X<sub>8</sub>>,shape=circle];
+P33 -- X82
+X83 [label=<X<sub>13</sub>>,shape=circle];
+P33 -- X83
+P34 [label=<&times;>,shape=circle];
+S11 -- P34 [label="0.083"];
+X84 [label=<X<sub>13</sub>>,shape=circle];
+P34 -- X84
+X85 [label=<X<sub>8</sub>>,shape=circle];
+P34 -- X85
+P35 [label=<&times;>,shape=circle];
+S12 -- P35 [label="0.500"];
+X86 [label=<X<sub>23</sub>>,shape=circle];
+P35 -- X86
+X87 [label=<X<sub>18</sub>>,shape=circle];
+P35 -- X87
+P36 [label=<&times;>,shape=circle];
+S12 -- P36 [label="0.167"];
+X88 [label=<X<sub>23</sub>>,shape=circle];
+P36 -- X88
+X89 [label=<X<sub>18</sub>>,shape=circle];
+P36 -- X89
+P37 [label=<&times;>,shape=circle];
+S12 -- P37 [label="0.167"];
+X90 [label=<X<sub>23</sub>>,shape=circle];
+P37 -- X90
+X91 [label=<X<sub>18</sub>>,shape=circle];
+P37 -- X91
+P38 [label=<&times;>,shape=circle];
+S12 -- P38 [label="0.167"];
+X92 [label=<X<sub>23</sub>>,shape=circle];
+P38 -- X92
+X93 [label=<X<sub>18</sub>>,shape=circle];
+P38 -- X93
+S22 [label="+",shape=circle];
+S13 -- S22 [label="0.727"];
+P39 [label=<&times;>,shape=circle];
+S13 -- P39 [label="0.091"];
+X94 [label=<X<sub>18</sub>>,shape=circle];
+P39 -- X94
+X95 [label=<X<sub>23</sub>>,shape=circle];
+P39 -- X95
+P40 [label=<&times;>,shape=circle];
+S13 -- P40 [label="0.091"];
+X96 [label=<X<sub>23</sub>>,shape=circle];
+P40 -- X96
+X97 [label=<X<sub>18</sub>>,shape=circle];
+P40 -- X97
+P41 [label=<&times;>,shape=circle];
+S13 -- P41 [label="0.091"];
+X98 [label=<X<sub>18</sub>>,shape=circle];
+P41 -- X98
+X99 [label=<X<sub>23</sub>>,shape=circle];
+P41 -- X99
+S23 [label="+",shape=circle];
+S14 -- S23 [label="0.700"];
+P42 [label=<&times;>,shape=circle];
+S14 -- P42 [label="0.100"];
+X100 [label=<X<sub>1</sub>>,shape=circle];
+P42 -- X100
+X101 [label=<X<sub>2</sub>>,shape=circle];
+P42 -- X101
+P43 [label=<&times;>,shape=circle];
+S14 -- P43 [label="0.100"];
+X102 [label=<X<sub>1</sub>>,shape=circle];
+P43 -- X102
+X103 [label=<X<sub>2</sub>>,shape=circle];
+P43 -- X103
+P44 [label=<&times;>,shape=circle];
+S14 -- P44 [label="0.100"];
+X104 [label=<X<sub>1</sub>>,shape=circle];
+P44 -- X104
+X105 [label=<X<sub>2</sub>>,shape=circle];
+P44 -- X105
+S24 [label="+",shape=circle];
+S15 -- S24 [label="0.667"];
+P45 [label=<&times;>,shape=circle];
+S15 -- P45 [label="0.111"];
+X106 [label=<X<sub>6</sub>>,shape=circle];
+P45 -- X106
+X107 [label=<X<sub>11</sub>>,shape=circle];
+P45 -- X107
+P46 [label=<&times;>,shape=circle];
+S15 -- P46 [label="0.111"];
+X108 [label=<X<sub>6</sub>>,shape=circle];
+P46 -- X108
+X109 [label=<X<sub>11</sub>>,shape=circle];
+P46 -- X109
+P47 [label=<&times;>,shape=circle];
+S15 -- P47 [label="0.111"];
+X110 [label=<X<sub>6</sub>>,shape=circle];
+P47 -- X110
+X111 [label=<X<sub>11</sub>>,shape=circle];
+P47 -- X111
+S25 [label="+",shape=circle];
+S16 -- S25 [label="0.625"];
+P48 [label=<&times;>,shape=circle];
+S16 -- P48 [label="0.125"];
+X112 [label=<X<sub>9</sub>>,shape=circle];
+P48 -- X112
+X113 [label=<X<sub>4</sub>>,shape=circle];
+P48 -- X113
+X114 [label=<X<sub>14</sub>>,shape=circle];
+P48 -- X114
+P49 [label=<&times;>,shape=circle];
+S16 -- P49 [label="0.125"];
+X115 [label=<X<sub>9</sub>>,shape=circle];
+P49 -- X115
+X116 [label=<X<sub>4</sub>>,shape=circle];
+P49 -- X116
+X117 [label=<X<sub>14</sub>>,shape=circle];
+P49 -- X117
+P50 [label=<&times;>,shape=circle];
+S16 -- P50 [label="0.125"];
+X118 [label=<X<sub>14</sub>>,shape=circle];
+P50 -- X118
+X119 [label=<X<sub>9</sub>>,shape=circle];
+P50 -- X119
+X120 [label=<X<sub>4</sub>>,shape=circle];
+P50 -- X120
+S26 [label="+",shape=circle];
+S17 -- S26 [label="0.750"];
+P51 [label=<&times;>,shape=circle];
+S17 -- P51 [label="0.083"];
+X121 [label=<X<sub>15</sub>>,shape=circle];
+P51 -- X121
+X122 [label=<X<sub>10</sub>>,shape=circle];
+P51 -- X122
+P52 [label=<&times;>,shape=circle];
+S17 -- P52 [label="0.083"];
+X123 [label=<X<sub>15</sub>>,shape=circle];
+P52 -- X123
+X124 [label=<X<sub>10</sub>>,shape=circle];
+P52 -- X124
+P53 [label=<&times;>,shape=circle];
+S17 -- P53 [label="0.083"];
+X125 [label=<X<sub>10</sub>>,shape=circle];
+P53 -- X125
+X126 [label=<X<sub>15</sub>>,shape=circle];
+P53 -- X126
+P54 [label=<&times;>,shape=circle];
+S18 -- P54 [label="0.200"];
+X127 [label=<X<sub>15</sub>>,shape=circle];
+P54 -- X127
+X128 [label=<X<sub>10</sub>>,shape=circle];
+P54 -- X128
+P55 [label=<&times;>,shape=circle];
+S18 -- P55 [label="0.200"];
+X129 [label=<X<sub>15</sub>>,shape=circle];
+P55 -- X129
+X130 [label=<X<sub>10</sub>>,shape=circle];
+P55 -- X130
+P56 [label=<&times;>,shape=circle];
+S18 -- P56 [label="0.400"];
+X131 [label=<X<sub>10</sub>>,shape=circle];
+P56 -- X131
+X132 [label=<X<sub>15</sub>>,shape=circle];
+P56 -- X132
+P57 [label=<&times;>,shape=circle];
+S18 -- P57 [label="0.200"];
+X133 [label=<X<sub>15</sub>>,shape=circle];
+P57 -- X133
+X134 [label=<X<sub>10</sub>>,shape=circle];
+P57 -- X134
+P58 [label=<&times;>,shape=circle];
+S19 -- P58 [label="0.500"];
+X135 [label=<X<sub>5</sub>>,shape=circle];
+P58 -- X135
+X136 [label=<X<sub>17</sub>>,shape=circle];
+P58 -- X136
+P59 [label=<&times;>,shape=circle];
+S19 -- P59 [label="0.167"];
+X137 [label=<X<sub>17</sub>>,shape=circle];
+P59 -- X137
+X138 [label=<X<sub>5</sub>>,shape=circle];
+P59 -- X138
+P60 [label=<&times;>,shape=circle];
+S19 -- P60 [label="0.167"];
+X139 [label=<X<sub>17</sub>>,shape=circle];
+P60 -- X139
+X140 [label=<X<sub>5</sub>>,shape=circle];
+P60 -- X140
+P61 [label=<&times;>,shape=circle];
+S19 -- P61 [label="0.167"];
+X141 [label=<X<sub>17</sub>>,shape=circle];
+P61 -- X141
+X142 [label=<X<sub>5</sub>>,shape=circle];
+P61 -- X142
+S27 [label="+",shape=circle];
+S20 -- S27 [label="0.727"];
+P62 [label=<&times;>,shape=circle];
+S20 -- P62 [label="0.091"];
+X143 [label=<X<sub>17</sub>>,shape=circle];
+P62 -- X143
+X144 [label=<X<sub>5</sub>>,shape=circle];
+P62 -- X144
+P63 [label=<&times;>,shape=circle];
+S20 -- P63 [label="0.091"];
+X145 [label=<X<sub>17</sub>>,shape=circle];
+P63 -- X145
+X146 [label=<X<sub>5</sub>>,shape=circle];
+P63 -- X146
+P64 [label=<&times;>,shape=circle];
+S20 -- P64 [label="0.091"];
+X147 [label=<X<sub>5</sub>>,shape=circle];
+P64 -- X147
+X148 [label=<X<sub>17</sub>>,shape=circle];
+P64 -- X148
+S28 [label="+",shape=circle];
+S21 -- S28 [label="0.667"];
+P65 [label=<&times;>,shape=circle];
+S21 -- P65 [label="0.111"];
+X149 [label=<X<sub>8</sub>>,shape=circle];
+P65 -- X149
+X150 [label=<X<sub>13</sub>>,shape=circle];
+P65 -- X150
+P66 [label=<&times;>,shape=circle];
+S21 -- P66 [label="0.111"];
+X151 [label=<X<sub>8</sub>>,shape=circle];
+P66 -- X151
+X152 [label=<X<sub>13</sub>>,shape=circle];
+P66 -- X152
+P67 [label=<&times;>,shape=circle];
+S21 -- P67 [label="0.111"];
+X153 [label=<X<sub>13</sub>>,shape=circle];
+P67 -- X153
+X154 [label=<X<sub>8</sub>>,shape=circle];
+P67 -- X154
+S29 [label="+",shape=circle];
+S22 -- S29 [label="0.625"];
+P68 [label=<&times;>,shape=circle];
+S22 -- P68 [label="0.125"];
+X155 [label=<X<sub>18</sub>>,shape=circle];
+P68 -- X155
+X156 [label=<X<sub>23</sub>>,shape=circle];
+P68 -- X156
+P69 [label=<&times;>,shape=circle];
+S22 -- P69 [label="0.125"];
+X157 [label=<X<sub>23</sub>>,shape=circle];
+P69 -- X157
+X158 [label=<X<sub>18</sub>>,shape=circle];
+P69 -- X158
+P70 [label=<&times;>,shape=circle];
+S22 -- P70 [label="0.125"];
+X159 [label=<X<sub>18</sub>>,shape=circle];
+P70 -- X159
+X160 [label=<X<sub>23</sub>>,shape=circle];
+P70 -- X160
+S30 [label="+",shape=circle];
+S23 -- S30 [label="0.571"];
+P71 [label=<&times;>,shape=circle];
+S23 -- P71 [label="0.143"];
+X161 [label=<X<sub>1</sub>>,shape=circle];
+P71 -- X161
+X162 [label=<X<sub>2</sub>>,shape=circle];
+P71 -- X162
+P72 [label=<&times;>,shape=circle];
+S23 -- P72 [label="0.143"];
+X163 [label=<X<sub>1</sub>>,shape=circle];
+P72 -- X163
+X164 [label=<X<sub>2</sub>>,shape=circle];
+P72 -- X164
+P73 [label=<&times;>,shape=circle];
+S23 -- P73 [label="0.143"];
+X165 [label=<X<sub>1</sub>>,shape=circle];
+P73 -- X165
+X166 [label=<X<sub>2</sub>>,shape=circle];
+P73 -- X166
+P74 [label=<&times;>,shape=circle];
+S24 -- P74 [label="0.500"];
+X167 [label=<X<sub>6</sub>>,shape=circle];
+P74 -- X167
+X168 [label=<X<sub>11</sub>>,shape=circle];
+P74 -- X168
+P75 [label=<&times;>,shape=circle];
+S24 -- P75 [label="0.167"];
+X169 [label=<X<sub>6</sub>>,shape=circle];
+P75 -- X169
+X170 [label=<X<sub>11</sub>>,shape=circle];
+P75 -- X170
+P76 [label=<&times;>,shape=circle];
+S24 -- P76 [label="0.167"];
+X171 [label=<X<sub>6</sub>>,shape=circle];
+P76 -- X171
+X172 [label=<X<sub>11</sub>>,shape=circle];
+P76 -- X172
+P77 [label=<&times;>,shape=circle];
+S24 -- P77 [label="0.167"];
+X173 [label=<X<sub>6</sub>>,shape=circle];
+P77 -- X173
+X174 [label=<X<sub>11</sub>>,shape=circle];
+P77 -- X174
+P78 [label=<&times;>,shape=circle];
+S25 -- P78 [label="0.400"];
+X175 [label=<X<sub>4</sub>>,shape=circle];
+P78 -- X175
+X176 [label=<X<sub>14</sub>>,shape=circle];
+P78 -- X176
+X177 [label=<X<sub>9</sub>>,shape=circle];
+P78 -- X177
+P79 [label=<&times;>,shape=circle];
+S25 -- P79 [label="0.200"];
+X178 [label=<X<sub>9</sub>>,shape=circle];
+P79 -- X178
+X179 [label=<X<sub>4</sub>>,shape=circle];
+P79 -- X179
+X180 [label=<X<sub>14</sub>>,shape=circle];
+P79 -- X180
+P80 [label=<&times;>,shape=circle];
+S25 -- P80 [label="0.200"];
+X181 [label=<X<sub>9</sub>>,shape=circle];
+P80 -- X181
+X182 [label=<X<sub>4</sub>>,shape=circle];
+P80 -- X182
+X183 [label=<X<sub>14</sub>>,shape=circle];
+P80 -- X183
+P81 [label=<&times;>,shape=circle];
+S25 -- P81 [label="0.200"];
+X184 [label=<X<sub>4</sub>>,shape=circle];
+P81 -- X184
+X185 [label=<X<sub>14</sub>>,shape=circle];
+P81 -- X185
+X186 [label=<X<sub>9</sub>>,shape=circle];
+P81 -- X186
+S31 [label="+",shape=circle];
+S26 -- S31 [label="0.667"];
+P82 [label=<&times;>,shape=circle];
+S26 -- P82 [label="0.111"];
+X187 [label=<X<sub>10</sub>>,shape=circle];
+P82 -- X187
+X188 [label=<X<sub>15</sub>>,shape=circle];
+P82 -- X188
+P83 [label=<&times;>,shape=circle];
+S26 -- P83 [label="0.111"];
+X189 [label=<X<sub>10</sub>>,shape=circle];
+P83 -- X189
+X190 [label=<X<sub>15</sub>>,shape=circle];
+P83 -- X190
+P84 [label=<&times;>,shape=circle];
+S26 -- P84 [label="0.111"];
+X191 [label=<X<sub>15</sub>>,shape=circle];
+P84 -- X191
+X192 [label=<X<sub>10</sub>>,shape=circle];
+P84 -- X192
+S32 [label="+",shape=circle];
+S27 -- S32 [label="0.625"];
+P85 [label=<&times;>,shape=circle];
+S27 -- P85 [label="0.125"];
+X193 [label=<X<sub>17</sub>>,shape=circle];
+P85 -- X193
+X194 [label=<X<sub>5</sub>>,shape=circle];
+P85 -- X194
+P86 [label=<&times;>,shape=circle];
+S27 -- P86 [label="0.125"];
+X195 [label=<X<sub>17</sub>>,shape=circle];
+P86 -- X195
+X196 [label=<X<sub>5</sub>>,shape=circle];
+P86 -- X196
+P87 [label=<&times;>,shape=circle];
+S27 -- P87 [label="0.125"];
+X197 [label=<X<sub>17</sub>>,shape=circle];
+P87 -- X197
+X198 [label=<X<sub>5</sub>>,shape=circle];
+P87 -- X198
+P88 [label=<&times;>,shape=circle];
+S28 -- P88 [label="0.500"];
+X199 [label=<X<sub>13</sub>>,shape=circle];
+P88 -- X199
+X200 [label=<X<sub>8</sub>>,shape=circle];
+P88 -- X200
+P89 [label=<&times;>,shape=circle];
+S28 -- P89 [label="0.167"];
+X201 [label=<X<sub>13</sub>>,shape=circle];
+P89 -- X201
+X202 [label=<X<sub>8</sub>>,shape=circle];
+P89 -- X202
+P90 [label=<&times;>,shape=circle];
+S28 -- P90 [label="0.167"];
+X203 [label=<X<sub>8</sub>>,shape=circle];
+P90 -- X203
+X204 [label=<X<sub>13</sub>>,shape=circle];
+P90 -- X204
+P91 [label=<&times;>,shape=circle];
+S28 -- P91 [label="0.167"];
+X205 [label=<X<sub>13</sub>>,shape=circle];
+P91 -- X205
+X206 [label=<X<sub>8</sub>>,shape=circle];
+P91 -- X206
+P92 [label=<&times;>,shape=circle];
+S29 -- P92 [label="0.400"];
+X207 [label=<X<sub>23</sub>>,shape=circle];
+P92 -- X207
+X208 [label=<X<sub>18</sub>>,shape=circle];
+P92 -- X208
+P93 [label=<&times;>,shape=circle];
+S29 -- P93 [label="0.200"];
+X209 [label=<X<sub>23</sub>>,shape=circle];
+P93 -- X209
+X210 [label=<X<sub>18</sub>>,shape=circle];
+P93 -- X210
+P94 [label=<&times;>,shape=circle];
+S29 -- P94 [label="0.200"];
+X211 [label=<X<sub>18</sub>>,shape=circle];
+P94 -- X211
+X212 [label=<X<sub>23</sub>>,shape=circle];
+P94 -- X212
+P95 [label=<&times;>,shape=circle];
+S29 -- P95 [label="0.200"];
+X213 [label=<X<sub>18</sub>>,shape=circle];
+P95 -- X213
+X214 [label=<X<sub>23</sub>>,shape=circle];
+P95 -- X214
+P96 [label=<&times;>,shape=circle];
+S30 -- P96 [label="0.250"];
+X215 [label=<X<sub>1</sub>>,shape=circle];
+P96 -- X215
+X216 [label=<X<sub>2</sub>>,shape=circle];
+P96 -- X216
+P97 [label=<&times;>,shape=circle];
+S30 -- P97 [label="0.250"];
+X217 [label=<X<sub>1</sub>>,shape=circle];
+P97 -- X217
+X218 [label=<X<sub>2</sub>>,shape=circle];
+P97 -- X218
+P98 [label=<&times;>,shape=circle];
+S30 -- P98 [label="0.250"];
+X219 [label=<X<sub>1</sub>>,shape=circle];
+P98 -- X219
+X220 [label=<X<sub>2</sub>>,shape=circle];
+P98 -- X220
+P99 [label=<&times;>,shape=circle];
+S30 -- P99 [label="0.250"];
+X221 [label=<X<sub>1</sub>>,shape=circle];
+P99 -- X221
+X222 [label=<X<sub>2</sub>>,shape=circle];
+P99 -- X222
+P100 [label=<&times;>,shape=circle];
+S31 -- P100 [label="0.500"];
+X223 [label=<X<sub>15</sub>>,shape=circle];
+P100 -- X223
+X224 [label=<X<sub>10</sub>>,shape=circle];
+P100 -- X224
+P101 [label=<&times;>,shape=circle];
+S31 -- P101 [label="0.167"];
+X225 [label=<X<sub>15</sub>>,shape=circle];
+P101 -- X225
+X226 [label=<X<sub>10</sub>>,shape=circle];
+P101 -- X226
+P102 [label=<&times;>,shape=circle];
+S31 -- P102 [label="0.167"];
+X227 [label=<X<sub>15</sub>>,shape=circle];
+P102 -- X227
+X228 [label=<X<sub>10</sub>>,shape=circle];
+P102 -- X228
+P103 [label=<&times;>,shape=circle];
+S31 -- P103 [label="0.167"];
+X229 [label=<X<sub>15</sub>>,shape=circle];
+P103 -- X229
+X230 [label=<X<sub>10</sub>>,shape=circle];
+P103 -- X230
+P104 [label=<&times;>,shape=circle];
+S32 -- P104 [label="0.400"];
+X231 [label=<X<sub>17</sub>>,shape=circle];
+P104 -- X231
+X232 [label=<X<sub>5</sub>>,shape=circle];
+P104 -- X232
+P105 [label=<&times;>,shape=circle];
+S32 -- P105 [label="0.200"];
+X233 [label=<X<sub>17</sub>>,shape=circle];
+P105 -- X233
+X234 [label=<X<sub>5</sub>>,shape=circle];
+P105 -- X234
+P106 [label=<&times;>,shape=circle];
+S32 -- P106 [label="0.200"];
+X235 [label=<X<sub>17</sub>>,shape=circle];
+P106 -- X235
+X236 [label=<X<sub>5</sub>>,shape=circle];
+P106 -- X236
+P107 [label=<&times;>,shape=circle];
+S32 -- P107 [label="0.200"];
+X237 [label=<X<sub>17</sub>>,shape=circle];
+P107 -- X237
+X238 [label=<X<sub>5</sub>>,shape=circle];
+P107 -- X238
+}

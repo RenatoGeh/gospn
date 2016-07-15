@@ -65,7 +65,6 @@ func DrawGraph(filename string, s spn.SPN) {
 		}
 
 		w := curr.Weights()
-		_ = "breakpoint"
 		// For each children, run the BFS.
 		for i := 0; i < nch; i++ {
 			c := ch[i]
