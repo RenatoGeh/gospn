@@ -30,8 +30,8 @@ func learn_test() spn.SPN {
 
 	fmt.Printf("Input path:\n%s\nOutput path:\n%s\nLearning...\n", comps, res)
 	s := learn.Gens(io.ParseData(utils.StringConcat(comps, "/all.data")))
-	//fmt.Printf("Drawing graph...\n")
-	//io.DrawGraph(utils.StringConcat(res, "/all.dot"), s)
+	fmt.Printf("Drawing graph...\n")
+	io.DrawGraphTools(utils.StringConcat(res, "/all.py"), s)
 
 	return s
 }
@@ -89,8 +89,8 @@ func drawgraph_test() {
 	s.AddChildW(p1, 0.2)
 	s.AddChildW(p2, 0.8)
 
-	path, _ := filepath.Abs("../results/crtsf/models/all")
-	io.DrawGraph(utils.StringConcat(path, "/all.dot"), s)
+	path, _ := filepath.Abs("../results/example/simplespn")
+	io.DrawGraphTools(utils.StringConcat(path, "/spn.py"), s)
 
 	fmt.Println("Testing probabilities...")
 
@@ -185,8 +185,8 @@ func log_test() {
 func main() {
 	//indep_test()
 	//learn_test()
-	convert_imgs()
-	cvntev_imgs()
+	//convert_imgs()
+	//cvntev_imgs()
 	//parse_test()
 	//drawgraph_test()
 	//queue_test()
