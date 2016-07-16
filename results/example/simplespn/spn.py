@@ -45,4 +45,4 @@ add_edge(S2, X5, "0.600")
 g.vertex_properties["name"]=vnames
 g.vertex_properties["color"]=vcolors
 
-graph_draw(g, vertex_text=g.vertex_properties["name"], edge_text=enames, vertex_fill_color=g.vertex_properties["color"], output="/home/renatogeh/go/src/github.com/RenatoGeh/gospn/results/example/simplespn/spn.png")
+graph_draw(g, vertex_text=g.vertex_properties["name"], edge_text=enames, vertex_fill_color=g.vertex_properties["color"], output_size=[1920, 1080], output="/home/renatogeh/go/src/github.com/RenatoGeh/gospn/results/example/simplespn/spn.png", bg_color=[1, 1, 1, 1], vertex_size=15)

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"sort"
 )
 
 /*
@@ -132,16 +131,10 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 
 	// Set of Union-Find trees.
 	sets := make([]*UFNode, n)
-	// Number of k remaining sets. At first k = n.
-	//k := n
-
-	// Keys are the representative of the set. Value is a list of variables in the set.
-	kmap := make(map[int][]int)
 
 	// At first every vertex has its own set.
 	for i := 0; i < n; i++ {
 		sets[i] = MakeSet(ids[i])
-		kmap[ids[i]] = []int{ids[i]}
 	}
 
 	fmt.Println("Preparing to test each vertex of the independency graph for disconnectivity...")
@@ -153,75 +146,20 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 			v2 := igraph.adjlist[v1][j]
 			rv2 := rids[v2]
 
-			if sets[i] == nil {
-				break
-			} else if sets[rv2] == nil {
+			if Find(sets[i]) == Find(sets[rv2]) {
 				continue
 			}
 
-			_, p := Union(sets[i], sets[rv2])
-			if p == 1 {
-				sets[rv2] = nil
-				kmap[v1] = append(kmap[v1], kmap[v2]...)
-				delete(kmap, v2)
-			} else if p == 2 {
-				sets[i] = nil
-				kmap[v2] = append(kmap[v2], kmap[v1]...)
-				delete(kmap, v1)
-				break
-			}
+			Union(sets[i], sets[rv2])
 		}
 	}
 
-	/*(for i := 0; i < n; i++ {
-		v1 := ids[i]
-		for _, v2 := range igraph.adjlist[v1] {
-			f, s := i, rids[v2]
-			if sets[f] == nil {
-				break
-			}
-			if sets[s] == nil {
-				continue
-			}
-			// Union already ignores cases when u and v are in the same set.
-			_, p := Union(sets[f], sets[s])
-			if p == 1 {
-				sets[s] = nil
-				kmap[v1] = append(kmap[v1], kmap[v2]...)
-				delete(kmap, v2)
-			} else if p == 2 {
-				sets[f] = nil
-				kmap[v2] = append(kmap[v2], kmap[v1]...)
-				delete(kmap, v1)
-			} else {
-				fmt.Printf("Something has gone terribly wrong.\n")
-			}
-			// Everytime we apply the union of two sets we decrease the total amount of sets by one.
-			if p > 0 {
-				k--
-			}
-		}
-	}*/
-
-	// Reformat sets to slice form.
-	fmt.Println("Reformating sets to slice form...")
-	var keys []int
-	for k, v := range kmap {
-		s := len(v)
-		if s > 0 {
-			keys = append(keys, k)
+	igraph.Kset = nil
+	for i := 0; i < n; i++ {
+		if sets[i] == sets[i].Pa {
+			igraph.Kset = append(igraph.Kset, UFVarids(sets[i]))
 		}
 	}
-	sort.Ints(keys)
-	m := len(keys)
-	igraph.Kset = make([][]int, m)
-	for i := 0; i < m; i++ {
-		v := kmap[keys[i]]
-		igraph.Kset[i] = make([]int, len(v))
-		copy(igraph.Kset[i], v)
-	}
-
-	fmt.Printf("v: %v\n", kmap)
 
 	return &igraph
 }

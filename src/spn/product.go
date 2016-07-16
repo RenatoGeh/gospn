@@ -80,7 +80,7 @@ func (p *Product) Value(valuation VarSet) float64 {
 
 	//v := utils.LogProd(cv...)
 
-	//fmt.Printf("Value of product node: %f\n", v)
+	//fmt.Printf("Value of product node: antiln(%f)=%f\n", v, utils.AntiLog(v))
 	return v
 }
 
