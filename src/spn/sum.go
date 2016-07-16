@@ -89,7 +89,7 @@ func (s *Sum) Value(valuation VarSet) float64 {
 	//v += s.w[i] * vch
 	//}
 
-	//fmt.Printf("Value of sum node: %f\n", p1)
+	//fmt.Printf("Value of sum node: antiln(%f)=%f\n", p1, utils.AntiLog(p1))
 	return p1
 }
 

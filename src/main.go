@@ -98,6 +98,12 @@ func drawgraph_test() {
 	vset[2], vset[1], vset[4] = 1, 0, 1
 	val := s.Value(vset)
 	fmt.Printf("Pr(X_1=0, X_2=1, X_4=1)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
+	delete(vset, 2)
+	delete(vset, 1)
+	delete(vset, 4)
+	vset[4], vset[3], vset[1], vset[0], vset[2] = 0, 0, 1, 1, 0
+	val = s.Value(vset)
+	fmt.Printf("Pr(X_1=1, X_2=1, X_3=0, X_4=0, X_5=0)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
 }
 
 func queue_test() {
@@ -142,13 +148,13 @@ func classify_test() {
 	c := 0
 	for _, ve := range ev {
 		fmt.Printf("Test %d...\n", c)
+		pz := s.Value(ve)
 		for i := 0; i < nv; i++ {
 			vset := make(spn.VarSet)
 			for k, v := range ve {
 				vset[k] = v
 			}
 			vset[nsc] = i
-			pz := s.Value(ve)
 			px := s.Value(vset)
 			pr := px - pz
 			fmt.Printf("Pr(X=%d|E)=%f/%f=%.50f\n", i, px, pz, utils.AntiLog(pr))
@@ -182,6 +188,60 @@ func log_test() {
 		lp, p, lp == p, math.Abs(lp-p))
 }
 
+func discgraph_test() {
+	graph := make(map[int][]int)
+
+	// 20 nodes in this graph.
+	const N = 20
+
+	// Supposed to be 6 disconnected subgraphs in this graph.
+	// Subgraph 1
+	graph[0], graph[1], graph[2] = []int{1}, []int{0, 2}, []int{1}
+	// Subgraph 2
+	graph[3], graph[4], graph[5], graph[6] = []int{4}, []int{3, 4, 5}, []int{4, 6}, []int{4, 5}
+	// Subgraph 3
+	graph[7] = []int{}
+	// Subgraph 4
+	graph[8], graph[9], graph[10], graph[11] = []int{9, 14}, []int{8, 10}, []int{9, 11}, []int{10, 12}
+	graph[12], graph[13], graph[14] = []int{11, 13, 14}, []int{12, 14}, []int{12, 13}
+	// Subgraph 5
+	graph[15] = []int{}
+	// Subgraph 6
+	graph[16], graph[17], graph[18] = []int{17, 18, 19}, []int{16, 18, 19}, []int{16, 17, 19}
+	graph[19] = []int{16, 17, 18}
+
+	sets := make([]*utils.UFNode, N)
+
+	for i := 0; i < N; i++ {
+		sets[i] = utils.MakeSet(i)
+	}
+
+	for i := 0; i < N; i++ {
+		m := len(graph[i])
+		for j := 0; j < m; j++ {
+			t := graph[i][j]
+			if utils.Find(sets[i]) == utils.Find(sets[t]) {
+				continue
+			}
+			utils.Union(sets[i], sets[t])
+		}
+	}
+
+	var subgraphs [][]int = nil
+	// Find roots.
+	for i := 0; i < N; i++ {
+		if sets[i] == sets[i].Pa {
+			subgraphs = append(subgraphs, utils.UFVarids(sets[i]))
+		}
+	}
+
+	k := len(subgraphs)
+	fmt.Printf("There are %d disconnected subgraphs.\n", k)
+	for i := 0; i < k; i++ {
+		fmt.Printf("Subgraph %d has %d elements:\n%v\n", i+1, len(subgraphs[i]), subgraphs[i])
+	}
+}
+
 func main() {
 	//indep_test()
 	//learn_test()
@@ -192,4 +252,5 @@ func main() {
 	//queue_test()
 	classify_test()
 	//log_test()
+	//discgraph_test()
 }
