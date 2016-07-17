@@ -432,19 +432,15 @@ func PBMFToEvidence(dirname, dname string) {
 
 	nsdirs := len(subdirs)
 	tpath := utils.StringConcat(dirname, "/")
+
 	var mrkrm []int
 	// Reserved dirname compiled for output. Also remove non-dirs.
 	for i := 0; i < nsdirs; i++ {
 		// m marks the spot.
 		// Since for every removed item the slice shrinks by one, we keep track of the indices by
 		// taking into account the subslices "translated" at the right moment.
-		if subdirs[i] == "compiled" {
-			var m int = i
-			if len(mrkrm) > 0 {
-				m = i - 1
-			}
-			mrkrm = append(mrkrm, m)
-		} else if fi, _ := os.Stat(utils.StringConcat(tpath, subdirs[i])); !fi.IsDir() {
+		if fi, _ := os.Stat(utils.StringConcat(tpath, subdirs[i])); !fi.IsDir() ||
+			subdirs[i] == "compiled" {
 			var m int = i
 			if len(mrkrm) > 0 {
 				m = i - 1
@@ -459,9 +455,12 @@ func PBMFToEvidence(dirname, dname string) {
 		subdirs, nsdirs = append(subdirs[:j], subdirs[j+1:]...), nsdirs-1
 	}
 
+	// Marks which class labels they are supposed to be classified as. Each int is the index of each
+	// class label.
+	var slabels []int = nil
+
 	// Memorize all subfiles.
 	var instreams []*bufio.Scanner = nil
-	var labels []int = nil
 	for i := 0; i < nsdirs; i++ {
 		sd, err := os.Open(utils.StringConcat(tpath, subdirs[i]))
 
@@ -490,8 +489,8 @@ func PBMFToEvidence(dirname, dname string) {
 			defer f.Close()
 
 			instreams = append(instreams, bufio.NewScanner(f))
-			labels = append(labels, i)
 		}
+		slabels = append(slabels, nsf*i)
 	}
 
 	// Create compiled folder.
@@ -529,6 +528,16 @@ func PBMFToEvidence(dirname, dname string) {
 	for i := 1; i < nin; i++ {
 		instreams[i].Scan()
 		instreams[i].Scan()
+	}
+
+	// Declare labels.
+	fmt.Fprintf(out, "labels %d ", len(slabels))
+	for i, nslabels := 0, len(slabels); i < nslabels; i++ {
+		if i == nslabels-1 {
+			fmt.Fprintf(out, "%d\n", slabels[i])
+		} else {
+			fmt.Fprintf(out, "%d ", slabels[i])
+		}
 	}
 
 	// Declare variables to data file.

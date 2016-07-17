@@ -140,14 +140,20 @@ func queue_test() {
 
 func classify_test() {
 	s := learn_test()
-	sc, ev := io.ParseEvidence(io.GetPath("../data/digits_test/compiled/all.data"))
+	sc, ev, tlabels := io.ParseEvidence(io.GetPath("../data/digits_test/compiled/all.data"))
 
 	nsc := len(sc)
-	nv := 3
+	nv := len(tlabels)
 
-	c := 0
+	totals := make([]int, nv)
+	corrects := make([]int, nv)
+
+	tlabels = append(tlabels, int(^uint(0)>>1))
+	c, l := 0, 0
 	for _, ve := range ev {
 		fmt.Printf("Test %d...\n", c)
+		fmt.Printf("X is supposed to be %d.\n", l)
+		prs := make([]float64, nv)
 		pz := s.Value(ve)
 		for i := 0; i < nv; i++ {
 			vset := make(spn.VarSet)
@@ -157,10 +163,36 @@ func classify_test() {
 			vset[nsc] = i
 			px := s.Value(vset)
 			pr := px - pz
-			fmt.Printf("Pr(X=%d|E)=%f/%f=%.50f\n", i, px, pz, utils.AntiLog(pr))
+			prs[i] = utils.AntiLog(pr)
+			fmt.Printf("Pr(X=%d|E)=%f/%f=%.50f\n", i, px, pz, prs[i])
 		}
+
+		max, imax := 0.0, 0
+		for i := 0; i < nv; i++ {
+			if max < prs[i] {
+				max, imax = prs[i], i
+			}
+		}
+		fmt.Printf("Classified as class %d when it's supposed to be %d.\n", imax, l)
+
+		totals[l]++
+		if l == imax {
+			corrects[l]++
+		}
+
 		c++
+		if tlabels[l+1] == c {
+			l++
+		}
 	}
+
+	fmt.Printf("\n=========== Overall Results ============\n")
+	for i := 0; i < nv; i++ {
+		perc := 100.0 * (float64(corrects[i]) / float64(totals[i]))
+		fmt.Printf("Class %d:\n  Total instances: %d\n  Correct instances: %d\n  Correctness "+
+			"percentage: %.3f%%\n\n", i, totals[i], corrects[i], perc)
+	}
+	fmt.Printf("==========================================")
 
 	//argmax, max := s.ArgMax(ev[0])
 	//arg, ok := argmax[600]
