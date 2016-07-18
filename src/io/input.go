@@ -57,6 +57,7 @@ func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 
 	regex := regexp.MustCompile("[\\,\\s]+")
 	// We assume complete data.
+	k := 0
 	for i := 0; scanner.Scan(); i++ {
 		data = append(data, make([]int, n))
 		s := regex.Split(line, -1)
@@ -68,6 +69,17 @@ func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 			}
 		}
 		line = scanner.Text()
+		k++
+	}
+
+	data = append(data, make([]int, n))
+	s := regex.Split(line, -1)
+	for i := 0; i < n; i++ {
+		data[k][i], err = strconv.Atoi(s[i])
+		if err != nil {
+			fmt.Printf("Invalid string \"%s\" found in data file [%s].\n", s[i], filename)
+			panic(err)
+		}
 	}
 
 	m, n := len(data), len(data[0])
@@ -134,6 +146,7 @@ func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []in
 	var data [][]int
 
 	regex := regexp.MustCompile("[\\,\\s]+")
+	k := 0
 	// We assume complete data.
 	for i := 0; scanner.Scan(); i++ {
 		data = append(data, make([]int, n))
@@ -146,6 +159,17 @@ func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []in
 			}
 		}
 		line = scanner.Text()
+		k++
+	}
+
+	data = append(data, make([]int, n))
+	s := regex.Split(line, -1)
+	for i := 0; i < n; i++ {
+		data[k][i], err = strconv.Atoi(s[i])
+		if err != nil {
+			fmt.Printf("Invalid string \"%s\" found in data file [%s].\n", s[i], filename)
+			panic(err)
+		}
 	}
 
 	m, n := len(data), len(data[0])
