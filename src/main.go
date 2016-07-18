@@ -274,15 +274,31 @@ func discgraph_test() {
 	}
 }
 
+func kmeans_test() {
+	data := [][]int{{0, 1, 2}, {2, 3, 4}, {4, 5, 6}, {6, 7, 8}, {8, 9, 10}, {1, 2, 3}, {3, 4, 5},
+		{5, 6, 7}, {7, 8, 9}, {7, 5, 3}, {0, 0, 1}, {9, 9, 10}, {0, 5, 10}}
+	k := 3
+	clusters := utils.KMeansV(k, data)
+
+	for i := 0; i < k; i++ {
+		fmt.Printf("Cluster %d:\n", i)
+		for k, v := range clusters[i] {
+			fmt.Printf("[%d]=%d ", k, v)
+		}
+		fmt.Printf("\n")
+	}
+}
+
 func main() {
 	//indep_test()
 	//learn_test()
 	//convert_imgs()
 	//cvntev_imgs()
-	//parse_test()
+	parse_test()
 	//drawgraph_test()
 	//queue_test()
-	classify_test()
+	//classify_test()
 	//log_test()
 	//discgraph_test()
+	//kmeans_test()
 }

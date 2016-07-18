@@ -105,9 +105,9 @@ func DrawGraphTools(filename string, s spn.SPN) {
 
 	fmt.Fprintf(file, "g.vertex_properties[\"name\"]=vnames\n")
 	fmt.Fprintf(file, "g.vertex_properties[\"color\"]=vcolors\n")
-	fmt.Fprintf(file, "\ngraph_draw(g, vertex_text=g.vertex_properties[\"name\"], "+
-		"edge_text=enames, vertex_fill_color=g.vertex_properties[\"color\"], "+
-		"output_size=[1920, 1080], output=\"%s\", bg_color=[1, 1, 1, 1], vertex_size=15)\n", outname)
+	fmt.Fprintf(file, "\ngraph_draw(g, "+
+		"vertex_fill_color=g.vertex_properties[\"color\"], "+
+		"output_size=[16384, 16384], output=\"%s\", bg_color=[1, 1, 1, 1])\n", outname)
 }
 
 // Creates a file filename and draws an SPN spn in Graphviz dot.
