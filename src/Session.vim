@@ -7,20 +7,21 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +92 learn/gens.go
-badd +129 utils/indgraph.go
-badd +252 main.go
+badd +195 learn/gens.go
+badd +164 utils/indgraph.go
+badd +300 main.go
 badd +85 io/input.go
-badd +534 io/output.go
+badd +109 io/output.go
 badd +65 utils/unionfind.go
-badd +310 utils/indtest.go
-badd +101 utils/kmeans.go
+badd +347 utils/indtest.go
+badd +68 utils/kmeans.go
 badd +92 spn/sum.go
 badd +83 spn/product.go
 badd +116 spn/univdist.go
 badd +25 spn/node.go
 badd +2 spn/varset.go
 badd +49 utils/log.go
+badd +1 utils/vardata.go
 argglobal
 silent! argdel *
 argadd learn/gens.go
@@ -38,11 +39,11 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe '1resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 1resize ' . ((&columns * 104 + 106) / 212)
-exe '2resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 2resize ' . ((&columns * 104 + 106) / 212)
-exe 'vert 3resize ' . ((&columns * 107 + 106) / 212)
+exe '1resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 1resize ' . ((&columns * 106 + 106) / 212)
+exe '2resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 2resize ' . ((&columns * 106 + 106) / 212)
+exe 'vert 3resize ' . ((&columns * 105 + 106) / 212)
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -53,16 +54,16 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 101 - ((27 * winheight(0) + 14) / 29)
+let s:l = 57 - ((14 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-101
-normal! 03|
+57
+normal! 013|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
-edit ~/go/src/github.com/RenatoGeh/gospn/src/utils/indtest.go
+edit ~/go/src/github.com/RenatoGeh/gospn/src/utils/indgraph.go
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -72,11 +73,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 335 - ((6 * winheight(0) + 14) / 28)
+let s:l = 55 - ((0 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-335
+55
 normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -91,19 +92,19 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 78 - ((34 * winheight(0) + 29) / 58)
+let s:l = 213 - ((57 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-78
-normal! 039|
+213
+normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
-exe '1resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 1resize ' . ((&columns * 104 + 106) / 212)
-exe '2resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 2resize ' . ((&columns * 104 + 106) / 212)
-exe 'vert 3resize ' . ((&columns * 107 + 106) / 212)
+exe '1resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 1resize ' . ((&columns * 106 + 106) / 212)
+exe '2resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 2resize ' . ((&columns * 106 + 106) / 212)
+exe 'vert 3resize ' . ((&columns * 105 + 106) / 212)
 tabedit ~/go/src/github.com/RenatoGeh/gospn/src/io/output.go
 set splitbelow splitright
 wincmd _ | wincmd |
@@ -126,11 +127,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 109 - ((38 * winheight(0) + 29) / 58)
+let s:l = 110 - ((39 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-109
+110
 normal! 057|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -145,11 +146,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 72 - ((57 * winheight(0) + 29) / 58)
+let s:l = 48 - ((28 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-72
+48
 normal! 05|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -177,16 +178,16 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 65 - ((57 * winheight(0) + 29) / 58)
+let s:l = 167 - ((0 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-65
-normal! 05|
+167
+normal! 07|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
-edit ~/go/src/github.com/RenatoGeh/gospn/src/utils/kmeans.go
+edit ~/go/src/github.com/RenatoGeh/gospn/src/learn/gens.go
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -196,12 +197,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 68 - ((0 * winheight(0) + 29) / 58)
+let s:l = 209 - ((53 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-68
-normal! 05|
+209
+normal! 055|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 exe 'vert 1resize ' . ((&columns * 104 + 106) / 212)

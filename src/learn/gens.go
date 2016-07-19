@@ -1,7 +1,7 @@
 package learn
 
 import (
-	"fmt"
+	_ "fmt"
 	//"math"
 	"sort"
 
@@ -47,11 +47,11 @@ import (
 func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	n := len(sc)
 
-	fmt.Printf("Sample size: %d, scope size: %d\n", len(data), n)
+	//fmt.Printf("Sample size: %d, scope size: %d\n", len(data), n)
 
 	// If the data's scope is unary, then we return a leaf (i.e. a univariate distribution).
 	if n == 1 {
-		fmt.Println("Creating new leaf...")
+		//fmt.Println("Creating new leaf...")
 
 		// m number of instantiations.
 		m := len(data)
@@ -66,15 +66,15 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 		}
 
 		leaf := spn.NewCountingUnivDist(tv.Varid, counts)
-		fmt.Println("Leaf created.")
+		//fmt.Println("Leaf created.")
 		return leaf
 	}
 
 	// Else we check for independent subsets of variables. We separate variables in k partitions,
 	// where every partition is pairwise indepedent with each other.
-	fmt.Println("Preparing to create new product node...")
+	//fmt.Println("Preparing to create new product node...")
 
-	fmt.Println("Creating VarDatas for Independency Test...")
+	//fmt.Println("Creating VarDatas for Independency Test...")
 	vdata, l := make([]*utils.VarData, n), 0
 	for _, v := range sc {
 		tn := len(data)
@@ -87,14 +87,14 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 		l++
 	}
 
-	fmt.Println("Creating new Independency graph...")
+	//fmt.Println("Creating new Independency graph...")
 	// Independency graph.
 	igraph := utils.NewIndepGraph(vdata)
 
 	// If true, then we can partition the set of variables in data into independent subsets. This
 	// means we can create a product node (since product nodes' children have disjoint scopes).
 	if len(igraph.Kset) > 1 {
-		fmt.Println("Found independency between variables. Creating new product node...")
+		//fmt.Println("Found independency between variables. Creating new product node...")
 		// prod is the new product node. m is the number of disjoint sets. kset is a shortcut.
 		prod, m, kset := spn.NewProduct(), len(igraph.Kset), &igraph.Kset
 		tn := len(data)
@@ -118,8 +118,8 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 				t := (*kset)[i][j]
 				nsc[t] = Variable{t, sc[t].Categories}
 			}
-			fmt.Printf("LENGTH: %d\n", len(tdata))
-			fmt.Println("Product node created. Recursing...")
+			//fmt.Printf("LENGTH: %d\n", len(tdata))
+			//fmt.Println("Product node created. Recursing...")
 			// Adds the recursive calls as children of this new product node.
 			prod.AddChild(Gens(nsc, tdata))
 		}
@@ -127,7 +127,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	}
 
 	// Else we perform k-clustering on the instances.
-	fmt.Println("No independency found. Preparing for clustering...")
+	//fmt.Println("No independency found. Preparing for clustering...")
 
 	m := len(data)
 	mdata := make([][]int, m)
@@ -141,13 +141,12 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 			l++
 		}
 		sort.Ints(keys)
-		l = 0
 		for j := 0; j < lc; j++ {
 			mdata[i][j] = data[i][keys[j]]
 		}
 	}
 
-	fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
+	//fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
 	KClusters := 4
 	if len(mdata) < KClusters {
 		// Fully factorized form.
@@ -191,22 +190,23 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	//return prod
 	//}
 
-	fmt.Println("Reformating clusters to appropriate format and creating sum node...")
+	//fmt.Println("Reformating clusters to appropriate format and creating sum node...")
 	sum := spn.NewSum()
 	for i := 0; i < k; i++ {
-		s := len(clusters[i])
-		ndata := make([]map[int]int, s)
-		for j := 0; j < s; j++ {
-			ndata[j] = make(map[int]int)
-			// k is indices in original data. v is instance in data[k].
-			for k, _ := range clusters[i] {
-				for vi, inst := range data[k] {
-					ndata[j][vi] = inst
-				}
+		ni := len(clusters[i])
+		ndata := make([]map[int]int, ni)
+
+		l := 0
+		for k, _ := range clusters[i] {
+			ndata[l] = make(map[int]int)
+			for index, value := range data[k] {
+				ndata[l][index] = value
 			}
+			l++
 		}
-		fmt.Println("Created new sum node child. Recursing...")
-		sum.AddChildW(Gens(sc, ndata), float64(s)/float64(len(data)))
+
+		//fmt.Println("Created new sum node child. Recursing...")
+		sum.AddChildW(Gens(sc, ndata), float64(ni)/float64(len(data)))
 	}
 
 	return sum

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	_ "fmt"
 	"math"
 	"math/rand"
 )
@@ -41,14 +41,14 @@ func recompute_mean(which int, means []float64, clusters []map[int][]int) {
 		}
 	}
 	means[which] = mean / float64(s)
-	fmt.Printf("change cluster(m=%f) size[%d]: %d\n", means[which], which, len(clusters[which]))
+	//fmt.Printf("change cluster(m=%f) size[%d]: %d\n", means[which], which, len(clusters[which]))
 }
 
 func KMeansV(k int, data [][]int) []map[int][]int {
 	n := len(data)
 
 	// Initializes using the Forgy method.
-	fmt.Println("Initializing K-means clustering via the Forgy method...")
+	//fmt.Println("Initializing K-means clustering via the Forgy method...")
 	chkrnd := make(map[int]bool)
 	clusters := make([]map[int][]int, k)
 	means := make([]float64, k)
@@ -58,7 +58,7 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 		for ok := true; ok; _, ok = chkrnd[r] {
 			r = rand.Intn(n)
 		}
-		fmt.Printf("%d vs %d\n", n, r)
+		//fmt.Printf("%d vs %d\n", n, r)
 		clusters[i] = make(map[int][]int)
 		chkrnd[r], chkdata[r] = true, i
 		clusters[i][r] = make([]int, len(data[r]))
@@ -72,7 +72,7 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 
 	diff, diffsum := make([]float64, k), -1.0
 
-	fmt.Println("Starting K-means until convergence...")
+	//fmt.Println("Starting K-means until convergence...")
 	for diffsum != 0 {
 		for i := 0; i < n; i++ {
 			min, mean, s, which := math.Inf(1), 0.0, len(data[i]), -1
@@ -120,9 +120,9 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 			diffsum += math.Abs(means[i] - diff[i])
 			diff[i] = means[i]
 		}
-		fmt.Printf("diffsum: %f\n", diffsum)
+		//fmt.Printf("diffsum: %f\n", diffsum)
 	}
-	fmt.Println("Converged. Returning clusters...")
+	//fmt.Println("Converged. Returning clusters...")
 
 	return clusters
 }
