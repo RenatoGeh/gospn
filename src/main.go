@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"path/filepath"
+	"sort"
 
 	common "github.com/RenatoGeh/gospn/src/common"
 	io "github.com/RenatoGeh/gospn/src/io"
@@ -192,7 +193,7 @@ func classify_test() {
 		fmt.Printf("Class %d:\n  Total instances: %d\n  Correct instances: %d\n  Correctness "+
 			"percentage: %.3f%%\n\n", i, totals[i], corrects[i], perc)
 	}
-	fmt.Printf("==========================================")
+	fmt.Printf("========================================")
 
 	//argmax, max := s.ArgMax(ev[0])
 	//arg, ok := argmax[600]
@@ -287,6 +288,150 @@ func kmeans_test() {
 		}
 		fmt.Printf("\n")
 	}
+
+	mdata := make([]map[int]int, len(data))
+	fmt.Printf("mdata:\n")
+	for i := 0; i < len(data); i++ {
+		mdata[i] = make(map[int]int)
+		for j := 0; j < len(data[i]); j++ {
+			mdata[i][j] = data[i][j]
+			fmt.Printf("%d ", mdata[i][j])
+		}
+		fmt.Printf("\n")
+	}
+	fmt.Printf("\n")
+
+	for i := 0; i < k; i++ {
+		ni := len(clusters[i])
+		ndata := make([]map[int]int, ni)
+
+		l := 0
+		for k, _ := range clusters[i] {
+			ndata[l] = make(map[int]int)
+			fmt.Printf("%d:\n", k)
+			for index, value := range mdata[k] {
+				ndata[l][index] = value
+				fmt.Printf("[%d]=%d ", index, value)
+			}
+			fmt.Printf("\n")
+			l++
+		}
+
+		fmt.Printf("Clusters %d:\n", i)
+		for j := 0; j < ni; j++ {
+			keys := make([]int, len(ndata[j]))
+			t := 0
+			for _, v := range ndata[j] {
+				keys[t] = v
+				t++
+			}
+			sort.Ints(keys)
+			for tt := 0; tt < len(ndata[j]); tt++ {
+				fmt.Printf("%d ", keys[tt])
+			}
+
+			fmt.Printf("\n")
+		}
+		fmt.Printf("\n")
+	}
+}
+
+func vardata_test() {
+	n, m := 20, 10
+
+	sc := make(map[int]learn.Variable)
+	data := make([]map[int]int, m)
+
+	for i := 0; i < n; i++ {
+		sc[i] = learn.Variable{i, n * m}
+	}
+
+	for i := 0; i < m; i++ {
+		data[i] = make(map[int]int)
+		for j := 0; j < n; j++ {
+			data[i][j] = j + i*n
+		}
+	}
+
+	fmt.Printf("Data:\n")
+	for i := 0; i < m; i++ {
+		for j := 0; j < n; j++ {
+			fmt.Printf("%3d ", data[i][j])
+		}
+		fmt.Printf("\n")
+	}
+	fmt.Printf("\n")
+
+	vdata, l := make([]*utils.VarData, n), 0
+	indices := make([]int, n)
+	for _, v := range sc {
+		tn := len(data)
+		// tdata is the transpose of data[k].
+		tdata := make([]int, tn)
+		for j := 0; j < tn; j++ {
+			tdata[j] = data[j][v.Varid]
+		}
+		vdata[l] = utils.NewVarData(v.Varid, v.Categories, tdata)
+		indices[v.Varid] = l
+		l++
+	}
+
+	for i := 0; i < n; i++ {
+		j := indices[i]
+		fmt.Printf("vdata[%d]:\n  %d\n  %d\n  %v\n\n", i, vdata[j].Varid, vdata[j].Categories, vdata[j].Data)
+	}
+}
+
+func maptoslice_test() {
+	N, M := 20, 10
+
+	sc := make(map[int]learn.Variable)
+	data := make([]map[int]int, M)
+
+	for i := 0; i < N; i++ {
+		sc[i] = learn.Variable{i, N * M}
+	}
+
+	for i := 0; i < M; i++ {
+		data[i] = make(map[int]int)
+		for j := 0; j < N; j++ {
+			data[i][j] = j + i*N
+		}
+	}
+
+	fmt.Printf("Data:\n")
+	for i := 0; i < M; i++ {
+		for j := 0; j < N; j++ {
+			fmt.Printf("%3d ", data[i][j])
+		}
+		fmt.Printf("\n")
+	}
+	fmt.Printf("\n")
+
+	m := len(data)
+	mdata := make([][]int, m)
+	for i := 0; i < m; i++ {
+		lc := len(data[i])
+		mdata[i] = make([]int, lc)
+		l := 0
+		keys := make([]int, lc)
+		for k, _ := range data[i] {
+			keys[l] = k
+			l++
+		}
+		sort.Ints(keys)
+		for j := 0; j < lc; j++ {
+			mdata[i][j] = data[i][keys[j]]
+		}
+	}
+
+	fmt.Printf("Mdata:\n")
+	for i := 0; i < len(mdata); i++ {
+		for j := 0; j < len(mdata[i]); j++ {
+			fmt.Printf("%3d ", mdata[i][j])
+		}
+		fmt.Printf("\n")
+	}
 }
 
 func main() {
@@ -301,4 +446,6 @@ func main() {
 	//log_test()
 	//discgraph_test()
 	//kmeans_test()
+	//vardata_test()
+	//maptoslice_test()
 }
