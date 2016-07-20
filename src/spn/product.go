@@ -26,7 +26,7 @@ func NewProduct() *Product {
 // AddChild adds a new child to this product node.
 func (p *Product) AddChild(c Node) {
 	p.ch = append(p.ch, c)
-	p.SetParent(p)
+	c.SetParent(p)
 	p.sc = nil
 }
 

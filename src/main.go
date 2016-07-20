@@ -14,18 +14,20 @@ import (
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
+const dataset = "lines"
+
 func learn_test() spn.SPN {
-	comps, err := filepath.Abs("../data/digits/compiled")
+	comps, err := filepath.Abs("../data/" + dataset + "/compiled")
 
 	if err != nil {
-		fmt.Printf("Error on finding data/digits/compiled.\n")
+		fmt.Printf("Error on finding data/" + dataset + "/compiled.\n")
 		panic(err)
 	}
 
-	res, err := filepath.Abs("../results/digits/models/all")
+	res, err := filepath.Abs("../results/" + dataset + "/models/all")
 
 	if err != nil {
-		fmt.Printf("Error on finding results/digits/models.\n")
+		fmt.Printf("Error on finding results/" + dataset + "/models.\n")
 		panic(err)
 	}
 
@@ -64,12 +66,12 @@ func parse_test() {
 }
 
 func convert_imgs() {
-	cmn, _ := filepath.Abs("../data/digits/")
+	cmn, _ := filepath.Abs("../data/" + dataset + "/")
 	io.PBMFToData(cmn, "all.data")
 }
 
 func cvntev_imgs() {
-	cmn, _ := filepath.Abs("../data/digits_test/")
+	cmn, _ := filepath.Abs("../data/" + dataset + "_test/")
 	io.PBMFToEvidence(cmn, "all.data")
 }
 
@@ -105,6 +107,14 @@ func drawgraph_test() {
 	vset[4], vset[3], vset[1], vset[0], vset[2] = 0, 0, 1, 1, 0
 	val = s.Value(vset)
 	fmt.Printf("Pr(X_1=1, X_2=1, X_3=0, X_4=0, X_5=0)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
+	for i := 0; i < 5; i++ {
+		delete(vset, i)
+	}
+	for i := 0; i < 6; i++ {
+		vset[i] = 1
+	}
+	val = s.Value(vset)
+	fmt.Printf("Pr(for all 0<=i<6, X_i=1)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
 }
 
 func queue_test() {
@@ -141,7 +151,7 @@ func queue_test() {
 
 func classify_test() {
 	s := learn_test()
-	sc, ev, tlabels := io.ParseEvidence(io.GetPath("../data/digits_test/compiled/all.data"))
+	sc, ev, tlabels := io.ParseEvidence(io.GetPath("../data/" + dataset + "_test/compiled/all.data"))
 
 	nsc := len(sc)
 	nv := len(tlabels)
@@ -273,6 +283,51 @@ func discgraph_test() {
 	for i := 0; i < k; i++ {
 		fmt.Printf("Subgraph %d has %d elements:\n%v\n", i+1, len(subgraphs[i]), subgraphs[i])
 	}
+
+	M := 30
+	sc := make(map[int]learn.Variable)
+	data := make([]map[int]int, M)
+
+	fmt.Printf("\nVariables:\n")
+	for i := 0; i < N; i++ {
+		sc[i] = learn.Variable{i, N * M}
+		fmt.Printf("Var %d %d\n", i, N*M)
+	}
+
+	fmt.Printf("\nData:\n")
+	for i := 0; i < M; i++ {
+		data[i] = make(map[int]int)
+		for j := 0; j < N; j++ {
+			data[i][j] = j + i*N
+			fmt.Printf("%3d ", data[i][j])
+		}
+		fmt.Printf("\n")
+	}
+	fmt.Printf("\n")
+
+	kset := &subgraphs
+	for i := 0; i < len(subgraphs); i++ {
+		tn := len(data)
+		tdata := make([]map[int]int, tn)
+		s := len((*kset)[i])
+		for j := 0; j < tn; j++ {
+			tdata[j] = make(map[int]int)
+			for l := 0; l < s; l++ {
+				k := (*kset)[i][l]
+				tdata[j][k] = data[j][k]
+				fmt.Printf("V:%d=%3d ", k, tdata[j][k])
+			}
+			fmt.Printf("\n")
+		}
+		fmt.Printf("\n")
+		nsc := make(map[int]learn.Variable)
+		for j := 0; j < s; j++ {
+			t := (*kset)[i][j]
+			nsc[t] = learn.Variable{t, sc[t].Categories}
+			fmt.Printf("Variable: %d, %d\n", t, sc[t].Categories)
+		}
+		fmt.Printf("\n")
+	}
 }
 
 func kmeans_test() {
@@ -337,19 +392,19 @@ func kmeans_test() {
 }
 
 func vardata_test() {
-	n, m := 20, 10
+	n, m := 40, 30
 
 	sc := make(map[int]learn.Variable)
 	data := make([]map[int]int, m)
 
 	for i := 0; i < n; i++ {
-		sc[i] = learn.Variable{i, n * m}
+		sc[i] = learn.Variable{i, 11}
 	}
 
 	for i := 0; i < m; i++ {
 		data[i] = make(map[int]int)
 		for j := 0; j < n; j++ {
-			data[i][j] = j + i*n
+			data[i][j] = (j*i)%3 + (j+i)%4*(2+j%2)
 		}
 	}
 
@@ -379,6 +434,37 @@ func vardata_test() {
 	for i := 0; i < n; i++ {
 		j := indices[i]
 		fmt.Printf("vdata[%d]:\n  %d\n  %d\n  %v\n\n", i, vdata[j].Varid, vdata[j].Categories, vdata[j].Data)
+	}
+
+	igraph := utils.NewIndepGraph(vdata)
+
+	kset := &igraph.Kset
+
+	for i := 0; i < len(igraph.Kset); i++ {
+		sort.Ints((*kset)[i])
+	}
+
+	for i := 0; i < len(igraph.Kset); i++ {
+		tn := len(data)
+		tdata := make([]map[int]int, tn)
+		s := len((*kset)[i])
+		for j := 0; j < tn; j++ {
+			tdata[j] = make(map[int]int)
+			for l := 0; l < s; l++ {
+				k := (*kset)[i][l]
+				tdata[j][k] = data[j][k]
+				fmt.Printf("V:%d=%3d ", k, tdata[j][k])
+			}
+			fmt.Printf("\n")
+		}
+		fmt.Printf("\n")
+		nsc := make(map[int]learn.Variable)
+		for j := 0; j < s; j++ {
+			t := (*kset)[i][j]
+			nsc[t] = learn.Variable{t, sc[t].Categories}
+			fmt.Printf("Variable: %d, %d\n", t, sc[t].Categories)
+		}
+		fmt.Printf("\n")
 	}
 }
 
