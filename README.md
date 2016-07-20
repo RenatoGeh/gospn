@@ -64,6 +64,16 @@ Follow instructions at <https://golang.org/doc/install#windows>.
 Once Go is installed, be sure to check if your $GOPATH is set correctly.
 From now on all Go packages should be installed to $GOPATH.
 
+If you're using Linux, your `.bashrc` or `.zshrc` should have the
+following lines:
+
+```
+# Go path. Replace $YOURDIR with a directory of your choice.
+export GOPATH=$YOURDIR/go
+# Optionally add Go's path to your $PATH environment.
+export PATH="$PATH:$GOPATH/bin"
+```
+
 #### godebug
 
 Although Go does work with GNU's GDB, GDB doesn't understand Go well.
