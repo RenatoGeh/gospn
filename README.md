@@ -122,6 +122,14 @@ file:
 $ go run main.go | tee out.put
 ```
 
+### Updating GoSPN
+
+To update GoSPN, run:
+
+```
+go get -u github.com/RenatoGeh/gospn
+```
+
 ### Code and Docs Organization
 
 In this section we describe the general layout that we intend to follow
