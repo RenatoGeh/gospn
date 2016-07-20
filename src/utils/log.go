@@ -37,8 +37,9 @@ func LogProd(p ...float64) float64 {
 }
 
 // AntiLog is the antilog with base e of l. It is equivalent to e raised to the power of l. Thus
-// the following identity applies
+// the following identities apply
 // 	antiln(ln(k)) = k
+// 	ln(antiln(k)) = k
 // Returns a float64 that corresponds to the antilog of l.
 func AntiLog(l float64) float64 {
 	return math.Exp(l)
