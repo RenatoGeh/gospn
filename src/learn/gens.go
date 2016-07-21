@@ -185,8 +185,13 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 			l++
 		}
 
+		nsc := make(map[int]Variable)
+		for k, v := range sc {
+			nsc[k] = v
+		}
+
 		//fmt.Println("Created new sum node child. Recursing...")
-		sum.AddChildW(Gens(sc, ndata), float64(ni)/float64(len(data)))
+		sum.AddChildW(Gens(nsc, ndata), float64(ni)/float64(len(data)))
 	}
 
 	return sum
