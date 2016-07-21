@@ -100,7 +100,7 @@ This should install GoSPN to your $GOPATH directory. Compiling the code
 is easy. First go to the GoSPN source dir.
 
 ```
-$ cd $GOPATH/github.com/RenatoGeh/gospn/src
+$ cd $GOPATH/src/github.com/RenatoGeh/gospn/src
 ```
 
 To compile and run:
