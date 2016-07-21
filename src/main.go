@@ -331,26 +331,62 @@ func discgraph_test() {
 }
 
 func kmeans_test() {
-	data := [][]int{{0, 1, 2}, {2, 3, 4}, {4, 5, 6}, {6, 7, 8}, {8, 9, 10}, {1, 2, 3}, {3, 4, 5},
-		{5, 6, 7}, {7, 8, 9}, {7, 5, 3}, {0, 0, 1}, {9, 9, 10}, {0, 5, 10}}
-	k := 3
-	clusters := utils.KMeansV(k, data)
+	n, m := 40, 30
+
+	sc := make(map[int]learn.Variable)
+	data := make([]map[int]int, m)
+
+	for i := 0; i < n; i++ {
+		sc[i] = learn.Variable{i, 11}
+	}
+
+	for i := 0; i < m; i++ {
+		data[i] = make(map[int]int)
+		for j := 0; j < n; j++ {
+			data[i][j] = (j*i)%3 + (j+i)%4*(2+j%2)
+		}
+	}
+
+	mdata := make([][]int, m)
+	for i := 0; i < m; i++ {
+		lc := len(data[i])
+		mdata[i] = make([]int, lc)
+		l := 0
+		keys := make([]int, lc)
+		for k, _ := range data[i] {
+			keys[l] = k
+			l++
+		}
+		sort.Ints(keys)
+		for j := 0; j < lc; j++ {
+			mdata[i][j] = data[i][keys[j]]
+		}
+	}
+
+	k := 4
+	clusters := utils.KMeansV(k, mdata)
 
 	for i := 0; i < k; i++ {
 		fmt.Printf("Cluster %d:\n", i)
-		for k, v := range clusters[i] {
-			fmt.Printf("[%d]=%d ", k, v)
+		keys, j := make([]int, len(clusters[i])), 0
+		for k, _ := range clusters[i] {
+			keys[j] = k
+			j++
+		}
+		sort.Ints(keys)
+		for j := 0; j < len(keys); j++ {
+			fmt.Printf("[%d]=%d\n", keys[j], clusters[i][keys[j]])
 		}
 		fmt.Printf("\n")
 	}
 
-	mdata := make([]map[int]int, len(data))
-	fmt.Printf("mdata:\n")
-	for i := 0; i < len(data); i++ {
-		mdata[i] = make(map[int]int)
-		for j := 0; j < len(data[i]); j++ {
-			mdata[i][j] = data[i][j]
-			fmt.Printf("%d ", mdata[i][j])
+	kdata := make([]map[int]int, len(mdata))
+	fmt.Printf("kdata:\n")
+	for i := 0; i < len(mdata); i++ {
+		kdata[i] = make(map[int]int)
+		for j := 0; j < len(mdata[i]); j++ {
+			kdata[i][j] = mdata[i][j]
+			fmt.Printf("%d ", kdata[i][j])
 		}
 		fmt.Printf("\n")
 	}
@@ -364,7 +400,7 @@ func kmeans_test() {
 		for k, _ := range clusters[i] {
 			ndata[l] = make(map[int]int)
 			fmt.Printf("%d:\n", k)
-			for index, value := range mdata[k] {
+			for index, value := range data[k] {
 				ndata[l][index] = value
 				fmt.Printf("[%d]=%d ", index, value)
 			}
@@ -376,13 +412,13 @@ func kmeans_test() {
 		for j := 0; j < ni; j++ {
 			keys := make([]int, len(ndata[j]))
 			t := 0
-			for _, v := range ndata[j] {
-				keys[t] = v
+			for k, _ := range ndata[j] {
+				keys[t] = k
 				t++
 			}
 			sort.Ints(keys)
 			for tt := 0; tt < len(ndata[j]); tt++ {
-				fmt.Printf("%d ", keys[tt])
+				fmt.Printf("%d ", ndata[j][keys[tt]])
 			}
 
 			fmt.Printf("\n")

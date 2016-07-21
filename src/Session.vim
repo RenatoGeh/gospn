@@ -156,11 +156,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 109 - ((52 * winheight(0) + 29) / 58)
+let s:l = 110 - ((53 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-109
+110
 normal! 023|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -175,12 +175,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 2 - ((1 * winheight(0) + 29) / 58)
+let s:l = 152 - ((0 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-2
-normal! 0
+152
+normal! 05|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 exe 'vert 1resize ' . ((&columns * 104 + 106) / 212)
@@ -207,11 +207,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 523 - ((43 * winheight(0) + 29) / 58)
+let s:l = 517 - ((1 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-523
+517
 normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -226,12 +226,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 186 - ((50 * winheight(0) + 29) / 58)
+let s:l = 129 - ((0 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-186
-normal! 05|
+129
+normal! 03|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 2wincmd w

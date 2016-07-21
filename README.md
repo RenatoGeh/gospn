@@ -87,6 +87,103 @@ $ go get github.com/mailgun/godebug
 
 More information at <https://github.com/mailgun/godebug>.
 
+#### graph-tool
+
+Graph-tool is a Python module for graph manipulation and drawing. Since
+the SPNs we'll generate with this algorithm may have thousands of nodes
+and hundreds of layers, we need a fast and efficient graph drawing tool
+for displaying our graphs. Since graph-tool uses C++ metaprogramming
+extensively, its performance is comparable to a C++ library.
+
+Graph-tool uses the C++ Boost Library and can be compiled with OpenMP, a
+library for parallel programming on multiple cores architecture that may
+decrease graph compilation time significantly.
+
+Compiling graph-tool can take up to 80 minutes and 3GB of RAM. If you do
+not plan on compiling the graphs GoSPN outputs, it is highly recommended
+that you do not install graph-tool.
+
+##### graph-tool dependencies
+
+* C++14 compiler (GCC version 5 or above; or clang 3.4 or above),
+* C++ Boost libraries v1.54+,
+* Python version 2.7, 3 or above
+* expat
+* SciPy
+* NumPy
+* CGAL C++ Geometry library v1.7+
+
+Optional dependencies are listed at <https://graph-tool.skewed.de/download>.
+
+##### Installing graph-tool
+
+After installing all dependencies, compile graph-tool by downloading the
+source (<https://graph-tool.skewed.de/download>) and compiling the usual
+way:
+
+```
+./configure
+make
+```
+
+Then install the Python module:
+
+```
+make install
+```
+
+If you use Debian, Ubuntu, Arch Linux, Gentoo or Mac OS X, there are
+pre-compiled packages available:
+
+###### Debian and Ubuntu
+
+Read <https://graph-tool.skewed.de/download#debian>.
+
+###### Arch Linux
+
+Graph-tool is available at the AUR. Replace `pacaur` with your favorite
+AUR helper.
+
+```
+pacaur -S python-graph-tool
+```
+
+###### Gentoo
+
+```
+emerge graph-tool
+```
+
+###### Mac OS X
+
+Read <https://graph-tool.skewed.de/download#note-macos> first.
+
+```
+# Macports
+port install py-graph-tool
+# Homebrew
+brew tap homebrew/science
+brew install graph-tool
+```
+
+##### Compiling graphs
+
+GoSPN outputs all graphs to:
+
+```
+$GOPATH/src/github.com/RenatoGeh/gospn/results/dataset_name/
+```
+
+Simply run python on the python source code and it will output a PNG
+image of the graph.
+
+```
+python graph_name.py
+```
+
+If graph-tool was compiled with OpenMP it will make use of all available
+CPU cores to compile the graph.
+
 ### Compiling and Running GoSPN
 
 To get the source code through Go's `go get` command, run the following
