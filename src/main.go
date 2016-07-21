@@ -14,7 +14,7 @@ import (
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
-const dataset = "lines"
+const dataset = "digits"
 
 func learn_test() spn.SPN {
 	comps, err := filepath.Abs("../data/" + dataset + "/compiled")

@@ -1,7 +1,7 @@
 package learn
 
 import (
-	_ "fmt"
+	"fmt"
 	//"math"
 	"sort"
 
@@ -94,6 +94,8 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	// If true, then we can partition the set of variables in data into independent subsets. This
 	// means we can create a product node (since product nodes' children have disjoint scopes).
 	if len(igraph.Kset) > 1 {
+		fmt.Println("Found independency. Separating independent sets.")
+
 		//fmt.Println("Found independency between variables. Creating new product node...")
 		// prod is the new product node. m is the number of disjoint sets. kset is a shortcut.
 		prod, m, kset := spn.NewProduct(), len(igraph.Kset), &igraph.Kset
@@ -166,31 +168,9 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	clusters := utils.KMeansV(KClusters, mdata)
 	k := len(clusters)
 
-	//emptyc := 0
-	//var empties []int
-	//for i := 0; i < k; i++ {
-	//if len(clusters[i]) == 1 {
-	//emptyc++
-	//empties = append(empties, i)
-	//}
-	//}
-
-	//if emptyc >= k-1 {
-	//All instances are approximately the same.
-	//prod := spn.NewProduct()
-	//m := len(data)
-	//for _, v := range sc {
-	//counts := make([]int, v.Categories)
-	//for i := 0; i < m; i++ {
-	//counts[data[i][v.Varid]]++
-	//}
-	//leaf := spn.NewCountingUnivDist(v.Varid, counts)
-	//prod.AddChild(leaf)
-	//}
-	//return prod
-	//}
-
 	//fmt.Println("Reformating clusters to appropriate format and creating sum node...")
+	fmt.Println("Clustering similar instances.")
+
 	sum := spn.NewSum()
 	for i := 0; i < k; i++ {
 		ni := len(clusters[i])
