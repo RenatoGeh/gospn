@@ -1,0 +1,119 @@
+\documentclass{amsart}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{thmtools,thm-restate}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage[singlelinecheck=false]{caption}
+\usepackage[backend=biber,url=true,doi=true,eprint=false,style=alphabetic]{biblatex}
+\usepackage{enumitem}
+\usepackage[justification=centering]{caption}
+\usepackage{indentfirst}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+
+\addbibresource{references.bib}
+
+\makeatletter
+\def\subsection{\@startsection{subsection}{3}%
+  \z@{.5\linespacing\@plus.7\linespacing}{.1\linespacing}%
+  {\normalfont\itshape}}
+\makeatother
+
+\makeatletter
+\patchcmd{\@setauthors}{\MakeUppercase}{}{}{}
+\makeatother
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\newcommand\defeq{\mathrel{\overset{\makebox[0pt]{\mbox{\normalfont\tiny\sffamily def}}}{=}}}
+
+\algrenewcommand\algorithmicrequire{\textbf{Input}}
+\algrenewcommand\algorithmicensure{\textbf{Output}}
+
+\captionsetup[table]{labelsep=space}
+
+\theoremstyle{plain}
+
+\newcounter{dummy-def}\numberwithin{dummy-def}{section}
+\newtheorem{definition}[dummy-def]{Definition}
+\newcounter{dummy-thm}\numberwithin{dummy-thm}{section}
+\newtheorem{theorem}[dummy-thm]{Theorem}
+\newcounter{dummy-prop}\numberwithin{dummy-prop}{section}
+\newtheorem{proposition}[dummy-prop]{Proposition}
+\newcounter{dummy-ex}\numberwithin{dummy-ex}{section}
+\newtheorem{exercise}[dummy-ex]{Exercise}
+\newcounter{dummy-eg}\numberwithin{dummy-eg}{section}
+\newtheorem{example}[dummy-eg]{Example}
+
+\numberwithin{equation}{section}
+
+\newcommand{\set}[1]{\mathbf{#1}}
+\newcommand{\pr}{\mathbb{P}}
+\renewcommand{\implies}{\Rightarrow}
+
+\newcommand{\bigo}{\mathcal{O}}
+
+\setlength{\parskip}{1em}
+
+\lstset{frameround=fttt,
+	numbers=left,
+	breaklines=true,
+	keywordstyle=\bfseries,
+	basicstyle=\ttfamily,
+}
+
+\newcommand{\code}[1]{\lstinline[mathescape=true]{#1}}
+\newcommand{\mcode}[1]{\lstinline[mathescape]!#1!}
+
+
+\title{%
+  \noindent\rule{13cm}{1.0pt}\\
+  \vspace{0.2cm}
+  An Introduction to Sum-Product Networks
+  \noindent\rule{13cm}{0.8pt}
+}
+\xdef\shorttitle{Intro to SPNs}
+\author[]{\normalsize\textbf{Renato Lui Geh}\\\small Computer Science\\Institute of Mathematics
+  and Statistics\\University of São Paulo\\\texttt{renatolg@ime.usp.br}}
+
+\begin{document}
+
+\begin{abstract}
+  Sum-Product Networks (SPNs) are deep probabilistic graphical models (PGMs) that compactly
+  represent tractable probability distributions. Exact inference in SPNs is computed in time linear
+  in the number of edges, an attractive feature that distinguishes SPNs from other PGMs. However,
+  learning SPNs is a tough task. There have been many advances in learning both the structure and
+  parameters of SPNs in the past few years. One interesting feature is the fact that we can make
+  use of SPN's deep architecture and perform deep learning on these models. Since the number of
+  hidden layers not only does not negatively impact the tractability of inference of SPNs but also
+  augments the representability of this model, it is very much desirable to continue research on
+  deep learning of SPNs. In this article we seek to produce a tutorial on Sum-Product Networks in
+  a simpler, clearer way then how it is currently written in literature. We will introduce SPNs
+  and explain how knowledge is represented in this model, how to perform exact inference and
+  describe in detail a simple structural learning algorithm.
+  \vspace*{-3.5em}
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+Hello. I am introducing a very important subject in a clear way.
+
+%--------------------------------------------------------------------------------------------------
+
+\newpage
+\appendix
+
+\newpage
+
+\printbibliography[]
+
+\end{document}

@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"path/filepath"
+	"reflect"
 	"sort"
 
 	common "github.com/RenatoGeh/gospn/src/common"
@@ -331,7 +332,7 @@ func discgraph_test() {
 }
 
 func kmeans_test() {
-	n, m := 40, 30
+	n, m := 100, 200
 
 	sc := make(map[int]learn.Variable)
 	data := make([]map[int]int, m)
@@ -363,68 +364,77 @@ func kmeans_test() {
 		}
 	}
 
-	k := 4
-	clusters := utils.KMeansV(k, mdata)
-
-	for i := 0; i < k; i++ {
-		fmt.Printf("Cluster %d:\n", i)
-		keys, j := make([]int, len(clusters[i])), 0
-		for k, _ := range clusters[i] {
-			keys[j] = k
-			j++
-		}
-		sort.Ints(keys)
-		for j := 0; j < len(keys); j++ {
-			fmt.Printf("[%d]=%d\n", keys[j], clusters[i][keys[j]])
-		}
-		fmt.Printf("\n")
+	k := 5
+	//clusters := utils.KMeansV(k, mdata)
+	CLSIZE := 20
+	cls := make([][]map[int][]int, CLSIZE)
+	for i := 0; i < CLSIZE; i++ {
+		cls[i] = utils.KMeansV(k, mdata)
 	}
 
-	kdata := make([]map[int]int, len(mdata))
-	fmt.Printf("kdata:\n")
-	for i := 0; i < len(mdata); i++ {
-		kdata[i] = make(map[int]int)
-		for j := 0; j < len(mdata[i]); j++ {
-			kdata[i][j] = mdata[i][j]
-			fmt.Printf("%d ", kdata[i][j])
-		}
-		fmt.Printf("\n")
+	for i := 1; i < CLSIZE; i++ {
+		fmt.Println(reflect.DeepEqual(cls[i-1], cls[i]))
 	}
-	fmt.Printf("\n")
 
-	for i := 0; i < k; i++ {
-		ni := len(clusters[i])
-		ndata := make([]map[int]int, ni)
+	//for i := 0; i < k; i++ {
+	//fmt.Printf("Cluster %d:\n", i)
+	//keys, j := make([]int, len(clusters[i])), 0
+	//for k, _ := range clusters[i] {
+	//keys[j] = k
+	//j++
+	//}
+	//sort.Ints(keys)
+	//for j := 0; j < len(keys); j++ {
+	//fmt.Printf("[%d]=%d\n", keys[j], clusters[i][keys[j]])
+	//}
+	//fmt.Printf("\n")
+	//}
 
-		l := 0
-		for k, _ := range clusters[i] {
-			ndata[l] = make(map[int]int)
-			fmt.Printf("%d:\n", k)
-			for index, value := range data[k] {
-				ndata[l][index] = value
-				fmt.Printf("[%d]=%d ", index, value)
-			}
-			fmt.Printf("\n")
-			l++
-		}
+	//kdata := make([]map[int]int, len(mdata))
+	//fmt.Printf("kdata:\n")
+	//for i := 0; i < len(mdata); i++ {
+	//kdata[i] = make(map[int]int)
+	//for j := 0; j < len(mdata[i]); j++ {
+	//kdata[i][j] = mdata[i][j]
+	//fmt.Printf("%d ", kdata[i][j])
+	//}
+	//fmt.Printf("\n")
+	//}
+	//fmt.Printf("\n")
 
-		fmt.Printf("Clusters %d:\n", i)
-		for j := 0; j < ni; j++ {
-			keys := make([]int, len(ndata[j]))
-			t := 0
-			for k, _ := range ndata[j] {
-				keys[t] = k
-				t++
-			}
-			sort.Ints(keys)
-			for tt := 0; tt < len(ndata[j]); tt++ {
-				fmt.Printf("%d ", ndata[j][keys[tt]])
-			}
+	//for i := 0; i < k; i++ {
+	//ni := len(clusters[i])
+	//ndata := make([]map[int]int, ni)
 
-			fmt.Printf("\n")
-		}
-		fmt.Printf("\n")
-	}
+	//l := 0
+	//for k, _ := range clusters[i] {
+	//ndata[l] = make(map[int]int)
+	//fmt.Printf("%d:\n", k)
+	//for index, value := range data[k] {
+	//ndata[l][index] = value
+	//fmt.Printf("[%d]=%d ", index, value)
+	//}
+	//fmt.Printf("\n")
+	//l++
+	//}
+
+	//fmt.Printf("Clusters %d:\n", i)
+	//for j := 0; j < ni; j++ {
+	//keys := make([]int, len(ndata[j]))
+	//t := 0
+	//for k, _ := range ndata[j] {
+	//keys[t] = k
+	//t++
+	//}
+	//sort.Ints(keys)
+	//for tt := 0; tt < len(ndata[j]); tt++ {
+	//fmt.Printf("%d ", ndata[j][keys[tt]])
+	//}
+
+	//fmt.Printf("\n")
+	//}
+	//fmt.Printf("\n")
+	//}
 }
 
 func vardata_test() {

@@ -149,7 +149,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	}
 
 	//fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
-	KClusters := 4
+	KClusters := 2
 	if len(mdata) < KClusters {
 		// Fully factorized form.
 		// All instances are approximately the same.

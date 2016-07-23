@@ -232,3 +232,60 @@ go get -u github.com/RenatoGeh/gospn
 In this section we describe the general layout that we intend to follow
 for both code and documentation. For more information on SPNs, look for
 the documentation present in this repository under directory `/doc`.
+
+#### Code
+
+Source code for GoSPN is organized in Go packages. Each Go package is a
+component of GoSPN's main package:
+
+* `common`: contains the usual "common" data structures, such as pairs,
+  queues and stacks.
+* `io`: contains Input/Output code. Namely evidence/data parsing and
+  graph drawing.
+* `learn`: contains learning algorithms.
+* `spn`: code that encapsulates the structure of SPNs (nodes and
+  MAP, evidence inference).
+* `utils`: algorithms that deserve their own package (e.g. clustering
+  and independency tests)
+
+For more information on each source file, generate a `godoc` doc page.
+
+```
+# Creates a server with all the documentation at localhost:6060.
+$ godoc -http=:6060
+# Replace chromium with your favorite browser.
+$ chromium 127.0.0.1:6060/pkg/github.com/RenatoGeh/gospn
+```
+
+If `godoc` is not installed, install it. For Arch Linux:
+
+```
+$ pacman -S go-tools
+```
+
+Linux distributions that contain a package manager should have similar
+package names (e.g. golang-tools for Debian/Ubuntu). If that doesn't
+work:
+
+```
+$ sudo -E go get golang.org/x/tools/cmd/godoc
+```
+
+For more information on `godoc` <http://godoc.org/golang.org/x/tools/cmd/godoc>.
+
+#### Documentation
+
+The available documentation present at `/doc` does not only concern the
+code nor the algorithms implemented in GoSPN. It also provides an
+introduction to SPNs in the form of a tutorial, explaining how knowledge
+is represented in SPNs and how to perform exact inference. It obviously
+also contains a detailed description on the learning algorithms
+implemented in GoSPN.
+
+There are two submodules under `/doc`:
+
+* `/doc/tutorial`: is a tutorial on SPNs. It covers from how to
+  represent knowledge to inference and learning in SPNs. It is a
+  detailed document on SPNs.
+* `doc/code`: is a detailed documentation on the code. It contains only
+  the implementational aspect of GoSPN.

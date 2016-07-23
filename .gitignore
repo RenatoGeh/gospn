@@ -6,6 +6,15 @@ out.put
 *.py
 *.dot
 
+# LaTeX
+*.aux
+*.bbl
+*.blg
+*.bcf
+*.log
+*.out
+*.run.xml
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
