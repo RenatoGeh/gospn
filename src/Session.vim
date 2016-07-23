@@ -7,15 +7,15 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +52 learn/gens.go
-badd +113 utils/indgraph.go
-badd +25 main.go
+badd +142 learn/gens.go
+badd +24 utils/indgraph.go
+badd +464 main.go
 badd +85 io/input.go
-badd +109 io/output.go
+badd +110 io/output.go
 badd +65 utils/unionfind.go
-badd +347 utils/indtest.go
-badd +57 utils/kmeans.go
-badd +32 spn/sum.go
+badd +329 utils/indtest.go
+badd +58 utils/kmeans.go
+badd +31 spn/sum.go
 badd +1 spn/product.go
 badd +116 spn/univdist.go
 badd +25 spn/node.go
@@ -25,7 +25,7 @@ badd +1 utils/vardata.go
 argglobal
 silent! argdel *
 argadd learn/gens.go
-edit spn/sum.go
+edit utils/indtest.go
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -61,16 +61,16 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 32 - ((8 * winheight(0) + 14) / 29)
+let s:l = 329 - ((0 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-32
-normal! 0
+329
+normal! 05|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
-edit ~/go/src/github.com/RenatoGeh/gospn/src/utils/kmeans.go
+edit ~/go/src/github.com/RenatoGeh/gospn/src/utils/indgraph.go
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -80,11 +80,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 206 - ((27 * winheight(0) + 14) / 28)
+let s:l = 80 - ((23 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-206
+80
 normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -156,12 +156,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 110 - ((53 * winheight(0) + 29) / 58)
+let s:l = 104 - ((38 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-110
-normal! 023|
+104
+normal! 03|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
@@ -175,11 +175,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 152 - ((0 * winheight(0) + 29) / 58)
+let s:l = 153 - ((57 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-152
+153
 normal! 05|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -207,12 +207,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 517 - ((1 * winheight(0) + 29) / 58)
+let s:l = 157 - ((30 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-517
-normal! 0
+157
+normal! 03|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
@@ -226,12 +226,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 129 - ((0 * winheight(0) + 29) / 58)
+let s:l = 198 - ((56 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-129
-normal! 03|
+198
+normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 2wincmd w
