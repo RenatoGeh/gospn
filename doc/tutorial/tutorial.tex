@@ -97,7 +97,7 @@
   deep learning of SPNs. In this article we seek to produce a tutorial on Sum-Product Networks in
   a simpler, clearer way then how it is currently written in literature. We will introduce SPNs
   and explain how knowledge is represented in this model, how to perform exact inference and
-  describe in detail a simple structural learning algorithm.
+  describe and analyse in detail a simple structural learning algorithm.
   \vspace*{-3.5em}
 \end{abstract}
 
@@ -105,7 +105,34 @@
 
 \section{Introduction}
 
-Hello. I am introducing a very important subject in a clear way.
+Conventional probabilistic graphical models (PGMs) can compactly represent complex probability
+distributions and perform sub-exponential time inference through approximate methods. They are able
+to learn from data accurately and have very expressive semantics. However, exact inference in the
+general case is intractable. The alternative to exact inference is through the use of approximation
+algorithms. Unfortunately, approximate inference is at times unpredictable and analysis of these
+algorithms is very difficult.
+
+Sum-Product Networks (SPNs) are deep PGMs that are able to compactly represent tractable
+probability distributions. Inference in SPNs is computed in time linear in the number of edges of
+the graph, where the number of edges is at most polynomial in the number of variables of the
+distribution. SPNs are represented by a DAG where internal nodes are either sum or product nodes.
+Leaf nodes are univariate distributions, though recent work on SPNs have shown that multivariate
+distributions are also allowed as leaves~\cite{id-spn}. Learning of SPNs can be achieved through
+subsequent clusterings of both variables and instanciations, where sum nodes can be seen as
+mixtures of distributions and product nodes as variable independencies. An interesting feature of
+SPNs is its deep architecture. As shown in Delalleau and Bengio's work~\cite{shallow-vs-deep},
+deep SPNs have more representative power than shallow SPNs. Poon and Domingos, on the innaugural
+SPN article~\cite{poon-domingos}, were able to learn accurate deep SPNs with 36 layers, as opposed
+to the few, less than ten layers that is typically learned in other deep models.
+
+In this article we will provide a comprehensive description of Sum-Product Networks, from its graph
+representation and how to perform exact polynomial time inference, to describing and analysing our
+implementation of the structural learning algorithm introduced in~\cite{gens-domingos}, a learning
+algorithm that is able to learn SPNs of potentially tens of layers.
+
+\section{Sum-Product Networks}
+
+
 
 %--------------------------------------------------------------------------------------------------
 
