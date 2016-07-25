@@ -79,7 +79,7 @@
   An Introduction to Sum-Product Networks
   \noindent\rule{13cm}{0.8pt}
 }
-\xdef\shorttitle{Intro to SPNs}
+\xdef\shorttitle{An Introduction to Sum-Product Networks}
 \author[]{\normalsize\textbf{Renato Lui Geh}\\\small Computer Science\\Institute of Mathematics
   and Statistics\\University of São Paulo\\\texttt{renatolg@ime.usp.br}}
 
@@ -132,7 +132,36 @@ algorithm that is able to learn SPNs of potentially tens of layers.
 
 \section{Sum-Product Networks}
 
+A Sum-Product Network is a DAG where nodes can either be sums, products or leaves. In this section
+we will present two definitions of SPNs. The first one can be considered ``low level'', whilst the
+second carries heavier semantics due to properties we shall enumerate in this section. These
+classifications of ``low level'' vs ``high level'' will become clearer as we progress through this
+section.
 
+\subsection{Network Polynomials}
+
+Before we define SPNs more formally, we need to understand network polynomials. First introduced by
+Darwiche~\cite{diff-approach-darwiche}, a network polynomial is a multilinear function over the
+variables of an unnormalized distribution. Computing the marginals of the distribution through its
+network polynomial is possible by setting all indicator variables to values consistent with
+evidence. The partial derivatives of the network polynomial can be seen as conditioning the network
+polynomial to a given event.
+
+Network polynomials are not that attractive by themselves, as the number of terms in the polynomial
+is exponential in the general case. Arithmetic circuits (ACs) are a way of representing network
+polynomials with a polynomial number of terms. However, ACs are just another way of compiling a
+Bayesian network into a polynomial-sized model for tractable distributions.
+
+\begin{definition}[Network polynomial] Let $\mathcal{N}$ be a Bayesian network over set of
+  variables $\mathbf{X}$. Let $Pa(X)$ be the set of parents of variable $X$. The network polynomial
+  of $\mathcal{N}$ is given by
+  \begin{equation*}
+    f=\sum_{\mathbf{x}} \prod_{X, Pa(X) \sim \mathbf{x}} \lambda_X \theta_{X|Pa(X)}
+  \end{equation*}
+  where $\mathbf{x}$ is the set of possible instantiations of $\mathbf{X}$ and $X \sim x$ means
+  that $X$ is consistent with instantiation $x$, that is, $\lambda_X = 1$ if $X=x$ and $\lambda_X =
+  0$ if $X\neq x$. If the set of evidence does not contain $x$, then all $\lambda_X$ are $1$.
+\end{definition}
 
 %--------------------------------------------------------------------------------------------------
 
