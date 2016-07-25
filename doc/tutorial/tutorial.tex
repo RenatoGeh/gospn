@@ -16,6 +16,9 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{listings}
+\usepackage[x11names, rgb]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
 
 \addbibresource{references.bib}
 
@@ -31,6 +34,11 @@
 
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\Val}{\text{Val}}
+\DeclareMathOperator*{\Ch}{\text{Ch}}
+\DeclareMathOperator*{\Pa}{\text{Pa}}
+\DeclareMathOperator*{\Sc}{\text{Sc}}
+\newcommand{\ov}{\overline}
 
 \newcommand\defeq{\mathrel{\overset{\makebox[0pt]{\mbox{\normalfont\tiny\sffamily def}}}{=}}}
 
@@ -148,20 +156,156 @@ evidence. The partial derivatives of the network polynomial can be seen as condi
 polynomial to a given event.
 
 Network polynomials are not that attractive by themselves, as the number of terms in the polynomial
-is exponential in the general case. Arithmetic circuits (ACs) are a way of representing network
-polynomials with a polynomial number of terms. However, ACs are just another way of compiling a
-Bayesian network into a polynomial-sized model for tractable distributions.
+is exponential in the number of variables. Arithmetic circuits (ACs) are a way of representing
+network polynomials with a polynomial number of terms. However, ACs are just another way of
+compiling a Bayesian network into a polynomial-sized model for tractable distributions.
 
 \begin{definition}[Network polynomial] Let $\mathcal{N}$ be a Bayesian network over set of
   variables $\mathbf{X}$. Let $Pa(X)$ be the set of parents of variable $X$. The network polynomial
   of $\mathcal{N}$ is given by
   \begin{equation*}
-    f=\sum_{\mathbf{x}} \prod_{X, Pa(X) \sim \mathbf{x}} \lambda_X \theta_{X|Pa(X)}
+    f=\sum_{\mathbf{x}} \prod_{X, \Pa(X) \sim \mathbf{x}} \lambda_X \theta_{X|Pa(X)}
   \end{equation*}
   where $\mathbf{x}$ is the set of possible instantiations of $\mathbf{X}$ and $X \sim x$ means
-  that $X$ is consistent with instantiation $x$, that is, $\lambda_X = 1$ if $X=x$ and $\lambda_X =
-  0$ if $X\neq x$. If the set of evidence does not contain $x$, then all $\lambda_X$ are $1$.
+  that $X$ is consistent with instantiation $x$.
 \end{definition}
+
+\begin{example}
+  Let $\mathcal{N}=A\to B$ be a Bayesian network where $\mathbf{X}=\{A, B\}$ is the set of binary
+  variables of $\mathcal{N}$. The network polynomial of $\mathcal{N}$ is given by the multilinear
+  function
+  \begin{equation*}
+    f=\lambda_a\lambda_b\theta_{b|a}\theta_{a}+\lambda_a\lambda_{\ov{b}}\theta_{\ov{b}|a}\theta_a+
+    \lambda_{\ov{a}}\lambda_b\theta_{b|\ov{a}}\theta_{\ov{a}}+\lambda_{\ov{a}}\lambda_{\ov{b}}
+    \lambda_{\ov{b}|\ov{a}}\lambda_{\ov{a}}
+  \end{equation*}
+\end{example}
+
+The indicator variables of a variable $X$ represent the possible configurations of $X$. Let
+$\Val(X)$ be the set of possible values of variable $X$ and $m=|\Val(X)|$. Then the set of
+indicator variables of $X$, denoted by $\boldsymbol{\lambda}_X$ has elements $\lambda_X^1,
+\lambda_X^2,\ldots,\lambda_X^m$. A variable $X$ is consistent with instantiation $x$ if the
+indicator variable that agrees with $x$ is set to $1$ and the other indicator variables of $X$ are
+set to $0$. If there is no instantiation concerning variable $X$, then all indicator variables of
+$X$ are set to $1$.
+
+\begin{example}
+  Let $\mathbf{X}=\{X_1,X_2,X_3,X_4\}$ be the set of binary variables of a network polynomial $f$.
+  A variable $X_i$ can be evaluated as either $0$ or $1$. Let $\mathbf{e}=\{X_1=1,X_2=0,X_3=1\}$ be
+  the evidence set. Computing the marginals of $f$ can be done by setting all indicator variables
+  consistent with $\mathbf{e}$\\
+  \begin{align*}
+    &\lambda_{X_1}^0=0 &\hspace{35pt} \lambda_{X_1}^1=1\\
+    &\lambda_{X_2}^0=1 & \lambda_{X_2}^1=0\\
+    &\lambda_{X_3}^0=0 & \lambda_{X_3}^1=1\\
+    &\lambda_{X_4}^0=1 & \lambda_{X_4}^1=1
+  \end{align*}
+\end{example}
+
+The partial derivative of a network polynomial by a certain variable corresponds to conditioning
+the polynomial to a certain event. By computing $\partial f/\partial \lambda_X(\mathbf{e})$, we are
+merely setting the indicator variables consistently with $\mathbf{e}$. This leads to the theorem:
+
+\begin{theorem} Let $\mathcal{N}$ be a Bayesian network representing probability distribution $\Pr$
+  and having network polynomial $f$. For every variable $X$ and evidence $\mathbf{e}$, we have
+  \begin{equation*}
+    \frac{\partial f}{\partial \lambda_X}(\mathbf{e})=\Pr(x,\mathbf{e}\setminus\{X\})
+  \end{equation*}
+\end{theorem}
+
+\subsection{Representing Sum-Product Networks}
+
+Sum-Product Networks are closely related to network polynomials and arithmetic circuits. It can be
+seen as a way of representing the network polynomial. Graphically, a Sum-Product Network is a DAG
+with internal nodes as sums and products and leaves as indicator variables.
+
+\begin{definition}
+  An SPN $S$ is a DAG with two types of internal nodes: sums and products. A sum node is a node
+  whose value is defined by $v_i=\sum_{j \in Ch(i)} w_{ij}v_j$, where $v_i$ is the value of sum
+  node $i$, $\Ch(i)$ is the set of children of node $i$, $w_{ij}$ is the non-negative weight
+  associated with directed edge $i\to j$ and $v_j$ is the value of node $j$. The value of a product
+  node $i$ is given by $v_i=\prod_{j\in Ch(i)} v_j$. A leaf node is always an indicator variable.
+  Its value is the value of the indicator variable. The value of $S$ is the value of the root node
+  of $S$.
+\end{definition}
+
+An arbitrary node $i$ of an SPN $S$ is itself an SPN\@. We will denote the sub-SPN rooted at $i$ as
+$S_i$. Although the weights of a sum node may take any non-negative value, if all the weights from
+a sum node sum to one, then that node is normalized. If all sum nodes in the SPN are normalized,
+then the SPN is normalized and its partition function will be $1$. Otherwise the partition function
+is the value of $S$ when all indicator variables are set to $1$. Such function will be denoted as
+$S(*)$. It was recently proven that normalized SPNs have as much representability power as
+unnormalized SPNs~\cite{theoretical-spn}. The scope of an SPN is the set of variables that are
+present in it. The same applies to each sub-SPN\@. A variable is in an SPN if any of its indicator
+variables is a leaf in that SPN\@. We will denote the scope of an SPN $S$ as $\Sc(S)$. The elements
+of $\Sc(S)$ are the variables present in $S$.
+
+\begin{definition}[Validity]
+  An SPN is valid if and only if it correctly computes the probability of evidence of the
+  probability distribution it represents.
+\end{definition}
+
+\begin{definition}[Completeness]
+  An SPN $S$ is complete if and only if, for every sum node $i$ in $S$, all children of $i$ have
+  the same scope.
+\end{definition}
+
+\begin{definition}[Consistency]
+  An SPN $S$ is consistent if and only if, for every product node $i$ in $S$, a variable present in
+  $i$ has the same value as the same variable in the descendents of $i$.
+\end{definition}
+
+\begin{theorem}
+  An SPN is valid if it is complete and consistent.
+\end{theorem}
+
+This theorem states that an SPN computes its value correctly if it is complete and consistent.
+However, this does not exclude the possibility of correctly computing the probability of evidence
+of incomplete and inconsistent SPNs.
+
+\begin{definition}[Decomposability]
+  An SPN $S$ is decomposable if and only if, for every product node $i$ in $S$, every pair of
+  children of $i$ have disjoint scopes with each other.
+\end{definition}
+
+\begin{proposition}\label{decimpliescons}
+  Decomposability implies in consistency.
+\end{proposition}
+
+\begin{proof}
+  It is easy to see that decomposability implies in consistency. For each product node $i$ in $S$,
+  let $u$ and $v$ be a pair of children of $i$. If $S$ is decomposable, then $\Sc(u)\cap\Sc(v)=
+  \emptyset$ and therefore no variable has a contradicting value, since no child of $i$ shares a
+  variable in common.
+\end{proof}
+
+Because of Proposition~\ref{decimpliescons}, we can create complete and decomposable SPNs and they
+will always be valid. We rather work with decomposability instead of consistency because
+decomposable SPNs are easier to create than solely consistent ones. Peharz et al proved that
+all complete and consistent SPNs can be transformed into a complete and decomposable SPN with no
+more than a polynomially large addition of nodes and edges~\cite{theoretical-spn}. Furthermore, a
+valid yet non-decomposable SPN may not compute a network polynomial in some cases. Intuitively,
+decomposable SPNs can be seen as independency between sets of variables, which has a much stronger
+semantic than consistency.
+
+\subsection{Sum-Product Networks as Combinations of Univariate Distributions}
+
+Let $\Pr$ be a normalized univariate distribution over variable $X$, $\Val(X)$ be the possible
+instantiations of $X$ and $m=|\Val(X)|$. The network polynomial of $\Pr$ is given by
+
+\begin{equation*}
+  f=\lambda_X^1\Pr(X=x^{(1)})+\lambda_X^2\Pr(X=x^{(2)})+\cdots+\lambda_X^m\Pr(X=x^{(m)})
+\end{equation*}
+
+The simplest SPN we can use to represent such network polynomial consists of a root sum node and
+its children leaves, where each leaf is an indicator variable of $X$.
+
+\begin{center}
+  \input{graphs/uspn.tex}
+\end{center}
+
+Note that this SPN is both complete, since the sum node's scope is $\{X\}$ and so are each of its
+children's scope; and decomposable, since there are no product nodes.
 
 %--------------------------------------------------------------------------------------------------
 
