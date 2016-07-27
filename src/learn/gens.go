@@ -44,7 +44,7 @@ import (
 //
 // Where X={X_1,...,X_n} is the set of variables and I={I_1,...,I_m} is the set of instances.
 // Each x_ij is the i-th observed instantiation of X_j.
-func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
+func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 	n := len(sc)
 
 	//fmt.Printf("Sample size: %d, scope size: %d\n", len(data), n)
@@ -123,7 +123,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 			//fmt.Printf("LENGTH: %d\n", len(tdata))
 			//fmt.Println("Product node created. Recursing...")
 			// Adds the recursive calls as children of this new product node.
-			prod.AddChild(Gens(nsc, tdata))
+			prod.AddChild(Gens(nsc, tdata, kclusters))
 		}
 		return prod
 	}
@@ -149,8 +149,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 	}
 
 	//fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
-	KClusters := 2
-	if len(mdata) < KClusters {
+	if len(mdata) < kclusters {
 		// Fully factorized form.
 		// All instances are approximately the same.
 		prod := spn.NewProduct()
@@ -165,7 +164,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 		}
 		return prod
 	}
-	clusters := utils.KMeansV(KClusters, mdata)
+	clusters := utils.KMeansV(kclusters, mdata)
 	k := len(clusters)
 
 	//fmt.Println("Reformating clusters to appropriate format and creating sum node...")
@@ -191,7 +190,7 @@ func Gens(sc map[int]Variable, data []map[int]int) spn.SPN {
 		}
 
 		//fmt.Println("Created new sum node child. Recursing...")
-		sum.AddChildW(Gens(nsc, ndata), float64(ni)/float64(len(data)))
+		sum.AddChildW(Gens(nsc, ndata, kclusters), float64(ni)/float64(len(data)))
 	}
 
 	return sum

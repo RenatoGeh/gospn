@@ -133,10 +133,11 @@ deep SPNs have more representative power than shallow SPNs. Poon and Domingos, o
 SPN article~\cite{poon-domingos}, were able to learn accurate deep SPNs with 36 layers, as opposed
 to the few, less than ten layers that is typically learned in other deep models.
 
-In this article we will provide a comprehensive description of Sum-Product Networks, from its graph
-representation and how to perform exact polynomial time inference, to describing and analysing our
-implementation of the structural learning algorithm introduced in~\cite{gens-domingos}, a learning
-algorithm that is able to learn SPNs of potentially tens of layers.
+In this article we will provide a comprehensive description of discrete Sum-Product Networks, from
+its graph representation and how to perform exact polynomial time inference, to describing and
+analysing our implementation of the structural learning algorithm introduced
+in~\cite{gens-domingos}, a learning algorithm that is able to learn SPNs of potentially tens of
+layers.
 
 \section{Sum-Product Networks}
 
@@ -269,11 +270,11 @@ of incomplete and inconsistent SPNs.
 \end{definition}
 
 \begin{proposition}\label{decimpliescons}
-  Decomposability implies in consistency.
+  Decomposability implies consistency.
 \end{proposition}
 
 \begin{proof}
-  It is easy to see that decomposability implies in consistency. For each product node $i$ in $S$,
+  It is easy to see that decomposability implies consistency. For each product node $i$ in $S$,
   let $u$ and $v$ be a pair of children of $i$. If $S$ is decomposable, then $\Sc(u)\cap\Sc(v)=
   \emptyset$ and therefore no variable has a contradicting value, since no child of $i$ shares a
   variable in common.
@@ -298,14 +299,44 @@ instantiations of $X$ and $m=|\Val(X)|$. The network polynomial of $\Pr$ is give
 \end{equation*}
 
 The simplest SPN we can use to represent such network polynomial consists of a root sum node and
-its children leaves, where each leaf is an indicator variable of $X$.
+its children as leaves, where each leaf is an indicator variable of $X$ and each edge that comes
+from the sum node to a leaf $i$ is the $\Pr(X=x^{(i)})$.
 
 \begin{center}
   \input{graphs/uspn.tex}
 \end{center}
 
 Note that this SPN is both complete, since the sum node's scope is $\{X\}$ and so are each of its
-children's scope; and decomposable, since there are no product nodes.
+children's scope; and decomposable, since there are no product nodes. We will call these univariate
+SPNs as uSPNs. With this in mind, we can now present another definition of SPNs.
+
+\begin{definition}
+  Recursively, an SPN can be either (mutually exclusive):
+  \begin{enumerate}[label=(\arabic*)]
+    \item \label{fdef} A univariate tractable probability distribution or;
+    \item \label{sdef} A weighted sum of SPNs where all weights are in the range $[0,1]$ and sum up
+      to $1$, and whose children all have same scope as the parent or;\label{sdef}
+    \item \label{tdef} A product of SPNs in which every child has disjoint scope with every other
+      child.
+  \end{enumerate}
+  Let $\mathbf{e}$ be the set of evidence. The value of SPN~\ref{fdef} given $\mathbf{e}$ is the
+  value of the underlying uSPN that represents~\ref{fdef} given $\mathbf{e}$. The value of
+  SPN~\ref{sdef} is $\sum_{j\in Ch(i)}w_{ij}S_j(\mathbf{e})$. The value of SPN~\ref{tdef} is
+  $\prod_{j\in Ch(i)}S_j(\mathbf{e})$.
+\end{definition}
+
+With this new definition we have abandoned indicator variables in favor of a ``higher-level'' view
+of SPNs, that is, of combinations of univariate distributions. Also notice that we implicitly
+define SPNs as complete, decomposable and normalized. Item~\ref{sdef} defines sum nodes as complete
+and normalized, and item~\ref{tdef} define product nodes as decomposable. This new definition also
+represent a more intuitive view of SPNs. It is clear from this definition that sum nodes act as
+instances clustering, since all children have the same scope. In the same way, product nodes
+represent clustering of independent sets of variables, since children have disjoint scopes with
+one another.
+
+\section{Inference on Sum-Product Networks}
+
+
 
 %--------------------------------------------------------------------------------------------------
 

@@ -11,7 +11,7 @@ badd +153 learn/gens.go
 badd +24 utils/indgraph.go
 badd +155 main.go
 badd +85 io/input.go
-badd +110 io/output.go
+badd +104 io/output.go
 badd +65 utils/unionfind.go
 badd +329 utils/indtest.go
 badd +58 utils/kmeans.go
@@ -195,8 +195,8 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 106 + 106) / 212)
-exe 'vert 2resize ' . ((&columns * 105 + 106) / 212)
+exe 'vert 1resize ' . ((&columns * 104 + 106) / 212)
+exe 'vert 2resize ' . ((&columns * 107 + 106) / 212)
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -207,11 +207,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 155 - ((28 * winheight(0) + 29) / 58)
+let s:l = 217 - ((47 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-155
+217
 normal! 03|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -226,17 +226,17 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 153 - ((28 * winheight(0) + 29) / 58)
+let s:l = 181 - ((36 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-153
-normal! 04|
+181
+normal! 020|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 2wincmd w
-exe 'vert 1resize ' . ((&columns * 106 + 106) / 212)
-exe 'vert 2resize ' . ((&columns * 105 + 106) / 212)
+exe 'vert 1resize ' . ((&columns * 104 + 106) / 212)
+exe 'vert 2resize ' . ((&columns * 107 + 106) / 212)
 tabnext 3
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
