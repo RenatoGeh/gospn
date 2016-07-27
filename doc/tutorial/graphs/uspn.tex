@@ -4,37 +4,48 @@
 %%
 \pgfsetcolor{black}
   % Edge: s -> l1
-  \draw [->] (116.19bp,76.807bp) .. controls (98.998bp,65.665bp) and (73.382bp,49.062bp)  .. (45.597bp,31.053bp);
+  \draw [->] (133.91bp,111.58bp) .. controls (106.62bp,109.65bp) and (65.194bp,102.36bp)  .. (41.0bp,77.0bp) .. controls (33.224bp,68.85bp) and (29.528bp,57.157bp)  .. (26.766bp,36.127bp);
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (75.5bp,65.5bp) node {$\Pr(X=x^{(1)})$};
+  \draw (127.91bp,117.58bp) node {$$};
+  \draw (20.766bp,42.127bp) node {$$};
   % Edge: s -> lm
-  \draw [->] (153.81bp,76.807bp) .. controls (171.0bp,65.665bp) and (196.62bp,49.062bp)  .. (224.4bp,31.053bp);
+  \draw [->] (178.21bp,98.855bp) .. controls (186.65bp,92.354bp) and (196.92bp,84.344bp)  .. (206.0bp,77.0bp) .. controls (221.22bp,64.695bp) and (238.03bp,50.572bp)  .. (258.97bp,32.769bp);
+  \draw (268.0bp,65.5bp) node {$\Pr(X=x^{(m)})$};
+  \draw (184.21bp,92.855bp) node {$$};
+  \draw (252.97bp,38.769bp) node {$$};
   % Edge: s -> l2
-  \draw [->] (126.65bp,72.765bp) .. controls (122.29bp,64.283bp) and (116.85bp,53.714bp)  .. (107.3bp,35.147bp);
+  \draw [->] (141.35bp,100.55bp) .. controls (133.18bp,94.646bp) and (124.55bp,86.65bp)  .. (120.0bp,77.0bp) .. controls (115.54bp,67.536bp) and (114.53bp,56.199bp)  .. (115.73bp,36.079bp);
+  \draw (154.5bp,65.5bp) node {$\Pr(X=x^{(2)})$};
+  \draw (135.35bp,94.547bp) node {$$};
+  \draw (109.73bp,42.079bp) node {$$};
   % Node: s
 \begin{scope}
   \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
   \pgfsetstrokecolor{strokecol}
-  \draw (135.0bp,90.0bp) ellipse (27.0bp and 18.0bp);
-  \draw (135.0bp,90.0bp) node {$+$};
+  \draw (161.0bp,113.0bp) ellipse (27.0bp and 18.0bp);
+  \draw (161.0bp,113.0bp) node {$+$};
 \end{scope}
   % Node: lm
 \begin{scope}
   \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
   \pgfsetstrokecolor{strokecol}
-  \draw (243.0bp,18.0bp) ellipse (27.0bp and 18.0bp);
-  \draw (243.0bp,18.0bp) node {$\lambda_X^m$};
+  \draw (275.0bp,18.0bp) ellipse (27.0bp and 18.0bp);
+  \draw (275.0bp,18.0bp) node {$\lambda_X^m$};
 \end{scope}
   % Node: l2
 \begin{scope}
   \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
   \pgfsetstrokecolor{strokecol}
-  \draw (99.0bp,18.0bp) ellipse (27.0bp and 18.0bp);
-  \draw (99.0bp,18.0bp) node {$\lambda_X^2$};
+  \draw (119.0bp,18.0bp) ellipse (27.0bp and 18.0bp);
+  \draw (119.0bp,18.0bp) node {$\lambda_X^2$};
 \end{scope}
   % Node: cdots
 \begin{scope}
   \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
   \pgfsetstrokecolor{strokecol}
-  \draw (171.0bp,18.0bp) node {$\cdots$};
+  \draw (203.0bp,18.0bp) node {$\cdots$};
 \end{scope}
   % Node: l1
 \begin{scope}
@@ -45,3 +56,4 @@
 \end{scope}
 %
 \end{tikzpicture}
+

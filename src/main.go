@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strconv"
 
 	common "github.com/RenatoGeh/gospn/src/common"
 	io "github.com/RenatoGeh/gospn/src/io"
@@ -16,6 +18,8 @@ import (
 )
 
 const dataset = "digits"
+
+var kclusters int = 2
 
 func learn_test() spn.SPN {
 	comps, err := filepath.Abs("../data/" + dataset + "/compiled")
@@ -32,8 +36,10 @@ func learn_test() spn.SPN {
 		panic(err)
 	}
 
-	fmt.Printf("Input path:\n%s\nOutput path:\n%s\nLearning...\n", comps, res)
-	s := learn.Gens(io.ParseData(utils.StringConcat(comps, "/all.data")))
+	fmt.Printf("Input path:\n%s\nOutput path:\n%s\nLearning with %d clusters...\n", comps, res,
+		kclusters)
+	sc, data := io.ParseData(utils.StringConcat(comps, "/all.data"))
+	s := learn.Gens(sc, data, kclusters)
 	fmt.Printf("Drawing graph...\n")
 	io.DrawGraphTools(utils.StringConcat(res, "/all.py"), s)
 
@@ -199,11 +205,15 @@ func classify_test() {
 	}
 
 	fmt.Printf("\n=========== Overall Results ============\n")
+	ttot, tcorr := 0, 0
 	for i := 0; i < nv; i++ {
 		perc := 100.0 * (float64(corrects[i]) / float64(totals[i]))
 		fmt.Printf("Class %d:\n  Total instances: %d\n  Correct instances: %d\n  Correctness "+
 			"percentage: %.3f%%\n\n", i, totals[i], corrects[i], perc)
+		ttot, tcorr = ttot+totals[i], tcorr+corrects[i]
 	}
+	perc := 100.0 * float64(tcorr) / float64(ttot)
+	fmt.Printf("Overall correctness: %d/%d = %.3f%%.\n\n", tcorr, ttot, perc)
 	fmt.Printf("========================================")
 
 	//argmax, max := s.ArgMax(ev[0])
@@ -567,6 +577,17 @@ func maptoslice_test() {
 }
 
 func main() {
+	// Parse command line arguments.
+	if len(os.Args) > 1 {
+		var err error
+		kclusters, err = strconv.Atoi(os.Args[1])
+		if err != nil || kclusters <= 1 {
+			fmt.Printf("Argument invalid. Must be a non integer greater than one.\n")
+			return
+		}
+		fmt.Printf("Set k-clustering to use %d-clusters.\n", kclusters)
+	}
+
 	//indep_test()
 	//learn_test()
 	//convert_imgs()

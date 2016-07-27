@@ -287,5 +287,5 @@ There are two submodules under `/doc`:
 * `/doc/tutorial`: is a tutorial on SPNs. It covers from how to
   represent knowledge to inference and learning in SPNs. It is a
   detailed document on SPNs.
-* `doc/code`: is a detailed documentation on the code. It contains only
+* `/doc/code`: is a detailed documentation on the code. It contains only
   the implementational aspect of GoSPN.
