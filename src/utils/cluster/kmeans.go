@@ -1,7 +1,7 @@
-package utils
+package cluster
 
 import (
-	_ "fmt"
+	//"fmt"
 	"math"
 	"math/rand"
 )

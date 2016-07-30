@@ -1,7 +1,8 @@
-package utils
+package indep
 
 import (
-//"fmt"
+	//"fmt"
+	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
 /*
@@ -32,13 +33,13 @@ set X. If there exists a dependency, add an edge u-v. Else, skip. It is clear th
 for constructing such graph is O(n^2), since we must check each possible pairwise combination.
 
 Once we have a constructed independency graph we must now discriminate each complete subgraph in
-the independency graph. We can do this by Union-Find.
+the independency graph. We can do this by utils.Union-utils.Find.
 
 	Initially each vertex has its own set.
 	For each vertex v:
 		For each edge v-u:
 			If u is not in the same set of v then
-				Union(u, v)
+				utils.Union(u, v)
 			EndIf
 		EndFor
 	EndFor
@@ -54,7 +55,7 @@ type IndepGraph struct {
 }
 
 // Constructs a new IndepGraph given a DataGroup.
-func NewIndepGraph(data []*VarData) *IndepGraph {
+func NewIndepGraph(data []*utils.VarData) *IndepGraph {
 	igraph := IndepGraph{make(map[int][]int), nil}
 	n := len(data)
 
@@ -125,16 +126,16 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 		}
 	}
 
-	// Union-Find to discriminate each set of connected variables that are fully disconnected of
+	// utils.Union-utils.Find to discriminate each set of connected variables that are fully disconnected of
 	// another set of connected set of variables
-	//fmt.Println("Finding disconnected subgraphs...")
+	//fmt.Println("utils.Finding disconnected subgraphs...")
 
-	// Set of Union-Find trees.
-	sets := make([]*UFNode, n)
+	// Set of utils.Union-utils.Find trees.
+	sets := make([]*utils.UFNode, n)
 
 	// At first every vertex has its own set.
 	for i := 0; i < n; i++ {
-		sets[i] = MakeSet(ids[i])
+		sets[i] = utils.MakeSet(ids[i])
 	}
 
 	//fmt.Println("Preparing to test each vertex of the independency graph for disconnectivity...")
@@ -146,18 +147,18 @@ func NewIndepGraph(data []*VarData) *IndepGraph {
 			v2 := igraph.adjlist[v1][j]
 			rv2 := rids[v2]
 
-			if Find(sets[i]) == Find(sets[rv2]) {
+			if utils.Find(sets[i]) == utils.Find(sets[rv2]) {
 				continue
 			}
 
-			Union(sets[i], sets[rv2])
+			utils.Union(sets[i], sets[rv2])
 		}
 	}
 
 	igraph.Kset = nil
 	for i := 0; i < n; i++ {
 		if sets[i] == sets[i].Pa {
-			igraph.Kset = append(igraph.Kset, UFVarids(sets[i]))
+			igraph.Kset = append(igraph.Kset, utils.UFVarids(sets[i]))
 		}
 	}
 
