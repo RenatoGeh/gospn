@@ -7,6 +7,8 @@ import (
 
 	spn "github.com/RenatoGeh/gospn/src/spn"
 	utils "github.com/RenatoGeh/gospn/src/utils"
+	cluster "github.com/RenatoGeh/gospn/src/utils/cluster"
+	indep "github.com/RenatoGeh/gospn/src/utils/indep"
 )
 
 // We refer to this structural learning algorithm as the Gens Algorithm for structural learning.
@@ -21,12 +23,12 @@ import (
 //
 // For clustering we use k-means clustering. Our implementation can be seen in file:
 //
-// 		/src/utils/kmeans.go
+// 		/src/utils/cluster/kmeans.go
 //
 // As for testing the independency between two variables we use the Chi-Square independence test,
 // present in file:
 //
-// 		/src/utils/indtest.go
+// 		/src/utils/cluster/indtest.go
 //
 // Function Gens takes as input a matrix of data instances, where the columns are variables and
 // lines are the observed instantiations of each variable.
@@ -89,7 +91,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 
 	//fmt.Println("Creating new Independency graph...")
 	// Independency graph.
-	igraph := utils.NewIndepGraph(vdata)
+	igraph := indep.NewIndepGraph(vdata)
 
 	// If true, then we can partition the set of variables in data into independent subsets. This
 	// means we can create a product node (since product nodes' children have disjoint scopes).
@@ -164,7 +166,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		}
 		return prod
 	}
-	clusters := utils.KMeansV(kclusters, mdata)
+	clusters := cluster.KMeansV(kclusters, mdata)
 	k := len(clusters)
 
 	//fmt.Println("Reformating clusters to appropriate format and creating sum node...")

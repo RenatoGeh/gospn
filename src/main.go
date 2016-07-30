@@ -15,6 +15,8 @@ import (
 	learn "github.com/RenatoGeh/gospn/src/learn"
 	spn "github.com/RenatoGeh/gospn/src/spn"
 	utils "github.com/RenatoGeh/gospn/src/utils"
+	cluster "github.com/RenatoGeh/gospn/src/utils/cluster"
+	indep "github.com/RenatoGeh/gospn/src/utils/indep"
 )
 
 const dataset = "digits"
@@ -47,13 +49,13 @@ func learn_test() spn.SPN {
 }
 
 func indep_test() {
-	fmt.Printf("Chi-square: %f\n", 1-utils.Chisquare(1, 6.73))
+	fmt.Printf("Chi-square: %f\n", 1-indep.Chisquare(1, 6.73))
 
 	data := [][]int{
 		{200, 150, 50, 400},
 		{250, 300, 50, 600},
 		{450, 450, 100, 1000}}
-	fmt.Printf("Indep? %t\n", utils.ChiSquareTest(2, 3, data, 1))
+	fmt.Printf("Indep? %t\n", indep.ChiSquareTest(2, 3, data, 1))
 }
 
 func parse_test() {
@@ -375,11 +377,11 @@ func kmeans_test() {
 	}
 
 	k := 5
-	//clusters := utils.KMeansV(k, mdata)
+	//clusters := cluster.KMeansV(k, mdata)
 	CLSIZE := 20
 	cls := make([][]map[int][]int, CLSIZE)
 	for i := 0; i < CLSIZE; i++ {
-		cls[i] = utils.KMeansV(k, mdata)
+		cls[i] = cluster.KMeansV(k, mdata)
 	}
 
 	for i := 1; i < CLSIZE; i++ {
@@ -492,7 +494,7 @@ func vardata_test() {
 		fmt.Printf("vdata[%d]:\n  %d\n  %d\n  %v\n\n", i, vdata[j].Varid, vdata[j].Categories, vdata[j].Data)
 	}
 
-	igraph := utils.NewIndepGraph(vdata)
+	igraph := indep.NewIndepGraph(vdata)
 
 	kset := &igraph.Kset
 
