@@ -151,7 +151,26 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 	}
 
 	//fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
-	if len(mdata) < kclusters {
+	//if len(mdata) < kclusters {
+	//Fully factorized form.
+	//All instances are approximately the same.
+	//prod := spn.NewProduct()
+	//m := len(data)
+	//for _, v := range sc {
+	//counts := make([]int, v.Categories)
+	//for i := 0; i < m; i++ {
+	//counts[data[i][v.Varid]]++
+	//}
+	//leaf := spn.NewCountingUnivDist(v.Varid, counts)
+	//prod.AddChild(leaf)
+	//}
+	//return prod
+	//}
+	//clusters := cluster.KMeansV(kclusters, mdata)
+	clusters := cluster.DBSCAN(mdata, 4, 4)
+	k := len(clusters)
+	fmt.Printf("Clustering similar instances with %d clusters.\n", k)
+	if k == 1 {
 		// Fully factorized form.
 		// All instances are approximately the same.
 		prod := spn.NewProduct()
@@ -166,11 +185,8 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		}
 		return prod
 	}
-	clusters := cluster.KMeansV(kclusters, mdata)
-	k := len(clusters)
 
 	//fmt.Println("Reformating clusters to appropriate format and creating sum node...")
-	fmt.Println("Clustering similar instances.")
 
 	sum := spn.NewSum()
 	for i := 0; i < k; i++ {

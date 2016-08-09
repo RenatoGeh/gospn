@@ -1,9 +1,8 @@
 package spn
 
 import (
-	//"fmt"
-
-	utils "github.com/RenatoGeh/gospn/src/utils"
+//"fmt"
+//utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
 // Product represents an SPN product node.
@@ -87,14 +86,12 @@ func (p *Product) Value(valuation VarSet) float64 {
 // Max returns the MAP state given a valuation.
 func (p *Product) Max(valuation VarSet) float64 {
 	n := len(p.ch)
-	cv := make([]float64, n)
+	v := 0.0
 
 	for i := 0; i < n; i++ {
 		//v *= (p.ch[i]).Max(valuation)
-		cv[i] = (p.ch[i]).Max(valuation)
+		v += (p.ch[i]).Max(valuation)
 	}
-
-	v := utils.LogProd(cv...)
 
 	return v
 }
@@ -103,7 +100,7 @@ func (p *Product) Max(valuation VarSet) float64 {
 func (p *Product) ArgMax(valuation VarSet) (VarSet, float64) {
 	argmax := make(VarSet)
 	n := len(p.ch)
-	cv := make([]float64, n)
+	v := 0.0
 
 	// Only a product node may have leaves as children. We must iterate through all children and
 	// recurse through them. Since a product node's children must have disjoint scopes, each child
@@ -112,14 +109,13 @@ func (p *Product) ArgMax(valuation VarSet) (VarSet, float64) {
 	// recurse once again.
 	for i := 0; i < n; i++ {
 		chargs, chmap := p.ch[i].ArgMax(valuation)
-		cv[i] = chmap
+		v += chmap
 		//pmap *= chmap
-		for k, v := range chargs {
-			argmax[k] = v
+		for k, val := range chargs {
+			argmax[k] = val
 		}
 	}
 
-	pmap := utils.LogProd(cv...)
-
-	return argmax, pmap
+	//fmt.Printf("Product: %f %v\n", utils.AntiLog(v), argmax)
+	return argmax, v
 }

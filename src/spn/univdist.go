@@ -138,9 +138,11 @@ func (ud *UnivDist) ArgMax(valuation VarSet) (VarSet, float64) {
 
 	if ok {
 		retval[ud.varid] = val
+		//fmt.Printf("Leaf: X_%d=%d, %f\n", ud.varid, val, ud.pr[val])
 		return retval, utils.Log(ud.pr[val])
 	}
 
+	//fmt.Printf("Leaf: X_%d=%d, %f\n", ud.varid, ud.mode.index, ud.mode.val)
 	retval[ud.varid] = ud.mode.index
 	return retval, utils.Log(ud.mode.val)
 }

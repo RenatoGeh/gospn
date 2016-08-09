@@ -99,7 +99,7 @@ func (s *Sum) Max(valuation VarSet) float64 {
 	n := len(s.ch)
 
 	for i := 0; i < n; i++ {
-		cv := s.ch[i].Max(valuation)
+		cv := utils.Log(s.w[i]) + s.ch[i].Max(valuation)
 		if cv > max {
 			max = cv
 		}
@@ -110,7 +110,7 @@ func (s *Sum) Max(valuation VarSet) float64 {
 
 // ArgMax returns both the arguments and the value of the MAP state given a certain valuation.
 func (s *Sum) ArgMax(valuation VarSet) (VarSet, float64) {
-	n, max := len(s.ch), 0.0
+	n, max := len(s.ch), utils.Inf(-1)
 	var mch Node = nil
 
 	// Since a sum node must be complete, there can never be a leaf adjacent to a sum node, as that
@@ -122,12 +122,13 @@ func (s *Sum) ArgMax(valuation VarSet) (VarSet, float64) {
 	// to its children.
 	for i := 0; i < n; i++ {
 		ch := s.ch[i]
-		m := s.w[i] * ch.Max(valuation)
+		m := utils.Log(s.w[i]) + ch.Max(valuation)
 		if m > max {
-			max = m
-			mch = ch
+			max, mch = m, ch
 		}
 	}
 
-	return mch.ArgMax(valuation)
+	set, _ := mch.ArgMax(valuation)
+	//fmt.Printf("Sum: %f, %v\n", utils.AntiLog(max), set)
+	return set, max
 }

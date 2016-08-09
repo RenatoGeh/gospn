@@ -85,14 +85,14 @@ func cvntev_imgs() {
 }
 
 func drawgraph_test() {
-	l1, l2, l3, l4 := spn.NewEmptyUnivDist(0, 2), spn.NewEmptyUnivDist(1, 2), spn.NewEmptyUnivDist(2, 2), spn.NewEmptyUnivDist(3, 2)
+	l1, l2, l3, l4 := spn.NewEmptyUnivDist(0, 2), spn.NewEmptyUnivDist(0, 2), spn.NewEmptyUnivDist(1, 2), spn.NewEmptyUnivDist(1, 2)
 	s1, s2 := spn.NewSum(), spn.NewSum()
 	s1.AddChildW(l1, 0.3)
 	s1.AddChildW(l2, 0.7)
 	s2.AddChildW(l3, 0.4)
 	s2.AddChildW(l4, 0.6)
 	p1, p2 := spn.NewProduct(), spn.NewProduct()
-	l5, l6 := spn.NewEmptyUnivDist(4, 2), spn.NewEmptyUnivDist(5, 2)
+	l5, l6 := spn.NewEmptyUnivDist(2, 2), spn.NewEmptyUnivDist(3, 2)
 	p1.AddChild(s1)
 	p1.AddChild(l5)
 	p2.AddChild(s2)
@@ -107,23 +107,29 @@ func drawgraph_test() {
 	fmt.Println("Testing probabilities...")
 
 	vset := make(spn.VarSet)
-	vset[2], vset[1], vset[4] = 1, 0, 1
+	vset[2], vset[1], vset[3] = 1, 0, 1
 	val := s.Value(vset)
-	fmt.Printf("Pr(X_1=0, X_2=1, X_4=1)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
+	fmt.Printf("Pr(X_1=0, X_2=1, X_3=1)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
+	maxset, val := s.ArgMax(vset)
+	fmt.Printf("max_{%v} Pr = antiln(%f)=%f.\n", maxset, val, utils.AntiLog(val))
 	delete(vset, 2)
 	delete(vset, 1)
 	delete(vset, 4)
-	vset[4], vset[3], vset[1], vset[0], vset[2] = 0, 0, 1, 1, 0
+	vset[2], vset[3], vset[1] = 0, 0, 1
 	val = s.Value(vset)
-	fmt.Printf("Pr(X_1=1, X_2=1, X_3=0, X_4=0, X_5=0)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
-	for i := 0; i < 5; i++ {
+	fmt.Printf("Pr(X_1=1, X_2=0, X_3=0)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
+	maxset, val = s.ArgMax(vset)
+	fmt.Printf("max_{%v} Pr = antiln(%f)=%f.\n", maxset, val, utils.AntiLog(val))
+	for i := 1; i < 4; i++ {
 		delete(vset, i)
 	}
-	for i := 0; i < 6; i++ {
+	for i := 0; i < 3; i++ {
 		vset[i] = 1
 	}
 	val = s.Value(vset)
 	fmt.Printf("Pr(for all 0<=i<6, X_i=1)=antiln(%f)=%f.\n", val, utils.AntiLog(val))
+	maxset, val = s.ArgMax(vset)
+	fmt.Printf("max_{%v} Pr = antiln(%f)=%f.\n", maxset, val, utils.AntiLog(val))
 }
 
 func queue_test() {
@@ -185,6 +191,8 @@ func classify_test() {
 			pr := px - pz
 			prs[i] = utils.AntiLog(pr)
 			fmt.Printf("Pr(X=%d|E)=%f/%f=%.50f\n", i, px, pz, prs[i])
+			maxset, maxval := s.ArgMax(vset)
+			fmt.Printf("argmax_{X=%d} Pr(X, E)=%50f\n", maxset[nsc], utils.AntiLog(maxval-pz))
 		}
 
 		max, imax := 0.0, 0
@@ -217,10 +225,6 @@ func classify_test() {
 	perc := 100.0 * float64(tcorr) / float64(ttot)
 	fmt.Printf("Overall correctness: %d/%d = %.3f%%.\n\n", tcorr, ttot, perc)
 	fmt.Printf("========================================")
-
-	//argmax, max := s.ArgMax(ev[0])
-	//arg, ok := argmax[600]
-	//fmt.Printf("argmax_X Pr(X|E) = [%t, %d] %f\n", ok, arg, utils.AntiLog(max))
 }
 
 func log_test() {
@@ -578,6 +582,78 @@ func maptoslice_test() {
 	}
 }
 
+func dbscan_test(db bool) {
+	data := [][]int{{0, 1, 2}, {2, 3, 4}, {4, 5, 6}, {6, 7, 8}, {8, 9, 10}, {1, 2, 3}, {3, 4, 5},
+		{5, 6, 7}, {7, 8, 9}, {7, 5, 3}, {0, 0, 1}, {9, 9, 10}, {0, 5, 10}}
+	var clusters []map[int][]int = nil
+	if db {
+		fmt.Println("===================\nUsing DBSCAN:\n===================\n")
+		clusters = cluster.DBSCAN(data, 4, 3)
+	} else {
+		fmt.Println("===================\nUsing K-means:\n===================\n")
+		clusters = cluster.KMeansV(3, data)
+	}
+	k := len(clusters)
+
+	for i := 0; i < k; i++ {
+		fmt.Printf("Cluster %d:\n", i)
+		for k, v := range clusters[i] {
+			fmt.Printf("[%d]=%d ", k, v)
+		}
+		fmt.Printf("\n")
+	}
+
+	mdata := make([]map[int]int, len(data))
+	fmt.Printf("mdata:\n")
+	for i := 0; i < len(data); i++ {
+		mdata[i] = make(map[int]int)
+		avg := 0.0
+		for j := 0; j < len(data[i]); j++ {
+			mdata[i][j] = data[i][j]
+			fmt.Printf("%d ", mdata[i][j])
+			avg += float64(data[i][j])
+		}
+		avg /= float64(len(data[i]))
+		fmt.Printf("avg = %f\n", avg)
+	}
+	fmt.Printf("\n")
+
+	for i := 0; i < k; i++ {
+		ni := len(clusters[i])
+		ndata := make([]map[int]int, ni)
+
+		l, clavg := 0, 0.0
+		for k, _ := range clusters[i] {
+			ndata[l] = make(map[int]int)
+			fmt.Printf("%d:\n", k)
+			for index, value := range mdata[k] {
+				ndata[l][index] = value
+				fmt.Printf("[%d]=%d ", index, value)
+				clavg += float64(value)
+			}
+			fmt.Printf("\n")
+			l++
+		}
+		clavg /= float64(ni * 3)
+
+		fmt.Printf("Clusters %d:\n", i)
+		for j := 0; j < ni; j++ {
+			keys := make([]int, len(ndata[j]))
+			t := 0
+			for _, v := range ndata[j] {
+				keys[t] = v
+				t++
+			}
+			sort.Ints(keys)
+			for tt := 0; tt < len(ndata[j]); tt++ {
+				fmt.Printf("%d ", keys[tt])
+			}
+			fmt.Printf("\n")
+		}
+		fmt.Printf("avg = %f\n", clavg)
+	}
+}
+
 func main() {
 	// Parse command line arguments.
 	if len(os.Args) > 1 {
@@ -603,4 +679,6 @@ func main() {
 	//kmeans_test()
 	//vardata_test()
 	//maptoslice_test()
+	//dbscan_test(true)
+	//dbscan_test(false)
 }

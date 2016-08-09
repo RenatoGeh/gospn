@@ -1,16 +1,10 @@
 package cluster
 
 import (
-	"math"
-
 	common "github.com/RenatoGeh/gospn/src/common"
 	utils "github.com/RenatoGeh/gospn/src/utils"
+	metrics "github.com/RenatoGeh/gospn/src/utils/cluster/metrics"
 )
-
-func euclidean_dist(p1 float64, p2 float64) float64 {
-	sqr := p1 - p2
-	return math.Sqrt(sqr * sqr)
-}
 
 // Density-based spatial clustering of applications with noise (DBSCAN).
 // Parameters:
@@ -19,24 +13,15 @@ func euclidean_dist(p1 float64, p2 float64) float64 {
 //  - mp is minimum number of points to be considered core point.
 func DBSCAN(data [][]int, eps float64, mp int) []map[int][]int {
 	n, m := len(data), len(data[0])
-	avgs := make([]float64, n)
 	// Metric function.
-	mfunc := euclidean_dist
-
-	for i := 0; i < n; i++ {
-		avg := 0.0
-		for j := 0; j < m; j++ {
-			avg += float64(data[i][j])
-		}
-		avgs[i] = avg / float64(m)
-	}
+	mfunc := metrics.Euclidean
 
 	// Distance matrix.
 	dmatrix := make([][]float64, n)
 	for i := 0; i < n; i++ {
 		dmatrix[i] = make([]float64, n)
 		for j := 0; j < n; j++ {
-			dmatrix[i][j] = mfunc(avgs[i], avgs[j])
+			dmatrix[i][j] = mfunc(data[i], data[j])
 		}
 	}
 
