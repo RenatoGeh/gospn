@@ -173,7 +173,6 @@ func classify_test() {
 
 	totals := make([]int, nv)
 	corrects := make([]int, nv)
-
 	tlabels = append(tlabels, int(^uint(0)>>1))
 	c, l := 0, 0
 	for _, ve := range ev {
