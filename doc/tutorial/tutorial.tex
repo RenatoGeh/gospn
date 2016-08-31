@@ -55,6 +55,8 @@
 \newtheorem{theorem}[dummy-thm]{Theorem}
 \newcounter{dummy-prop}\numberwithin{dummy-prop}{section}
 \newtheorem{proposition}[dummy-prop]{Proposition}
+\newcounter{dummy-corollary}\numberwithin{dummy-corollary}{section}
+\newtheorem{corollary}[dummy-corollary]{Corollary}
 \newcounter{dummy-ex}\numberwithin{dummy-ex}{section}
 \newtheorem{exercise}[dummy-ex]{Exercise}
 \newcounter{dummy-eg}\numberwithin{dummy-eg}{section}
@@ -275,10 +277,9 @@ of incomplete and inconsistent SPNs.
   children of $i$ have disjoint scopes with each other.
 \end{definition}
 
-\begin{proposition}\label{decimpliescons}
+\begin{corollary}\label{decimpliescons}
   Decomposability implies consistency.
-\end{proposition}
-
+\end{corollary}
 \begin{proof}
   It is easy to see that decomposability implies consistency. For each product node $i$ in $S$,
   let $u$ and $v$ be a pair of children of $i$. If $S$ is decomposable, then $\Sc(u)\cap\Sc(v)=

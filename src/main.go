@@ -190,9 +190,9 @@ func classify_test() {
 			pr := px - pz
 			prs[i] = utils.AntiLog(pr)
 			fmt.Printf("Pr(X=%d|E)=%f/%f=%.50f\n", i, px, pz, prs[i])
-			maxset, maxval := s.ArgMax(vset)
-			fmt.Printf("argmax_{X=%d} Pr(X, E)=%50f\n", maxset[nsc], utils.AntiLog(maxval-pz))
 		}
+		maxset, maxval := s.ArgMax(ve)
+		fmt.Printf("argmax_{X=%d} Pr(X, E)=%.50f\n", maxset[nsc], utils.AntiLog(maxval-pz))
 
 		max, imax := 0.0, 0
 		for i := 0; i < nv; i++ {
