@@ -213,6 +213,13 @@ func classify_test() {
 		}
 	}
 
+	llh := make([]float64, nv)
+	lset := make(spn.VarSet)
+	for i := 0; i < nv; i++ {
+		lset[nsc] = i
+		llh[i] = s.Value(lset)
+	}
+
 	fmt.Printf("\n=========== Overall Results ============\n")
 	ttot, tcorr := 0, 0
 	for i := 0; i < nv; i++ {
@@ -223,6 +230,13 @@ func classify_test() {
 	}
 	perc := 100.0 * float64(tcorr) / float64(ttot)
 	fmt.Printf("Overall correctness: %d/%d = %.3f%%.\n\n", tcorr, ttot, perc)
+	fmt.Printf("Log-likelihood partitions:\n  n%*cplh%*cpllh\n", 5, ' ', 5, ' ')
+	cllh := 0.0
+	for i := 0; i < nv; i++ {
+		fmt.Printf("  %d%*c%5.5f %5.5f\n", i, 5, ' ', utils.AntiLog(llh[i]), llh[i])
+		cllh += llh[i]
+	}
+	fmt.Printf("Log-likelihood: %.10f\n", cllh)
 	fmt.Printf("========================================")
 }
 

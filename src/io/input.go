@@ -3,9 +3,11 @@ package io
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -182,4 +184,58 @@ func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []in
 	}
 
 	return sc, cvntmap, slabels
+}
+
+// Reads a data file and, with p probability, chooses ((1-p)*100)% of the data file to be used as
+// evidence file. For instance, p=0.7 will create a map[int]learn.Variable, which contains the data
+// variables, and two []map[int]int. The first []map[int]int returned is the training data, which
+// composes 70% of the data file. The second map will return the evidence table with the remaining
+// 30% data file. This partitioning is defined by the pseudo-random seed rseed. If rseed < 0, then
+// use the default pseudo-random seed. It also returns the labels of each test line.
+//
+// Note: since this function "breaks" the order of classification, it returns a separate label
+// containing the actual classification of each instantiation.
+func ParsePartitionedData(filename string, p float64, rseed int64) (map[int]learn.Variable,
+	[]map[int]int, []map[int]int, []int) {
+	vartable, fdata := ParseData(filename)
+	var rint func(n int) int = nil
+
+	if rseed < 0 {
+		rint = rand.Intn
+	} else {
+		rint = (rand.New(rand.NewSource(rseed))).Intn
+	}
+
+	n := len(fdata)
+	m := int(p * float64(n))
+	test := make([]map[int]int, m)
+	dels := make([]int, m)
+	lbls := make([]int, m)
+
+	// Marks instantiations that should serve as training set.
+	for i := 0; i < m; i++ {
+		l := rint(n)
+		for fdata[l] == nil {
+			l = rint(n)
+		}
+		test[i] = fdata[l]
+		fdata[l] = nil
+		dels[i] = l
+	}
+	sort.Ints(dels)
+
+	// Discards marked lines from fdata.
+	for i := 0; i < m; i++ {
+		j := dels[i] - i
+		fdata = append(fdata[:j], fdata[j+1:]...)
+	}
+
+	// All test lines have their real labels deleted and stored in a separate lbls slice.
+	k := len(vartable) - 1
+	for i := 0; i < m; i++ {
+		lbls[i] = test[i][k]
+		delete(test[i], k)
+	}
+
+	return vartable, fdata, test, lbls
 }
