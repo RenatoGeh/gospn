@@ -1,8 +1,8 @@
 OUT=out.put
-CLUSTERS=2
+ARGS=0.7 123456 -1 10
 
 all:
-	go run main.go $(CLUSTERS) | tee $(OUT)
+	go run main.go $(ARGS) | tee $(OUT)
 
 debug:
 	./debug.sh

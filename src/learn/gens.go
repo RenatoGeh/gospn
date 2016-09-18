@@ -150,26 +150,30 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		}
 	}
 
-	//fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
-	//if len(mdata) < kclusters {
-	//Fully factorized form.
-	//All instances are approximately the same.
-	//prod := spn.NewProduct()
-	//m := len(data)
-	//for _, v := range sc {
-	//counts := make([]int, v.Categories)
-	//for i := 0; i < m; i++ {
-	//counts[data[i][v.Varid]]++
-	//}
-	//leaf := spn.NewCountingUnivDist(v.Varid, counts)
-	//prod.AddChild(leaf)
-	//}
-	//return prod
-	//}
-	//clusters := cluster.KMeansV(kclusters, mdata)
-	clusters := cluster.DBSCAN(mdata, 4, 4)
+	var clusters []map[int][]int = nil
+	if kclusters > 0 {
+		fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
+		if len(mdata) < kclusters {
+			//Fully factorized form.
+			//All instances are approximately the same.
+			prod := spn.NewProduct()
+			m := len(data)
+			for _, v := range sc {
+				counts := make([]int, v.Categories)
+				for i := 0; i < m; i++ {
+					counts[data[i][v.Varid]]++
+				}
+				leaf := spn.NewCountingUnivDist(v.Varid, counts)
+				prod.AddChild(leaf)
+			}
+			return prod
+		}
+		clusters = cluster.KMeansV(kclusters, mdata)
+	} else {
+		clusters = cluster.DBSCAN(mdata, 4, 4)
+	}
 	k := len(clusters)
-	fmt.Printf("Clustering similar instances with %d clusters.\n", k)
+	//fmt.Printf("Clustering similar instances with %d clusters.\n", k)
 	if k == 1 {
 		// Fully factorized form.
 		// All instances are approximately the same.

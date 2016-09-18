@@ -186,6 +186,9 @@ func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []in
 	return sc, cvntmap, slabels
 }
 
+var glrand *rand.Rand = nil
+var glrseed int64 = -1
+
 // Reads a data file and, with p probability, chooses ((1-p)*100)% of the data file to be used as
 // evidence file. For instance, p=0.7 will create a map[int]learn.Variable, which contains the data
 // variables, and two []map[int]int. The first []map[int]int returned is the training data, which
@@ -203,11 +206,14 @@ func ParsePartitionedData(filename string, p float64, rseed int64) (map[int]lear
 	if rseed < 0 {
 		rint = rand.Intn
 	} else {
-		rint = (rand.New(rand.NewSource(rseed))).Intn
+		if glrseed < 0 {
+			glrand, glrseed = rand.New(rand.NewSource(rseed)), rseed
+		}
+		rint = glrand.Intn
 	}
 
 	n := len(fdata)
-	m := int(p * float64(n))
+	m := int((1 - p) * float64(n))
 	test := make([]map[int]int, m)
 	dels := make([]int, m)
 	lbls := make([]int, m)
