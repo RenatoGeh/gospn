@@ -21,6 +21,17 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	lines, n := len(test), len(vars)
 	nclass := vars[n-1].Categories
 
+	fmt.Println("Drawing the MPE state of each class instance:")
+	evclass := make(spn.VarSet)
+	for i := 0; i < nclass; i++ {
+		evclass[n-1] = i
+		mpe, _ := s.ArgMax(evclass)
+		filename := fmt.Sprintf("mpe_%d.pbm", i)
+		delete(mpe, n-1)
+		io.VarSetToPBM(filename, mpe, 20, 30)
+		fmt.Printf("Class %d drawn to %s.\n", i, filename)
+	}
+
 	corrects := 0
 	for i := 0; i < lines; i++ {
 		imax, max, prs := -1, -1.0, make([]float64, nclass)
@@ -52,17 +63,17 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	return s, corrects, lines
 }
 
-func convert_data() {
+func convertData() {
 	cmn, _ := filepath.Abs("../data/" + dataset + "/")
 	io.PBMFToData(cmn, "all.data")
 }
 
 func main() {
-	var p float64 = 0.7
-	var kclusters int = -1
+	p := 0.7
+	kclusters := -1
 	var rseed int64 = -1
-	var iterations int = 1
-	var err error = nil
+	iterations := 1
+	var err error
 
 	if len(os.Args) > 4 {
 		iterations, err = strconv.Atoi(os.Args[4])
@@ -90,7 +101,7 @@ func main() {
 		if err != nil || p <= 0 || p >= 1 {
 			if p == -1 {
 				fmt.Printf("Converting dataset %s...", dataset)
-				convert_data()
+				convertData()
 				return
 			}
 			fmt.Printf("Argument invalid. Argument p must be a 64-bit float in the interval (0, 1).")
@@ -108,7 +119,7 @@ func main() {
 	corrects, total := 0, 0
 	for i := 0; i < iterations; i++ {
 		fmt.Printf("+-----------------------------------------------+\n")
-		fmt.Printf("|================ Iteration %d =================|\n", i+1)
+		fmt.Printf("|================ Iteration %d ==================|\n", i+1)
 		fmt.Printf("+-----------------------------------------------+\n")
 		s, c, t := classify(utils.StringConcat(in, "/all.data"), p, rseed, kclusters)
 		corrects, total = corrects+c, total+t

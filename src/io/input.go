@@ -14,6 +14,7 @@ import (
 	learn "github.com/RenatoGeh/gospn/src/learn"
 )
 
+// GetPath gets the absolute path relative to relpath.
 func GetPath(relpath string) string {
 	rp, err := filepath.Abs(relpath)
 
@@ -25,7 +26,8 @@ func GetPath(relpath string) string {
 	return rp
 }
 
-// Reads from a file named filename and returns the scope and data map of the parsed data file.
+// ParseData reads from a file named filename and returns the scope and data map of the parsed data
+// file.
 func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -38,7 +40,7 @@ func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 
 	scanner := bufio.NewScanner(file)
 
-	var line string = ""
+	var line string
 
 	// Get variable definitions.
 	for {
@@ -51,7 +53,7 @@ func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 		}
 		var varid, cats int
 		fmt.Sscanf(line, "var %d %d", &varid, &cats)
-		sc[varid] = learn.Variable{varid, cats}
+		sc[varid] = learn.Variable{Varid: varid, Categories: cats}
 	}
 
 	n := len(sc)
@@ -96,8 +98,8 @@ func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 	return sc, cvntmap
 }
 
-// An evidence file contains the instantiations of a subset of variables as evidence to be computed
-// during inference. It may contain multiple instantiations.
+// ParseEvidence takes an evidence file that contains the instantiations of a subset of variables
+// as evidence to be computed during inference. It may contain multiple instantiations.
 //
 // Returns a slice of maps, with each key corresponding to a variable ID and each associated value
 // as the valuation of such variable; and the scope.
@@ -113,7 +115,7 @@ func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []in
 
 	scanner := bufio.NewScanner(file)
 
-	var line string = ""
+	var line string
 
 	// Get labels.
 	scanner.Scan()
@@ -141,7 +143,7 @@ func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []in
 		}
 		var varid, cats int
 		fmt.Sscanf(line, "var %d %d", &varid, &cats)
-		sc[varid] = learn.Variable{varid, cats}
+		sc[varid] = learn.Variable{Varid: varid, Categories: cats}
 	}
 
 	n := len(sc)
@@ -186,22 +188,23 @@ func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []in
 	return sc, cvntmap, slabels
 }
 
-var glrand *rand.Rand = nil
+var glrand *rand.Rand
 var glrseed int64 = -1
 
-// Reads a data file and, with p probability, chooses ((1-p)*100)% of the data file to be used as
-// evidence file. For instance, p=0.7 will create a map[int]learn.Variable, which contains the data
-// variables, and two []map[int]int. The first []map[int]int returned is the training data, which
-// composes 70% of the data file. The second map will return the evidence table with the remaining
-// 30% data file. This partitioning is defined by the pseudo-random seed rseed. If rseed < 0, then
-// use the default pseudo-random seed. It also returns the labels of each test line.
+// ParsePartitionedData reads a data file and, with p probability, chooses ((1-p)*100)% of the data
+// file to be used as evidence file. For instance, p=0.7 will create a map[int]learn.Variable,
+// which contains the data variables, and two []map[int]int. The first []map[int]int returned is
+// the training data, which composes 70% of the data file. The second map will return the evidence
+// table with the remaining 30% data file. This partitioning is defined by the pseudo-random seed
+// rseed. If rseed < 0, then use the default pseudo-random seed. It also returns the labels of each
+// test line.
 //
 // Note: since this function "breaks" the order of classification, it returns a separate label
 // containing the actual classification of each instantiation.
 func ParsePartitionedData(filename string, p float64, rseed int64) (map[int]learn.Variable,
 	[]map[int]int, []map[int]int, []int) {
 	vartable, fdata := ParseData(filename)
-	var rint func(n int) int = nil
+	var rint func(n int) int
 
 	if rseed < 0 {
 		rint = rand.Intn

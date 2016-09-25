@@ -11,8 +11,8 @@ import (
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
-// Creates a file filename and draws an SPN spn in graph-tools. The resulting file is a python
-// source code that outputs a PNG image of the graph.
+// DrawGraphTools creates a file filename and draws an SPN spn in graph-tools. The resulting file
+// is a python source code that outputs a PNG image of the graph.
 func DrawGraphTools(filename string, s spn.SPN) {
 	file, err := os.Create(filename)
 
@@ -48,7 +48,7 @@ func DrawGraphTools(filename string, s spn.SPN) {
 	// Else, BFS the SPN and write nodes to filename.
 	nvars, nsums, nprods := 0, 0, 0
 	queue := common.QueueBFSPair{}
-	queue.Enqueue(&common.BFSPair{s, "", -1.0})
+	queue.Enqueue(&common.BFSPair{Spn: s, Pname: "", Weight: -1.0})
 	for !queue.Empty() {
 		currpair := queue.Dequeue()
 		curr, pname, pw := currpair.Spn, currpair.Pname, currpair.Weight
@@ -98,7 +98,7 @@ func DrawGraphTools(filename string, s spn.SPN) {
 				if w != nil {
 					tw = w[i]
 				}
-				queue.Enqueue(&common.BFSPair{c, name, tw})
+				queue.Enqueue(&common.BFSPair{Spn: c, Pname: name, Weight: tw})
 			}
 		}
 	}
@@ -110,7 +110,7 @@ func DrawGraphTools(filename string, s spn.SPN) {
 		"output_size=[16384, 16384], output=\"%s\", bg_color=[1, 1, 1, 1])\n", outname)
 }
 
-// Creates a file filename and draws an SPN spn in Graphviz dot.
+// DrawGraph creates a file filename and draws an SPN spn in Graphviz dot.
 func DrawGraph(filename string, s spn.SPN) {
 	file, err := os.Create(filename)
 
@@ -133,7 +133,7 @@ func DrawGraph(filename string, s spn.SPN) {
 	// Else, BFS the SPN and write nodes to filename.
 	nvars, nsums, nprods := 0, 0, 0
 	queue := common.QueueBFSPair{}
-	queue.Enqueue(&common.BFSPair{s, "", -1.0})
+	queue.Enqueue(&common.BFSPair{Spn: s, Pname: "", Weight: -1.0})
 	for !queue.Empty() {
 		currpair := queue.Dequeue()
 		curr, pname, pw := currpair.Spn, currpair.Pname, currpair.Weight
@@ -183,7 +183,7 @@ func DrawGraph(filename string, s spn.SPN) {
 				if w != nil {
 					tw = w[i]
 				}
-				queue.Enqueue(&common.BFSPair{c, name, tw})
+				queue.Enqueue(&common.BFSPair{Spn: c, Pname: name, Weight: tw})
 			}
 		}
 	}
@@ -191,7 +191,7 @@ func DrawGraph(filename string, s spn.SPN) {
 	fmt.Fprintf(file, "}")
 }
 
-// PBMFToData: PBM Folder to Data file. Each class is in a subfolder of dirname. dname is the
+// PBMFToData (PBM Folder to Data file). Each class is in a subfolder of dirname. dname is the
 // output file. Arg dirname must be an absolute path. Arg dname must be the filename only.
 func PBMFToData(dirname, dname string) {
 	sdir, err := os.Open(dirname)
@@ -218,13 +218,13 @@ func PBMFToData(dirname, dname string) {
 		// Since for every removed item the slice shrinks by one, we keep track of the indices by
 		// taking into account the subslices "translated" at the right moment.
 		if subdirs[i] == "compiled" {
-			var m int = i
+			m := i
 			if len(mrkrm) > 0 {
 				m = i - 1
 			}
 			mrkrm = append(mrkrm, m)
 		} else if fi, _ := os.Stat(utils.StringConcat(tpath, subdirs[i])); !fi.IsDir() {
-			var m int = i
+			m := i
 			if len(mrkrm) > 0 {
 				m = i - 1
 			}
@@ -239,8 +239,8 @@ func PBMFToData(dirname, dname string) {
 	}
 
 	// Memorize all subfiles.
-	var instreams []*bufio.Scanner = nil
-	var labels []int = nil
+	var instreams []*bufio.Scanner
+	var labels []int
 	for i := 0; i < nsdirs; i++ {
 		sd, err := os.Open(utils.StringConcat(tpath, subdirs[i]))
 
@@ -332,7 +332,8 @@ func PBMFToData(dirname, dname string) {
 	}
 }
 
-// PBM to Data file. If class is true, it's a classifying problem and will label as class.
+// PBMToData (PBM to Data file). If class is true, it's a classifying problem and will label as
+// class.
 func PBMToData(dirname, dname string, class int) {
 	dir, err := os.Open(dirname)
 
@@ -414,6 +415,7 @@ func PBMToData(dirname, dname string, class int) {
 	}
 }
 
+// PBMFToEvidence (PBM file to evidence).
 func PBMFToEvidence(dirname, dname string) {
 	sdir, err := os.Open(dirname)
 
@@ -441,7 +443,7 @@ func PBMFToEvidence(dirname, dname string) {
 		// taking into account the subslices "translated" at the right moment.
 		if fi, _ := os.Stat(utils.StringConcat(tpath, subdirs[i])); !fi.IsDir() ||
 			subdirs[i] == "compiled" {
-			var m int = i
+			m := i
 			if len(mrkrm) > 0 {
 				m = i - 1
 			}
@@ -457,10 +459,10 @@ func PBMFToEvidence(dirname, dname string) {
 
 	// Marks which class labels they are supposed to be classified as. Each int is the index of each
 	// class label.
-	var slabels []int = nil
+	var slabels []int
 
 	// Memorize all subfiles.
-	var instreams []*bufio.Scanner = nil
+	var instreams []*bufio.Scanner
 	for i := 0; i < nsdirs; i++ {
 		sd, err := os.Open(utils.StringConcat(tpath, subdirs[i]))
 
@@ -558,5 +560,30 @@ func PBMFToEvidence(dirname, dname string) {
 		}
 
 		fmt.Fprintf(out, "\n")
+	}
+}
+
+// VarSetToPBM takes a state and draws according to the SPN that generated the instantiation.
+func VarSetToPBM(filename string, state spn.VarSet, w, h int) {
+	file, err := os.Create(filename)
+	if err != nil {
+		fmt.Printf("Could not create file [%s].\n", filename)
+		return
+	}
+	defer file.Close()
+
+	fmt.Fprintf(file, "P1\n%d %d\n", w, h)
+
+	n := len(state)
+	pixels := make([]int, n)
+	for varid, val := range state {
+		pixels[varid] = val
+	}
+
+	for i := 0; i < n; i++ {
+		if i%71 == 0 {
+			fmt.Fprintf(file, "\n")
+		}
+		fmt.Fprintf(file, "%d", pixels[i])
 	}
 }

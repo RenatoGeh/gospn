@@ -19,8 +19,6 @@ import (
 	indep "github.com/RenatoGeh/gospn/src/utils/indep"
 )
 
-const dataset = "digits"
-
 var kclusters int = 2
 
 func learn_test() spn.SPN {

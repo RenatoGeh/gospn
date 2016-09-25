@@ -1,5 +1,5 @@
 OUT=out.put
-ARGS=0.7 123456 -1 10
+ARGS=0.7 123456 -1 1
 
 all:
 	go run main.go $(ARGS) | tee $(OUT)
@@ -12,4 +12,4 @@ test:
 
 .PHONY: clean
 clean:
-	rm *.put
+	rm *.put *.pbm
