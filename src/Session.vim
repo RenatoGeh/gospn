@@ -8,9 +8,9 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +191 learn/gens.go
-badd +57 main.go
-badd +207 io/input.go
-badd +152 io/output.go
+badd +25 main.go
+badd +250 io/input.go
+badd +581 io/output.go
 badd +4 utils/unionfind.go
 badd +109 spn/sum.go
 badd +61 spn/product.go
@@ -31,6 +31,7 @@ badd +21 main_test.go
 badd +1 4
 badd +1 learn/variable.go
 badd +1 out.put
+badd +0 common/color.go
 argglobal
 silent! argdel *
 argadd learn/gens.go
@@ -247,8 +248,7 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
+wincmd =
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -259,11 +259,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 25 - ((9 * winheight(0) + 29) / 58)
+let s:l = 19 - ((3 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-25
+19
 normal! 03|
 wincmd w
 argglobal
@@ -277,15 +277,37 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 581 - ((46 * winheight(0) + 29) / 58)
+let s:l = 634 - ((30 * winheight(0) + 23) / 47)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-581
-normal! 03|
+634
+normal! 039|
 wincmd w
-exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
+2wincmd w
+wincmd =
+tabedit common/color.go
+set splitbelow splitright
+set nosplitbelow
+set nosplitright
+wincmd t
+set winheight=1 winwidth=1
+argglobal
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 45 - ((36 * winheight(0) + 29) / 58)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+45
+normal! 028|
 tabedit learn/gens.go
 set splitbelow splitright
 wincmd _ | wincmd |
@@ -300,11 +322,7 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 119 + 119) / 239)
-exe '2resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 2resize ' . ((&columns * 119 + 119) / 239)
-exe '3resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 3resize ' . ((&columns * 119 + 119) / 239)
+wincmd =
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -315,11 +333,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 191 - ((0 * winheight(0) + 29) / 58)
+let s:l = 193 - ((2 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-191
+193
 normal! 03|
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
@@ -334,12 +352,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 1 - ((0 * winheight(0) + 14) / 29)
+let s:l = 2 - ((1 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-1
-normal! 05|
+2
+normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
 argglobal
@@ -361,11 +379,7 @@ normal! zt
 normal! 0
 lcd ~/go/src/github.com/RenatoGeh/gospn/src
 wincmd w
-exe 'vert 1resize ' . ((&columns * 119 + 119) / 239)
-exe '2resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 2resize ' . ((&columns * 119 + 119) / 239)
-exe '3resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 3resize ' . ((&columns * 119 + 119) / 239)
+wincmd =
 tabedit ~/go/src/github.com/RenatoGeh/gospn/src/Makefile
 set splitbelow splitright
 set nosplitbelow

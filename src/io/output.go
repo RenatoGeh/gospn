@@ -587,3 +587,58 @@ func VarSetToPBM(filename string, state spn.VarSet, w, h int) {
 		fmt.Fprintf(file, "%d", pixels[i])
 	}
 }
+
+// CmplType indicates which type of image completion are we referring to.
+type CmplType int
+
+const (
+	// Top image completion.
+	Top CmplType = iota
+	// Bottom image completion.
+	Bottom
+	// Left image completion.
+	Left
+	// Right image completion.
+	Right
+)
+
+// ImgCmplToPPM creates a new file distinguishing the original part of the image from the
+// completion done by the SPN and indicated by typ.
+func ImgCmplToPPM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h int) {
+	file, err := os.Create(filename)
+	if err != nil {
+		fmt.Printf("Could not create file [%s].\n", filename)
+		return
+	}
+	defer file.Close()
+
+	fmt.Fprintf(file, "P3\n%d %d\n255\n", w, h)
+
+	var mid func(int) bool
+	if typ == Top || typ == Bottom {
+		h++
+		mid = func(p int) bool {
+			q := w * (h / 2)
+			return p > q && p <= q+w
+		}
+	} else {
+		w++
+		mid = func(p int) bool {
+			return (p != 0) && (p%w != 0) && (p%(w/2) == 0)
+		}
+	}
+
+	n, j := w*h, 0
+	for i := 0; i < n; i++ {
+		if mid(j) {
+			common.DrawColor(file, common.Red)
+			continue
+		} else if _, eo := orig[j]; eo {
+			common.DrawColor(file, common.Blue)
+		} else {
+			common.DrawColor(file, common.Green)
+		}
+		fmt.Fprintf(file, " ")
+		j++
+	}
+}
