@@ -589,18 +589,21 @@ func VarSetToPBM(filename string, state spn.VarSet, w, h int) {
 }
 
 // CmplType indicates which type of image completion are we referring to.
-type CmplType int
+type CmplType string
 
 const (
 	// Top image completion.
-	Top CmplType = iota
+	Top CmplType = "TOP"
 	// Bottom image completion.
-	Bottom
+	Bottom CmplType = "BOTTOM"
 	// Left image completion.
-	Left
+	Left CmplType = "LEFT"
 	// Right image completion.
-	Right
+	Right CmplType = "RIGHT"
 )
+
+// Orientations contains all orientations.
+var Orientations = []CmplType{Top, Bottom, Left, Right}
 
 // ImgCmplToPPM creates a new file distinguishing the original part of the image from the
 // completion done by the SPN and indicated by typ.
@@ -612,33 +615,46 @@ func ImgCmplToPPM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h int
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "P3\n%d %d\n255\n", w, h)
-
 	var mid func(int) bool
 	if typ == Top || typ == Bottom {
 		h++
 		mid = func(p int) bool {
 			q := w * (h / 2)
-			return p > q && p <= q+w
+			return p >= q && p < q+w
 		}
 	} else {
 		w++
 		mid = func(p int) bool {
-			return (p != 0) && (p%w != 0) && (p%(w/2) == 0)
+			return p%w == w/2
 		}
 	}
 
+	fmt.Fprintf(file, "P3\n%d %d\n255\n", w, h)
+
 	n, j := w*h, 0
 	for i := 0; i < n; i++ {
-		if mid(j) {
+		if mid(i) {
 			common.DrawColor(file, common.Red)
-			continue
-		} else if _, eo := orig[j]; eo {
-			common.DrawColor(file, common.Blue)
+			goto cleanup
+		} else if v, eo := orig[j]; eo {
+			if v == 1 {
+				common.DrawColor(file, common.Blue)
+			} else {
+				common.DrawColor(file, common.White)
+			}
 		} else {
-			common.DrawColor(file, common.Green)
+			u, _ := cmpl[j]
+			if u == 1 {
+				common.DrawColor(file, common.Green)
+			} else {
+				common.DrawColor(file, common.White)
+			}
 		}
-		fmt.Fprintf(file, " ")
 		j++
+	cleanup:
+		fmt.Fprintf(file, " ")
+		if i != 0 && i%w == 0 {
+			fmt.Fprintf(file, "\n")
+		}
 	}
 }

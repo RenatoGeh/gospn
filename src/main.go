@@ -13,6 +13,48 @@ import (
 )
 
 const dataset = "digitscv"
+const (
+	width  int = 20
+	height int = 30
+)
+
+func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, spn.VarSet) {
+	cmpl, half := make(spn.VarSet), make(spn.VarSet)
+	var criteria func(int) bool
+
+	switch typ {
+	case io.Top:
+		criteria = func(p int) bool {
+			return p < w*(h/2)
+		}
+	case io.Bottom:
+		criteria = func(p int) bool {
+			return p >= w*(h/2)
+		}
+	case io.Left:
+		criteria = func(p int) bool {
+			return p%w < w/2
+		}
+	case io.Right:
+		criteria = func(p int) bool {
+			return p%w >= w/2
+		}
+	}
+
+	for k, v := range set {
+		if !criteria(k) {
+			half[k] = v
+		}
+	}
+
+	cmpl, _ = s.ArgMax(half)
+
+	for k := range half {
+		delete(cmpl, k)
+	}
+
+	return cmpl, half
+}
 
 func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, int, int) {
 	vars, train, test, lbls := io.ParsePartitionedData(filename, p, rseed)
@@ -21,16 +63,16 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	lines, n := len(test), len(vars)
 	nclass := vars[n-1].Categories
 
-	fmt.Println("Drawing the MPE state of each class instance:")
-	evclass := make(spn.VarSet)
-	for i := 0; i < nclass; i++ {
-		evclass[n-1] = i
-		mpe, _ := s.ArgMax(evclass)
-		filename := fmt.Sprintf("mpe_%d.pbm", i)
-		delete(mpe, n-1)
-		io.VarSetToPBM(filename, mpe, 20, 30)
-		fmt.Printf("Class %d drawn to %s.\n", i, filename)
-	}
+	//fmt.Println("Drawing the MPE state of each class instance:")
+	//evclass := make(spn.VarSet)
+	//for i := 0; i < nclass; i++ {
+	//evclass[n-1] = i
+	//mpe, _ := s.ArgMax(evclass)
+	//filename := fmt.Sprintf("mpe_%d.pbm", i)
+	//delete(mpe, n-1)
+	//io.VarSetToPBM(filename, mpe, width, height)
+	//fmt.Printf("Class %d drawn to %s.\n", i, filename)
+	//}
 
 	corrects := 0
 	for i := 0; i < lines; i++ {
@@ -59,6 +101,20 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	fmt.Printf("  Correct classifications: %d/%d\n", corrects, lines)
 	fmt.Printf("  Percentage of correct hits: %.2f%%\n", 100.0*(float64(corrects)/float64(lines)))
 	fmt.Println("======================================")
+
+	reps := make([]map[int]int, nclass)
+	for i := 0; i < lines; i++ {
+		if reps[lbls[i]] == nil {
+			reps[lbls[i]] = test[i]
+		}
+	}
+	for i := 0; i < nclass; i++ {
+		for _, v := range io.Orientations {
+			fmt.Printf("Drawing %s completion for digit %d.\n", v, i)
+			cmpl, half := halfImg(s, reps[i], v, width, height)
+			io.ImgCmplToPPM(fmt.Sprintf("cmpl_%d-%s.ppm", i, v), half, cmpl, v, width, height)
+		}
+	}
 
 	return s, corrects, lines
 }

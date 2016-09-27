@@ -12,4 +12,4 @@ test:
 
 .PHONY: clean
 clean:
-	rm *.put *.pbm
+	rm *.put *.pbm *.ppm
