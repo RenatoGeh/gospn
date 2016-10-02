@@ -4,6 +4,9 @@ ARGS=0.7 123456 -1 1
 all:
 	go run main.go $(ARGS) | tee $(OUT)
 
+data:
+	go run main.go -1 | tee $(OUT)
+
 debug:
 	./debug.sh
 

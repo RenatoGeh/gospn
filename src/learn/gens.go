@@ -11,6 +11,7 @@ import (
 	indep "github.com/RenatoGeh/gospn/src/utils/indep"
 )
 
+// Gens Learning Algorithm
 // We refer to this structural learning algorithm as the Gens Algorithm for structural learning.
 // The full article describing this algorithm schema can be found at:
 //
@@ -140,7 +141,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		mdata[i] = make([]int, lc)
 		l := 0
 		keys := make([]int, lc)
-		for k, _ := range data[i] {
+		for k := range data[i] {
 			keys[l] = k
 			l++
 		}
@@ -150,7 +151,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		}
 	}
 
-	var clusters []map[int][]int = nil
+	var clusters []map[int][]int
 	if kclusters > 0 {
 		fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
 		if len(mdata) < kclusters {
@@ -198,7 +199,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		ndata := make([]map[int]int, ni)
 
 		l := 0
-		for k, _ := range clusters[i] {
+		for k := range clusters[i] {
 			ndata[l] = make(map[int]int)
 			for index, value := range data[k] {
 				ndata[l][index] = value

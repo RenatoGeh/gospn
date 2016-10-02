@@ -2,5 +2,5 @@
 
 for i in {2..5}
 do
-  go run main.go $i | tee out$i.put
+  go run main.go | tee out$i.put
 done

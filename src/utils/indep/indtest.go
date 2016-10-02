@@ -19,9 +19,8 @@ func lgamma(x, s float64, regularized bool) float64 {
 	if x > 1.1 && x > s {
 		if regularized {
 			return 1.0 - ugamma(x, s, regularized)
-		} else {
-			return math.Gamma(s) - ugamma(x, s, regularized)
 		}
+		return math.Gamma(s) - ugamma(x, s, regularized)
 	}
 
 	var ft float64
@@ -37,7 +36,7 @@ func lgamma(x, s float64, regularized bool) float64 {
 	}
 	ft = math.Exp(ft)
 	for c/pws > eps {
-		r += 1
+		r++
 		c *= x / r
 		pws += c
 	}
@@ -49,9 +48,8 @@ func ugamma(x, s float64, regularized bool) float64 {
 	if x <= 1.1 || x <= s {
 		if regularized {
 			return 1 - lgamma(x, s, regularized)
-		} else {
-			return math.Gamma(s) - lgamma(x, s, regularized)
 		}
+		return math.Gamma(s) - lgamma(x, s, regularized)
 	}
 
 	f := 1.0 + x - s
@@ -74,9 +72,8 @@ func ugamma(x, s float64, regularized bool) float64 {
 	if regularized {
 		logg, _ := math.Lgamma(s)
 		return math.Exp(s*math.Log(x) - x - logg - math.Log(f))
-	} else {
-		return math.Exp(s*math.Log(x) - x - math.Log(f))
 	}
+	return math.Exp(s*math.Log(x) - x - math.Log(f))
 }
 
 type ifctn func(float64) float64
@@ -244,7 +241,7 @@ func chisquare(dof int, distance float64) float64 {
 //return ans * ax / a
 //}
 
-// Function chisquare returns the p-value of Pr(X^2 > cv).
+// Chisquare returns the p-value of Pr(X^2 > cv).
 // Compare this value to the significance level assumed. If chisquare < sigval, then we cannot
 // accept the null hypothesis and thus the two variables are dependent.
 //
@@ -283,6 +280,7 @@ func Chisquare(df int, cv float64) float64 {
 	return 1.0 - pval
 }
 
+// Chisqr gives the function Chi-Square.
 func Chisqr(df int, cv float64) float64 {
 	return lgamma(float64(df)/2.0, cv/2.0, false) / math.Gamma(float64(df)/2.0)
 }
@@ -331,7 +329,7 @@ func ChiSquareTest(p, q int, data [][]int, n int) bool {
 
 	// Test statistic.
 	//fmt.Println("Computing test statistic...")
-	var chi float64 = 0
+	var chi float64
 	for i := 0; i < p; i++ {
 		for j := 0; j < q; j++ {
 			if E[i][j] == 0 {

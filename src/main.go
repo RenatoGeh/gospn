@@ -12,10 +12,10 @@ import (
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
-const dataset = "digitscv"
+const dataset = "olivetti"
 const (
-	width  int = 20
-	height int = 30
+	width  int = 46
+	height int = 56
 )
 
 func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, spn.VarSet) {
