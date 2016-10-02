@@ -45,3 +45,8 @@ func init() {
 func DrawColor(file *os.File, c *Color) {
 	fmt.Fprintf(file, "%d %d %d", c.r, c.g, c.b)
 }
+
+// DrawColorRGB simply calls fmt.Fprintf and writes the RGB components (r, g, b) to file.
+func DrawColorRGB(file *os.File, r, g, b int) {
+	fmt.Fprintf(file, "%d %d %d", r, g, b)
+}

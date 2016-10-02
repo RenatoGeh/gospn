@@ -119,9 +119,13 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	return s, corrects, lines
 }
 
+func imageCompletion() {
+
+}
+
 func convertData() {
 	cmn, _ := filepath.Abs("../data/" + dataset + "/")
-	io.PBMFToData(cmn, "all.data")
+	io.PGMFToData(cmn, "all.data")
 }
 
 func main() {
