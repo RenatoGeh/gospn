@@ -12,7 +12,7 @@ import (
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
-const dataset = "olivetti"
+const dataset = "olivetti_nolabels"
 const (
 	width  int = 46
 	height int = 56
@@ -119,8 +119,29 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	return s, corrects, lines
 }
 
-func imageCompletion() {
+func imageCompletion(filename string, kclusters int) {
+	fmt.Printf("Parsing data from [%s]...\n", filename)
+	sc, data := io.ParseData(filename)
+	ndata := len(data)
 
+	var train []map[int]int
+	for i := 0; i < ndata; i++ {
+		chosen := data[i]
+		for j := 0; j < ndata; j++ {
+			if i != j {
+				train = append(train, data[j])
+			}
+		}
+
+		fmt.Printf("Training SPN with %d clusters against instance %d...\n", kclusters, i)
+		s := learn.Gens(sc, train, kclusters)
+
+		for _, v := range io.Orientations {
+			fmt.Printf("Drawing %s image completion for instance %d.\n", v, i)
+			cmpl, half := halfImg(s, chosen, v, width, height)
+			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height)
+		}
+	}
 }
 
 func convertData() {
@@ -158,7 +179,7 @@ func main() {
 	}
 	if len(os.Args) > 1 {
 		p, err = strconv.ParseFloat(os.Args[1], 64)
-		if err != nil || p <= 0 || p >= 1 {
+		if err != nil || p < 0 || p >= 1 {
 			if p == -1 {
 				fmt.Printf("Converting dataset %s...", dataset)
 				convertData()
@@ -171,6 +192,12 @@ func main() {
 
 	in, _ := filepath.Abs("../data/" + dataset + "/compiled")
 	out, _ := filepath.Abs("../results/" + dataset + "/models")
+
+	if p == 0 {
+		fmt.Printf("Running image completion on dataset %s...\n", dataset)
+		imageCompletion(utils.StringConcat(in, "/all.data"), kclusters)
+		return
+	}
 
 	fmt.Printf("Running cross-validation test with p = %.2f%%, random seed = %d and kclusters = %d "+
 		"on the dataset = %s.\n", 100.0*p, rseed, kclusters, dataset)

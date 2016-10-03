@@ -1,7 +1,7 @@
 package indep
 
 import (
-	//"fmt"
+	"fmt"
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
@@ -54,7 +54,7 @@ type IndepGraph struct {
 	Kset [][]int
 }
 
-// Constructs a new IndepGraph given a DataGroup.
+// NewIndepGraph constructs a new IndepGraph given a DataGroup.
 func NewIndepGraph(data []*utils.VarData) *IndepGraph {
 	igraph := IndepGraph{make(map[int][]int), nil}
 	n := len(data)
@@ -69,7 +69,7 @@ func NewIndepGraph(data []*utils.VarData) *IndepGraph {
 		igraph.adjlist[ids[i]] = []int{}
 	}
 
-	//fmt.Println("Constructing independency graph...")
+	fmt.Println("Constructing independency graph...")
 	// Construct the indepedency graph by adding an edge if there exists a dependency relation.
 	for i := 0; i < n; i++ {
 		for j := i + 1; j < n; j++ {
@@ -128,7 +128,7 @@ func NewIndepGraph(data []*utils.VarData) *IndepGraph {
 
 	// utils.Union-utils.Find to discriminate each set of connected variables that are fully disconnected of
 	// another set of connected set of variables
-	//fmt.Println("utils.Finding disconnected subgraphs...")
+	fmt.Println("utils.Finding disconnected subgraphs...")
 
 	// Set of utils.Union-utils.Find trees.
 	sets := make([]*utils.UFNode, n)
@@ -138,7 +138,7 @@ func NewIndepGraph(data []*utils.VarData) *IndepGraph {
 		sets[i] = utils.MakeSet(ids[i])
 	}
 
-	//fmt.Println("Preparing to test each vertex of the independency graph for disconnectivity...")
+	fmt.Println("Preparing to test each vertex of the independency graph for disconnectivity...")
 	// If a vertex u has an edge with another vertex v, then union sets that contain u and v.
 	for i := 0; i < n; i++ {
 		v1 := ids[i]

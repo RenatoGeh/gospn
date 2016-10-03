@@ -50,11 +50,11 @@ import (
 func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 	n := len(sc)
 
-	//fmt.Printf("Sample size: %d, scope size: %d\n", len(data), n)
+	fmt.Printf("Sample size: %d, scope size: %d\n", len(data), n)
 
 	// If the data's scope is unary, then we return a leaf (i.e. a univariate distribution).
 	if n == 1 {
-		//fmt.Println("Creating new leaf...")
+		fmt.Println("Creating new leaf...")
 
 		// m number of instantiations.
 		m := len(data)
@@ -77,7 +77,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 	// where every partition is pairwise indepedent with each other.
 	//fmt.Println("Preparing to create new product node...")
 
-	//fmt.Println("Creating VarDatas for Independency Test...")
+	fmt.Println("Creating VarDatas for Independency Test...")
 	vdata, l := make([]*utils.VarData, n), 0
 	for _, v := range sc {
 		tn := len(data)
@@ -90,7 +90,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		l++
 	}
 
-	//fmt.Println("Creating new Independency graph...")
+	fmt.Println("Creating new Independency graph...")
 	// Independency graph.
 	igraph := indep.NewIndepGraph(vdata)
 
@@ -132,7 +132,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 	}
 
 	// Else we perform k-clustering on the instances.
-	//fmt.Println("No independency found. Preparing for clustering...")
+	fmt.Println("No independency found. Preparing for clustering...")
 
 	m := len(data)
 	mdata := make([][]int, m)
@@ -191,7 +191,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		return prod
 	}
 
-	//fmt.Println("Reformating clusters to appropriate format and creating sum node...")
+	fmt.Println("Reformating clusters to appropriate format and creating sum node...")
 
 	sum := spn.NewSum()
 	for i := 0; i < k; i++ {
