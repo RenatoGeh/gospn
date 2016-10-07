@@ -35,12 +35,16 @@ do
       let dir_count="$dir_count + 1"
       echo "Creating new directory ${dir_count}..."
       mkdir "../../data/olivetti/$dir_count"
+      mkdir "../../data/olivetti_simple/$dir_count"
     fi
 
     let dx="($j-1)*$grid_w"
     let dy="($i-1)*$grid_h"
     echo "Cropping a ${sx}x${sy} subimage at ${dx}x${dy}..."
     convert -extract ${sx}x${sy}+${dx}+${dy} $1 -compress none ../../data/olivetti/${dir_count}/grid_${i}x${j}.pgm
+    if (( j == 5 || j == 15 )); then
+      convert -extract ${sx}x${sy}+${dx}+${dy} $1 -compress none ../../data/olivetti_simple/${dir_count}/grid_${i}x${j}.pgm
+    fi
     let k="$k+1"
   done
 done
