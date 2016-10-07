@@ -14,7 +14,7 @@ import (
 
 const dataset = "olivetti_nolabels"
 const (
-	width  int = 46
+	width  int = 47
 	height int = 56
 )
 

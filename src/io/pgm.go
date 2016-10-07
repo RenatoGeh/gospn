@@ -356,7 +356,10 @@ func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h int
 	} else {
 		w++
 		mid = func(p int) bool {
-			return p%w == w/2
+			if w%2 == 0 {
+				return p%w == w/2
+			}
+			return p%w == (w/2)-1
 		}
 	}
 

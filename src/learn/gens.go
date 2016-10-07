@@ -92,7 +92,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 
 	fmt.Println("Creating new Independency graph...")
 	// Independency graph.
-	igraph := indep.NewIndepGraph(vdata)
+	igraph := indep.NewUFIndepGraph(vdata)
 
 	// If true, then we can partition the set of variables in data into independent subsets. This
 	// means we can create a product node (since product nodes' children have disjoint scopes).

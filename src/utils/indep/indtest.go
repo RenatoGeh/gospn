@@ -253,8 +253,8 @@ func Chisquare(df int, cv float64) float64 {
 		return 0.0
 	}
 
-	k := float64(df) * 0.5
-	x := cv * 0.5
+	k := float64(df) / 2.0
+	x := cv / 2.0
 
 	//if df == 1 {
 	//return math.Exp(-x/2.0) / (math.Sqrt2 * math.SqrtPi * math.Sqrt(x))
