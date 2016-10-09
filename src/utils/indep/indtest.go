@@ -80,16 +80,16 @@ type ifctn func(float64) float64
 
 func simpson38(f ifctn, a, b float64, n int) float64 {
 	h := (b - a) / float64(n)
-	h1 := h / 3
+	h1 := h / 3.0
 	sum := f(a) + f(b)
-	for j := 3*n - 1; j > 0; j-- {
+	for j := 3.0*n - 1.0; j > 0; j-- {
 		if j%3 == 0 {
-			sum += 2 * f(a+h1*float64(j))
+			sum += 2.0 * f(a+h1*float64(j))
 		} else {
-			sum += 3 * f(a+h1*float64(j))
+			sum += 3.0 * f(a+h1*float64(j))
 		}
 	}
-	return h * sum / 8
+	return h * sum / 8.0
 }
 
 func gammaIncQ(a, x float64) float64 {
@@ -105,11 +105,11 @@ func gammaIncQ(a, x float64) float64 {
 	if y > x {
 		y = x
 	}
-	return 1 - simpson38(f, 0, y, int(y/h/math.Gamma(a)))
+	return 1.0 - simpson38(f, 0, y, int(y/h/math.Gamma(a)))
 }
 
 func chisquare(dof int, distance float64) float64 {
-	return gammaIncQ(.5*float64(dof), .5*distance)
+	return gammaIncQ(float64(dof)/2.0, distance/2.0)
 }
 
 // Lower incomplete Gamma function.
@@ -346,10 +346,10 @@ func ChiSquareTest(p, q int, data [][]int, n int) bool {
 
 	// Compare cmd with sigval. If cmp < sigval, then dependent. Otherwise independent.
 	//fmt.Println("Computing integral of p-value on chi-square distribution...")
-	cmp := Chisquare(df, chi)
+	cmp := ChiSquare(chi, df)
 
 	//fmt.Println("Returning if integral >= significance value")
 	//fmt.Printf("df: %d, chi: %f, cmp: %f\n", df, chi, cmp)
-	//fmt.Printf("%f vs %f\n", cmp, sigval)
+	//fmt.Printf("%.40f vs %.40f, %t\n", cmp, sigval, cmp >= sigval)
 	return cmp >= sigval
 }
