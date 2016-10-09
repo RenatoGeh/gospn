@@ -25,9 +25,10 @@ for f in *; do
     pkgs="github.com/RenatoGeh/gospn/src/$f,$pkgs"
   fi
 done
+pkgs="github.com/RenatoGeh/gospn/src/utils/indep,$pkgs"
 
 # Remove last character ','.
 pkgs=${pkgs:0:${#t}-1}
 
-godebug run -instrument=$pkgs main.go
+godebug run -instrument=$pkgs main.go "$@"
 

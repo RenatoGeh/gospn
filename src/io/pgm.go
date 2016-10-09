@@ -138,7 +138,7 @@ func PGMFToData(dirname, dname string) {
 	// Declare variables to data file.
 	tt := w * h
 	for i := 0; i < tt; i++ {
-		fmt.Fprintf(out, "var %d %d\n", i, max)
+		fmt.Fprintf(out, "var %d %d\n", i, max+1)
 	}
 	fmt.Fprintf(out, "var %d %d\n", tt, nsdirs)
 
@@ -149,8 +149,10 @@ func PGMFToData(dirname, dname string) {
 			tokens := strings.Split(line, " ")
 			ntokens := len(tokens)
 			for j := 0; j < ntokens; j++ {
-				tkn, _ := strconv.Atoi(tokens[j])
-				fmt.Fprintf(out, "%d ", tkn)
+				tkn, err := strconv.Atoi(tokens[j])
+				if err == nil {
+					fmt.Fprintf(out, "%d ", tkn)
+				}
 			}
 		}
 
@@ -291,7 +293,7 @@ func PGMFToEvidence(dirname, dname string) {
 	// Declare variables to data file.
 	tt := w * h
 	for i := 0; i < tt; i++ {
-		fmt.Fprintf(out, "var %d %d\n", i, max)
+		fmt.Fprintf(out, "var %d %d\n", i, max+1)
 	}
 
 	for i := 0; i < nin; i++ {
@@ -356,10 +358,7 @@ func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h int
 	} else {
 		w++
 		mid = func(p int) bool {
-			if w%2 == 0 {
-				return p%w == w/2
-			}
-			return p%w == (w/2)-1
+			return p%w == w/2
 		}
 	}
 

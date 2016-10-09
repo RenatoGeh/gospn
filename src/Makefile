@@ -11,7 +11,7 @@ data:
 	go run main.go -1 | tee $(OUT)
 
 debug:
-	./debug.sh
+	./debug.sh 0
 
 test:
 	./test.sh

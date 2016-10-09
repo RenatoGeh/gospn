@@ -14,7 +14,7 @@ import (
 
 const dataset = "olivetti_nolabels"
 const (
-	width  int = 47
+	width  int = 46
 	height int = 56
 )
 
@@ -140,7 +140,10 @@ func imageCompletion(filename string, kclusters int) {
 			fmt.Printf("Drawing %s image completion for instance %d.\n", v, i)
 			cmpl, half := halfImg(s, chosen, v, width, height)
 			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height)
+			cmpl, half = nil, nil
 		}
+		s = nil
+		train = nil
 	}
 }
 
