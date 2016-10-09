@@ -74,6 +74,30 @@ export GOPATH=$YOURDIR/go
 export PATH="$PATH:$GOPATH/bin"
 ```
 
+#### GNU GSL Scientific Library
+
+GoSPN uses GNU GSL to compute the cumulative probability function
+
+```
+Pr(X^2 <= chi), X^2(df)
+```
+
+For the independence test (`src/utils/indep/indtest.go`). A builtin
+Chi-Square function is already present in `src/utils/indep/indtest.go`
+under the name of `Chisquare`. However `Chisquare` has worse numerical
+error when compared to its GSL equivalent `ChiSquare` (see
+`src/utils/indep/chisq.go`).
+
+For information on how to compile and install GNU GSL, see
+<https://www.gnu.org/software/gsl/>.
+
+If you do not wish to install GNU GSL, simply rename `ChiSquare` in file
+`src/utils/indep/indtest.go` to `Chisquare`.
+
+GoSPN uses Go's `cgo` to run C code inside Go. File
+`src/utils/indep/chisq.go` contains the wrapper function `ChiSquare`
+that calls `gsl_cdf_chisq_P` from `gsl/gsl_cdf.h`.
+
 #### godebug
 
 Although Go does work with GNU's GDB, GDB doesn't understand Go well.

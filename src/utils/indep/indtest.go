@@ -1,7 +1,7 @@
 package indep
 
 import (
-	//"fmt"
+	"fmt"
 	"math"
 )
 
@@ -349,7 +349,7 @@ func ChiSquareTest(p, q int, data [][]int, n int) bool {
 	cmp := ChiSquare(chi, df)
 
 	//fmt.Println("Returning if integral >= significance value")
-	//fmt.Printf("df: %d, chi: %f, cmp: %f\n", df, chi, cmp)
-	//fmt.Printf("%.40f vs %.40f, %t\n", cmp, sigval, cmp >= sigval)
+	fmt.Printf("df: %d, chi: %f, cmp: %f\n", df, chi, cmp)
+	fmt.Printf("%.40f vs %.40f, %t\n", cmp, sigval, cmp >= sigval)
 	return cmp >= sigval
 }
