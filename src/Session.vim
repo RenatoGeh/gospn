@@ -19,7 +19,7 @@ badd +28 spn/node.go
 badd +2 spn/varset.go
 badd +50 utils/log.go
 badd +1 utils/vardata.go
-badd +238 utils/indep/indgraph.go
+badd +196 utils/indep/indgraph.go
 badd +33 utils/indep/indtest.go
 badd +2 utils/cluster/dbscan.go
 badd +106 utils/cluster/kmeans.go
@@ -34,7 +34,7 @@ badd +1 out.put
 badd +1 common/color.go
 badd +411 io/pbm.go
 badd +42 io/pgm.go
-badd +0 utils/indep/chisq.go
+badd +1 utils/indep/chisq.go
 argglobal
 silent! argdel *
 argadd learn/gens.go
@@ -208,14 +208,13 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 351 - ((24 * winheight(0) + 14) / 29)
+let s:l = 327 - ((0 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-351
-normal! 0
+327
+normal! 05|
 wincmd w
-3wincmd w
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
 exe '2resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
@@ -299,12 +298,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 113 - ((0 * winheight(0) + 29) / 58)
+let s:l = 15 - ((14 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-113
-normal! 07|
+15
+normal! 030|
 wincmd w
 argglobal
 edit main.go
@@ -440,7 +439,7 @@ exe s:l
 normal! zt
 8
 normal! 031|
-tabnext 2
+tabnext 4
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
 endif

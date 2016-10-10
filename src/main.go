@@ -12,7 +12,7 @@ import (
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
-const dataset = "olivetti_nolabels"
+const dataset = "olivetti_4bit"
 const (
 	width  int = 46
 	height int = 56
