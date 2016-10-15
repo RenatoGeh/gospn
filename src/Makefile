@@ -13,8 +13,8 @@ data:
 debug:
 	./debug.sh 0
 
-test:
-	./test.sh
+build:
+	go build -o gospn
 
 .PHONY: clean
 clean:

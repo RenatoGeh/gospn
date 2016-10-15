@@ -6,6 +6,8 @@ go:
   - tip
 
 # Dependencies
-install: true
+install:
+  - sudo apt-get -qq update
+  - sudo apt-get install gsl-bin
 
-script: make -C ./src/
+script: make build -C ./src/
