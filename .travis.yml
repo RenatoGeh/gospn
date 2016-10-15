@@ -1,0 +1,11 @@
+# Language
+language: go
+
+# Golang version.
+go:
+  - tip
+
+# Dependencies
+install: true
+
+script: make -C ./src/
