@@ -12,10 +12,12 @@ import (
 	utils "github.com/RenatoGeh/gospn/src/utils"
 )
 
-const dataset = "olivetti_4bit"
+const dataset = "olivetti_3bit"
+
 const (
 	width  int = 46
 	height int = 56
+	max    int = 8
 )
 
 func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, spn.VarSet) {
@@ -139,7 +141,7 @@ func imageCompletion(filename string, kclusters int) {
 		for _, v := range io.Orientations {
 			fmt.Printf("Drawing %s image completion for instance %d.\n", v, i)
 			cmpl, half := halfImg(s, chosen, v, width, height)
-			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height)
+			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height, max-1)
 			cmpl, half = nil, nil
 		}
 		s = nil

@@ -15,7 +15,7 @@ import (
 
 // PGMFToData (PGM Folder to Data file). Each class is in a subfolder of dirname. dname is the
 // output file. Arg dirname must be an absolute path. Arg dname must be the filename only.
-func PGMFToData(dirname, dname string) {
+func PGMFToData(dirname, dname string) (int, int, int) {
 	sdir, err := os.Open(dirname)
 
 	if err != nil {
@@ -158,10 +158,12 @@ func PGMFToData(dirname, dname string) {
 
 		fmt.Fprintf(out, "%d\n", labels[i])
 	}
+
+	return w, h, max
 }
 
 // PGMFToEvidence (PGM file to evidence).
-func PGMFToEvidence(dirname, dname string) {
+func PGMFToEvidence(dirname, dname string) (int, int, int) {
 	sdir, err := os.Open(dirname)
 
 	if err != nil {
@@ -311,10 +313,12 @@ func PGMFToEvidence(dirname, dname string) {
 
 		fmt.Fprintf(out, "\n")
 	}
+
+	return w, h, max
 }
 
 // VarSetToPGM takes a state and draws according to the SPN that generated the instantiation.
-func VarSetToPGM(filename string, state spn.VarSet, w, h int) {
+func VarSetToPGM(filename string, state spn.VarSet, w, h, max int) {
 	file, err := os.Create(filename)
 	if err != nil {
 		fmt.Printf("Could not create file [%s].\n", filename)
@@ -322,7 +326,7 @@ func VarSetToPGM(filename string, state spn.VarSet, w, h int) {
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "P2\n%d %d\n255\n", w, h)
+	fmt.Fprintf(file, "P2\n%d %d\n%d\n", w, h, max)
 
 	n := len(state)
 	pixels := make([]int, n)
@@ -340,7 +344,7 @@ func VarSetToPGM(filename string, state spn.VarSet, w, h int) {
 
 // ImgCmplToPGM creates a new file distinguishing the original part of the image from the
 // completion done by the SPN and indicated by typ.
-func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h int) {
+func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h, max int) {
 	file, err := os.Create(filename)
 	if err != nil {
 		fmt.Printf("Could not create file [%s].\n", filename)
@@ -362,7 +366,7 @@ func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h int
 		}
 	}
 
-	fmt.Fprintf(file, "P3\n%d %d\n255\n", w, h)
+	fmt.Fprintf(file, "P3\n%d %d\n%d\n", w, h, max)
 
 	n, j := w*h, 0
 	for i := 0; i < n; i++ {
@@ -370,7 +374,7 @@ func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h int
 			common.DrawColor(file, common.Red)
 			goto cleanup
 		} else if v, eo := orig[j]; eo {
-			common.DrawColorRGB(file, 0, 0, v)
+			common.DrawColorRGB(file, v, v, v)
 		} else {
 			u, _ := cmpl[j]
 			common.DrawColorRGB(file, 0, u, 0)

@@ -16,7 +16,7 @@ an edge between them. Otherwise there is no such edge.
 
 The resulting graph after such construction is a graph with clusters of connected graphs. Let
 H_1 and H_2 be two complete subgraphs in G. Then there exists no edge between any one vertex in
-H_1 and another in H_2. This constitues an independency relation between these subgraphs. Thus we
+H_1 and another in H_2. This constitues an independence relation between these subgraphs. Thus we
 say that sets of variables in H_1 are independent of sets of variables in H_2. We now show why this
 is correct. Consider the following example (it can be extended to the general case easily):
 
@@ -32,8 +32,8 @@ To construct the graph, we can check for dependencies on each distinct pair of v
 set X. If there exists a dependency, add an edge u-v. Else, skip. It is clear that the complexity
 for constructing such graph is O(n^2), since we must check each possible pairwise combination.
 
-Once we have a constructed independency graph we must now discriminate each complete subgraph in
-the independency graph. We can do this by utils.Union-utils.Find.
+Once we have a constructed independence graph we must now discriminate each complete subgraph in
+the independence graph. We can do this by utils.Union-utils.Find.
 
 	Initially each vertex has its own set.
 	For each vertex v:
@@ -69,7 +69,7 @@ func NewIndepGraph(data []*utils.VarData) *Graph {
 		igraph.adjlist[ids[i]] = []int{}
 	}
 
-	fmt.Println("Constructing independency graph...")
+	fmt.Println("Constructing independence graph...")
 	// Construct the indepedency graph by adding an edge if there exists a dependency relation.
 	for i := 0; i < n; i++ {
 		for j := i + 1; j < n; j++ {
@@ -111,7 +111,7 @@ func NewIndepGraph(data []*utils.VarData) *Graph {
 			mdata[p][q] = tt
 
 			// Checks if variables i, j are independent.
-			//fmt.Println("Checking for pairwise independency...")
+			//fmt.Println("Checking for pairwise independence...")
 			indep := ChiSquareTest(p, q, mdata, n-1)
 
 			//fmt.Printf("%t\n", indep)
@@ -138,7 +138,7 @@ func NewIndepGraph(data []*utils.VarData) *Graph {
 		sets[i] = utils.MakeSet(ids[i])
 	}
 
-	fmt.Println("Preparing to test each vertex of the independency graph for disconnectivity...")
+	fmt.Println("Preparing to test each vertex of the independence graph for disconnectivity...")
 	// If a vertex u has an edge with another vertex v, then union sets that contain u and v.
 	for i := 0; i < n; i++ {
 		v1 := ids[i]
@@ -188,18 +188,18 @@ func NewUFIndepGraph(data []*utils.VarData) *Graph {
 		sets[i] = utils.MakeSet(ids[i])
 	}
 
-	fmt.Println("Constructing independency graph...")
+	fmt.Println("Constructing independence graph...")
 	// Construct the indepedency graph by adding an edge if there exists a dependency relation.
 	for i := 0; i < n; i++ {
 		for j := i + 1; j < n; j++ {
 			v1, v2 := ids[i], ids[j]
 
-			if utils.Find(sets[v1]) == utils.Find(sets[v2]) {
+			if utils.Find(sets[i]) == utils.Find(sets[j]) {
 				continue
 			}
 
-			// Initialize the count matrix mdata.
-			//fmt.Println("Initializing count matrix...")
+			// Initialize the contingency matrix mdata.
+			//fmt.Println("Initializing contingency matrix...")
 			p, q := data[i].Categories, data[j].Categories
 			mdata := make([][]int, p+1)
 			for k := 0; k < p+1; k++ {
@@ -234,7 +234,7 @@ func NewUFIndepGraph(data []*utils.VarData) *Graph {
 			mdata[p][q] = tt
 
 			// Checks if variables i, j are independent.
-			//fmt.Println("Checking for pairwise independency...")
+			//fmt.Println("Checking for pairwise independence...")
 			indep := ChiSquareTest(p, q, mdata, n-1)
 
 			//fmt.Printf("%t\n", indep)
@@ -243,7 +243,7 @@ func NewUFIndepGraph(data []*utils.VarData) *Graph {
 				//fmt.Println("Not independent. Creating edge...")
 				igraph.adjlist[v1] = append(igraph.adjlist[v1], v2)
 				igraph.adjlist[v2] = append(igraph.adjlist[v2], v1)
-				utils.Union(sets[v1], sets[v2])
+				utils.Union(sets[i], sets[j])
 			} //else {
 			//fmt.Println("Independent. No edges.")
 			//}
