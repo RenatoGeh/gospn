@@ -9,5 +9,7 @@ go:
 install:
   - sudo apt-get -qq update
   - sudo apt-get install gsl-bin
+  - sudo apt-get install libgsl0-dev
+  - sudo apt-get install libgsl0ldbl
 
 script: make build -C ./src/

@@ -1,6 +1,8 @@
 GoSPN
 =====
 
+[![Build Status](https://travis-ci.org/RenatoGeh/gospn.svg?branch=master)](https://travis-ci.org/RenatoGeh/gospn)
+
 An implementation of Sum-Product Networks (SPNs) in Go
 ------------------------------------------------------
 
