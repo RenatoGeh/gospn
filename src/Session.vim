@@ -8,9 +8,9 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +174 learn/gens.go
-badd +87 main.go
+badd +123 main.go
 badd +27 io/input.go
-badd +207 io/output.go
+badd +127 io/output.go
 badd +51 utils/unionfind.go
 badd +109 spn/sum.go
 badd +61 spn/product.go
@@ -19,8 +19,8 @@ badd +28 spn/node.go
 badd +2 spn/varset.go
 badd +50 utils/log.go
 badd +1 utils/vardata.go
-badd +187 utils/indep/indgraph.go
-badd +33 utils/indep/fisher.go
+badd +3 utils/indep/indgraph.go
+badd +6 utils/indep/fisher.go
 badd +29 utils/cluster/dbscan.go
 badd +106 utils/cluster/kmeans.go
 badd +112 common/queue.go
@@ -33,8 +33,9 @@ badd +1 learn/variable.go
 badd +1 out.put
 badd +1 common/color.go
 badd +411 io/pbm.go
-badd +42 io/pgm.go
-badd +13 utils/indep/chisq.go
+badd +308 io/pgm.go
+badd +362 utils/indep/chisq.go
+badd +1 utils/indep/gtest.go
 argglobal
 silent! argdel *
 argadd learn/gens.go
@@ -158,9 +159,9 @@ set nosplitright
 wincmd t
 set winheight=1 winwidth=1
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe '2resize ' . ((&lines * 28 + 30) / 61)
+exe '2resize ' . ((&lines * 29 + 30) / 61)
 exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
-exe '3resize ' . ((&lines * 29 + 30) / 61)
+exe '3resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
 argglobal
 setlocal fdm=manual
@@ -172,12 +173,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 3 - ((2 * winheight(0) + 29) / 58)
+let s:l = 253 - ((41 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-3
-normal! 0
+253
+normal! 05|
 wincmd w
 argglobal
 edit utils/indep/chisq.go
@@ -190,15 +191,15 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 360 - ((17 * winheight(0) + 14) / 28)
+let s:l = 366 - ((20 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-360
-normal! 014|
+366
+normal! 0
 wincmd w
 argglobal
-edit utils/indep/fisher.go
+edit utils/indep/gtest.go
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -208,30 +209,38 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 3 - ((2 * winheight(0) + 14) / 29)
+let s:l = 47 - ((22 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-3
-normal! 035|
+47
+normal! 023|
 wincmd w
+3wincmd w
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe '2resize ' . ((&lines * 28 + 30) / 61)
+exe '2resize ' . ((&lines * 29 + 30) / 61)
 exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
-exe '3resize ' . ((&lines * 29 + 30) / 61)
+exe '3resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
-tabedit io/pgm.go
+tabedit io/output.go
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
 1wincmd h
+wincmd _ | wincmd |
+split
+1wincmd k
+wincmd w
 wincmd w
 set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
+exe '1resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 1resize ' . ((&columns * 119 + 119) / 239)
+exe '2resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 2resize ' . ((&columns * 119 + 119) / 239)
+exe 'vert 3resize ' . ((&columns * 119 + 119) / 239)
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -242,12 +251,30 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 309 - ((1 * winheight(0) + 29) / 58)
+let s:l = 128 - ((21 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-309
-normal! 03|
+128
+normal! 035|
+wincmd w
+argglobal
+edit io/pgm.go
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 308 - ((0 * winheight(0) + 14) / 28)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+308
+normal! 07|
 wincmd w
 argglobal
 edit io/input.go
@@ -267,27 +294,23 @@ normal! zt
 58
 normal! 0
 wincmd w
-exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
+exe '1resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 1resize ' . ((&columns * 119 + 119) / 239)
+exe '2resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 2resize ' . ((&columns * 119 + 119) / 239)
+exe 'vert 3resize ' . ((&columns * 119 + 119) / 239)
 tabedit main.go
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
 1wincmd h
 wincmd w
-wincmd _ | wincmd |
-split
-1wincmd k
-wincmd w
 set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe '2resize ' . ((&lines * 29 + 30) / 61)
 exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
-exe '3resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -298,30 +321,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 15 - ((14 * winheight(0) + 29) / 58)
+let s:l = 147 - ((25 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-15
-normal! 027|
-wincmd w
-argglobal
-edit main.go
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let s:l = 87 - ((14 * winheight(0) + 14) / 29)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-87
-normal! 05|
+147
+normal! 0
 wincmd w
 argglobal
 edit io/pgm.go
@@ -334,7 +339,7 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 42 - ((20 * winheight(0) + 14) / 28)
+let s:l = 42 - ((41 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
@@ -342,10 +347,7 @@ normal! zt
 normal! 0
 wincmd w
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe '2resize ' . ((&lines * 29 + 30) / 61)
 exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
-exe '3resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
 tabedit common/color.go
 set splitbelow splitright
 set nosplitbelow
@@ -467,7 +469,7 @@ exe s:l
 normal! zt
 21
 normal! 028|
-tabnext 3
+tabnext 2
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
 endif

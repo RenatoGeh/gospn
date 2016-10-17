@@ -112,7 +112,7 @@ func NewIndepGraph(data []*utils.VarData) *Graph {
 
 			// Checks if variables i, j are independent.
 			//fmt.Println("Checking for pairwise independence...")
-			indep := ChiSquareTest(p, q, mdata, n-1)
+			indep := GTest(p, q, mdata)
 
 			//fmt.Printf("%t\n", indep)
 			// If not independent, then add an undirected edge i-j.
@@ -235,7 +235,10 @@ func NewUFIndepGraph(data []*utils.VarData) *Graph {
 
 			// Checks if variables i, j are independent.
 			//fmt.Println("Checking for pairwise independence...")
-			indep := ChiSquareTest(p, q, mdata, n-1)
+			//indep := ChiSquareTest(p, q, mdata, n-1)
+			//chidep := ChiSquareTest(p, q, mdata, n-1)
+			indep := GTest(p, q, mdata)
+			//fmt.Printf("Compare Chi with G: %v vs %v\n", chidep, indep)
 
 			//fmt.Printf("%t\n", indep)
 			// If not independent, then add an undirected edge i-j.

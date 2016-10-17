@@ -144,6 +144,8 @@ func imageCompletion(filename string, kclusters int) {
 			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height, max-1)
 			cmpl, half = nil, nil
 		}
+		//out, _ := filepath.Abs("../results/" + dataset + "/models")
+		//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
 		s = nil
 		train = nil
 	}
