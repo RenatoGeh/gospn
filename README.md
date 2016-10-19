@@ -44,8 +44,9 @@ To run GoSPN, we must complete a few steps:
     then we might have three subdirectories inside `/data/ds` named
     `dog`, `cat` and `mouse`.
   - Copy your class instances into `/data/ds/classname`.
-2. Compile the dataset into a `.data` file.
-  - Go to `/src/` and replace the dataset name to your own:
+2. Compile the dataset into a `.data` file and follow the steps below:
+
+- Go to `/src/` and replace the dataset name to your own:
 ```
 const dataset = "ds"
 ```
@@ -64,6 +65,7 @@ make data
 ```
   - This will generate a `.data` file inside `/data/ds/all/`. By default
     it is named `all.data`.
+
 3. Run a job by running GoSPN with the following syntax.
 
 
