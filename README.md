@@ -44,7 +44,7 @@ To run GoSPN, we must complete a few steps:
     then we might have three subdirectories inside `/data/ds` named
     `dog`, `cat` and `mouse`.
   - Copy your class instances into `/data/ds/classname`.
-2. Compile the dataset into a `.data` file and follow the steps below:
+2. Compile the dataset into a `.data` file:
   - Go to `/src/` and replace the dataset name to your own:
 
     ```
