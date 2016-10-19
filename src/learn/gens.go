@@ -170,8 +170,10 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 			return prod
 		}
 		clusters = cluster.KMeansV(kclusters, mdata)
-	} else {
+	} else if kclusters == -1 {
 		clusters = cluster.DBSCAN(mdata, 4, 4)
+	} else {
+		clusters = cluster.OPTICS(mdata, 10, 4)
 	}
 	k := len(clusters)
 	//fmt.Printf("Clustering similar instances with %d clusters.\n", k)

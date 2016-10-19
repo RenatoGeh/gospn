@@ -158,7 +158,7 @@ func convertData() {
 
 func main() {
 	p := 0.7
-	kclusters := -1
+	kclusters := -2
 	var rseed int64 = -1
 	iterations := 1
 	var err error

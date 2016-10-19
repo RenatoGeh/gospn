@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"container/heap"
+	"math"
 	"sort"
 	//common "github.com/RenatoGeh/gospn/src/common"
 	//utils "github.com/RenatoGeh/gospn/src/utils"
@@ -9,6 +10,7 @@ import (
 )
 
 var distance = metrics.Euclidean
+var undef = math.Inf(1)
 
 type object struct {
 	data  []int
@@ -81,7 +83,7 @@ func (od objDists) Less(i, j int) bool { return od[i].dist < od[j].dist }
 func getCoreDist(nb []*object, o *object, eps float64, mp int) float64 {
 	n := len(nb)
 	if n < mp {
-		return -1
+		return undef
 	}
 	dists, p1 := make([]*objDist, n), o.data
 	for i := 0; i < n; i++ {
@@ -141,7 +143,7 @@ func seedsUpdate(nb []*object, o *object, pq *pQueue) {
 	for i := 0; i < n; i++ {
 		if !nb[i].vst {
 			rdist := max(cdist, distance(p1, nb[i].data))
-			if o.rdist == -1 {
+			if o.rdist == undef {
 				o.rdist = rdist
 				pq.Push(&item{obj: o, p: rdist})
 			} else if rdist < o.rdist {
@@ -155,10 +157,10 @@ func seedsUpdate(nb []*object, o *object, pq *pQueue) {
 func expand(set []*object, o *object, eps float64, mp int, order *qObj, pq *pQueue) {
 	nb := getNeighbors(set, o, eps)
 	o.vst = true
-	o.rdist = -1
+	o.rdist = undef
 	o.cdist = getCoreDist(nb, o, eps, mp)
 	order.enqueue(o)
-	if o.cdist != -1 {
+	if o.cdist != undef {
 		seedsUpdate(nb, o, pq)
 		for len(*pq) != 0 {
 			co := pq.Pop().(*item).obj
@@ -166,7 +168,7 @@ func expand(set []*object, o *object, eps float64, mp int, order *qObj, pq *pQue
 			co.vst = true
 			co.cdist = getCoreDist(nb, co, eps, mp)
 			order.enqueue(co)
-			if co.cdist != -1 {
+			if co.cdist != undef {
 				seedsUpdate(nb, co, pq)
 			}
 		}
@@ -174,8 +176,39 @@ func expand(set []*object, o *object, eps float64, mp int, order *qObj, pq *pQue
 }
 
 func extract(order *qObj, eps float64, mp int) []map[int][]int {
+	idtrk := 0
+	cids := make([][]*object, 1)
 
-	return nil
+	n := order.size()
+	const noise = 0
+	for i := 0; i < n; i++ {
+		o := order.get(i)
+		if o.rdist > eps {
+			if o.cdist <= eps {
+				idtrk++
+				stub := make([]*object, 1)
+				stub[0] = o
+				cids = append(cids, stub)
+			} else {
+				cids[noise] = append(cids[noise], o)
+			}
+		} else {
+			cids[idtrk] = append(cids[idtrk], o)
+		}
+	}
+
+	m := len(cids)
+	clusters := make([]map[int][]int, m)
+	for i := 0; i < m; i++ {
+		clusters[i] = make(map[int][]int)
+		p := len(cids[i])
+		for j := 0; j < p; j++ {
+			o := cids[i][j]
+			clusters[i][o.index] = o.data
+		}
+	}
+
+	return clusters
 }
 
 // OPTICS - Ordering points to identify the clustering structure (OPTICS).
@@ -192,7 +225,7 @@ func OPTICS(data [][]int, eps float64, mp int) []map[int][]int {
 	set := make([]*object, n)
 	var pq pQueue
 	for i := 0; i < n; i++ {
-		set[i] = &object{data: data[i], vst: false, index: i, rdist: -1, cdist: -1}
+		set[i] = &object{data: data[i], vst: false, index: i, rdist: undef, cdist: undef}
 	}
 	heap.Init(&pq)
 
