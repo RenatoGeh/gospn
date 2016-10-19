@@ -31,6 +31,91 @@ learn more about the peculiarities of SPNs - but also documentational,
 as we also intend on documenting and recording what we have learned in a
 simpler, clearer way then how it is currently written in literature.
 
+### Usage
+
+To run GoSPN, we must complete a few steps:
+
+1. Prepare the dataset:
+  - Let `ds` be your dataset's name.
+  - Create a new directory `/data/ds`, where root is the root of the
+    GoSPN package.
+  - Each subdirectory inside `/data/ds` represents a different class.
+  - For example: if we have three classes, `dog`, `cat` and `mouse`,
+    then we might have three subdirectories inside `/data/ds` named
+    `dog`, `cat` and `mouse`.
+  - Copy your class instances into `/data/ds/classname`.
+2. Compile the dataset into a `.data` file.
+  - Go to `/src/` and replace the dataset name to your own:
+    ```
+    const dataset = "ds"
+    ```
+  - Add other essential information about the data, for instance (for
+    images):
+    ```
+    const (
+      width  int = 46
+      height int = 56
+      max    int = 8
+    )
+    ```
+  - Compile the data with Makefile:
+    ```
+    make data
+    ```
+  - This will generate a `.data` file inside `/data/ds/all/`. By default
+    it is named `all.data`.
+3. Run a job by running GoSPN with the following syntax.
+
+
+```
+Usage:
+  go run main.go [p] [rseed] [kclusters] [iterations]
+Arguments:
+  p          - is the partition in the interval (0, 1) to be used for
+               cross-validation. If p = 0, then run an image completion job
+               instead of a classification job. If p = -1, then attempt to
+               compile data (same as make data). If ommitted, p defaults to 0.7.
+  rseed      - the seed to be used when choosing which instances to be used
+               as train and which to be used as test set. If ommitted, rseed
+               defaults to -1, which chooses a random seed according to the
+               current time.
+  kclusters  - how many k-clusters to be used during training on instance
+               splits. If kclusters = -1, then use DBSCAN. Else if
+               kclusters = -2, then use OPTICS. Else, if kclusters > 0,
+               then use k-means clustering. By default, kclusters is set
+               to -1.
+  iterations - How many iterations to be run when running a
+               classification job. This allows for better, more general
+               and randomized results, as some test/train partitions may
+               become degenerated.
+```
+
+#### For step 3, to run a classification job:
+
+1. Choose a partition value `p` such that `0 < p < 1`. For instance,
+   `p=0.8`.
+2. Choose an `rseed` value. For instance, `rseed=-1`.
+3. Choose a `kclusters` value (k-means with `kclusters` clusters, DBSCAN
+   or OPTICS). For instance, `kclusters=-1`.
+4. Choose the number of iterations `iterations`. For instance,
+   `iterations=5`.
+5. Run `go run main.go 0.8 -1 -1 5`.
+
+If either
+
+#### For step 3, to run an image completion job:
+
+1. Run `go run main.go 0`.
+
+It is recommended that you output `stdout` to some file, since GoSPN can
+be quite verbose in certain cases. Append a `| tee out.put` to generate
+a file `out.put` with all the information GoSPN prints to the screen
+whilst still printing `stdout`. For example:
+
+```
+  go run main.go 0 | tee out.put
+```
+
 ### Dependencies
 
 GoSPN is built in Go. Go is an open source language originally developed
@@ -229,8 +314,10 @@ $ cd $GOPATH/src/github.com/RenatoGeh/gospn/src
 To compile and run:
 
 ```
-$ go run main.go
+$ go run main.go <args>
 ```
+
+Where `args` is a list of arguments. See Usage for more information.
 
 To run GoSPN in debug mode:
 
