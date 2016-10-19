@@ -45,7 +45,7 @@ To run GoSPN, we must complete a few steps:
     `dog`, `cat` and `mouse`.
   - Copy your class instances into `/data/ds/classname`.
 2. Compile the dataset into a `.data` file:
-  - Go to `/src/` and replace the dataset name to your own:
+  - Go to `/src/main.go` and replace the dataset name with your own:
 
     ```
     const dataset = "ds"
@@ -93,7 +93,7 @@ Arguments:
                become degenerated.
 ```
 
-#### For step 3, to run a classification job:
+#### For step 3 to run a classification job:
 
 1. Choose a partition value `p` such that `0 < p < 1`. For instance,
    `p=0.8`.
@@ -104,9 +104,7 @@ Arguments:
    `iterations=5`.
 5. Run `go run main.go 0.8 -1 -1 5`.
 
-If either
-
-#### For step 3, to run an image completion job:
+#### For step 3 to run an image completion job:
 
 1. Run `go run main.go 0`.
 
@@ -118,6 +116,39 @@ whilst still printing `stdout`. For example:
 ```
   go run main.go 0 | tee out.put
 ```
+
+#### Independence tests:
+
+GoSPN uses either G-Test or Chi-Square. To use G-Test, use the function
+
+```
+GTest(p, q int, data [][]int) float64
+```
+
+To use Chi-Square:
+
+```
+ChiSquareTest(p, q, int, data [][]int) float64
+```
+
+In `/src/utils/indep/indgraph.go`, search for either functions and
+replace with the desired function.
+
+To change the significance level on the independence tests, go to
+`/src/utils/indep/chisq.go` and `/src/utils/indep/gtest.go` and change
+the `sigval` variable.
+
+#### DBSCAN and OPTICS parameters:
+
+To change DBSCAN's and OPTICS's parameters, go to `/src/learn/gens.go`
+and change the function`s
+
+```
+DBSCAN(data [][]int, eps float64, mp int)
+OPTICS(data [][]int, eps float64, mp int)
+```
+
+parameters to suit your dataset.
 
 ### Dependencies
 
