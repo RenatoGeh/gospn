@@ -47,24 +47,24 @@ To run GoSPN, we must complete a few steps:
 2. Compile the dataset into a `.data` file and follow the steps below:
   - Go to `/src/` and replace the dataset name to your own:
 
-  ```
-  const dataset = "ds"
-  ```
+    ```
+    const dataset = "ds"
+    ```
   - Add other essential information about the data, for instance (for
     images):
 
-  ```
-  const (
-    width  int = 46
-    height int = 56
-    max    int = 8
-  )
-  ```
+    ```
+    const (
+      width  int = 46
+      height int = 56
+      max    int = 8
+    )
+    ```
   - Compile the data with Makefile:
 
-  ```
-  make data
-  ```
+    ```
+    make data
+    ```
   - This will generate a `.data` file inside `/data/ds/all/`. By default
     it is named `all.data`.
 3. Run a job by running GoSPN with the following syntax.
