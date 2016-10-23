@@ -357,7 +357,7 @@ func ChiSquareTest(p, q int, data [][]int) bool {
 
 	// Significance value.
 	// Dividing by n because of Bonferroni correction. Argument n should be the amount of hypothesis.
-	sigval := 0.001 / 2
+	sigval := 0.1 / 2
 
 	// Compare cmd with sigval. If cmp < sigval, then dependent. Otherwise independent.
 	//fmt.Println("Computing integral of p-value on chi-square distribution...")

@@ -123,14 +123,14 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 
 func imageCompletion(filename string, kclusters int) {
 	fmt.Printf("Parsing data from [%s]...\n", filename)
-	sc, data := io.ParseData(filename)
+	sc, data, lbls := io.ParseDataNL(filename)
 	ndata := len(data)
 
 	var train []map[int]int
 	for i := 0; i < ndata; i++ {
 		chosen := data[i]
 		for j := 0; j < ndata; j++ {
-			if i != j {
+			if i != j && lbls[j] != lbls[i] {
 				train = append(train, data[j])
 			}
 		}
@@ -158,7 +158,7 @@ func convertData() {
 
 func main() {
 	p := 0.7
-	kclusters := -2
+	kclusters := -1
 	var rseed int64 = -1
 	iterations := 1
 	var err error
