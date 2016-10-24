@@ -5,7 +5,7 @@ GoSPN
 
 ![](./gospnpher.png "My crude attempt at drawing Renee French's Go Gopher.")
 
-My crude (and slightly horrifying) rendition of Renee French's Go [Gopher](https://blog.golang.org/gopher) writing what's on his mind.
+My crude (and slightly terrifying) rendition of Renee French's Go [Gopher](https://blog.golang.org/gopher) writing what's on his mind.
 
 An implementation of Sum-Product Networks (SPNs) in Go
 ------------------------------------------------------
