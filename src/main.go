@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
+	"sync"
 
 	io "github.com/RenatoGeh/gospn/src/io"
 	learn "github.com/RenatoGeh/gospn/src/learn"
@@ -121,34 +123,83 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	return s, corrects, lines
 }
 
-func imageCompletion(filename string, kclusters int) {
+func imageCompletion(filename string, kclusters int, concurrents int) {
 	fmt.Printf("Parsing data from [%s]...\n", filename)
 	sc, data, lbls := io.ParseDataNL(filename)
 	ndata := len(data)
 
-	var train []map[int]int
-	for i := 0; i < ndata; i++ {
-		chosen := data[i]
-		for j := 0; j < ndata; j++ {
-			if i != j && lbls[j] != lbls[i] {
-				train = append(train, data[j])
-			}
-		}
-
-		fmt.Printf("Training SPN with %d clusters against instance %d...\n", kclusters, i)
-		s := learn.Gens(sc, train, kclusters)
-
-		for _, v := range io.Orientations {
-			fmt.Printf("Drawing %s image completion for instance %d.\n", v, i)
-			cmpl, half := halfImg(s, chosen, v, width, height)
-			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height, max-1)
-			cmpl, half = nil, nil
-		}
-		//out, _ := filepath.Abs("../results/" + dataset + "/models")
-		//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
-		s = nil
-		train = nil
+	// Concurrency control.
+	var wg sync.WaitGroup
+	var nprocs int
+	if concurrents <= 0 {
+		nprocs = runtime.NumCPU()
+	} else {
+		nprocs = concurrents
 	}
+	nrun := 0
+	cond := sync.NewCond(&sync.Mutex{})
+	cpmutex := &sync.Mutex{}
+
+	for i := 0; i < ndata; i++ {
+		fmt.Printf("%d running, with %d max.\n", runtime.NumGoroutine(), nprocs)
+		fmt.Printf("go func %d\n", i)
+		cond.L.Lock()
+		for nrun >= nprocs {
+			cond.Wait()
+		}
+		nrun++
+		cond.L.Unlock()
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			var train []map[int]int
+			var ldata []map[int]int
+			lsc := make(map[int]learn.Variable)
+
+			cpmutex.Lock()
+			for k, v := range sc {
+				lsc[k] = v
+			}
+			for j := 0; j < ndata; j++ {
+				ldata = append(ldata, make(map[int]int))
+				for k, v := range data[j] {
+					ldata[j][k] = v
+				}
+			}
+			cpmutex.Unlock()
+
+			chosen := ldata[id]
+			for j := 0; j < ndata; j++ {
+				if id != j && lbls[j] != lbls[id] {
+					train = append(train, ldata[j])
+				}
+			}
+
+			fmt.Printf("G-%d: Training SPN with %d clusters against instance %d...\n", id, kclusters, id)
+			s := learn.Gens(lsc, train, kclusters)
+
+			for _, v := range io.Orientations {
+				fmt.Printf("G-%d: Drawing %s image completion for instance %d.\n", id, v, id)
+				cmpl, half := halfImg(s, chosen, v, width, height)
+				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, width, height, max-1)
+				cmpl, half = nil, nil
+			}
+			//out, _ := filepath.Abs("../results/" + dataset + "/models")
+			//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
+
+			// Force garbage collection.
+			s = nil
+			train = nil
+			lsc = nil
+			ldata = nil
+
+			cond.L.Lock()
+			nrun--
+			cond.L.Unlock()
+			cond.Signal()
+		}(i)
+	}
+	wg.Wait()
 }
 
 func convertData() {
@@ -161,8 +212,16 @@ func main() {
 	kclusters := -1
 	var rseed int64 = -1
 	iterations := 1
+	concurrents := 1
 	var err error
 
+	if len(os.Args) > 5 {
+		concurrents, err = strconv.Atoi(os.Args[5])
+		if err != nil {
+			fmt.Printf("Argument invalid. Argument concurrents must be an integer.\n")
+			return
+		}
+	}
 	if len(os.Args) > 4 {
 		iterations, err = strconv.Atoi(os.Args[4])
 		if err != nil {
@@ -202,7 +261,7 @@ func main() {
 
 	if p == 0 {
 		fmt.Printf("Running image completion on dataset %s...\n", dataset)
-		imageCompletion(utils.StringConcat(in, "/all.data"), kclusters)
+		imageCompletion(utils.StringConcat(in, "/all.data"), kclusters, concurrents)
 		return
 	}
 

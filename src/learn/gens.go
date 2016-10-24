@@ -93,6 +93,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 	fmt.Println("Creating new Independency graph...")
 	// Independency graph.
 	igraph := indep.NewUFIndepGraph(vdata)
+	vdata = nil
 
 	// If true, then we can partition the set of variables in data into independent subsets. This
 	// means we can create a product node (since product nodes' children have disjoint scopes).
@@ -130,6 +131,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		}
 		return prod
 	}
+	igraph = nil
 
 	// Else we perform k-clustering on the instances.
 	fmt.Println("No independency found. Preparing for clustering...")
@@ -192,6 +194,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		}
 		return prod
 	}
+	mdata = nil
 
 	fmt.Println("Reformating clusters to appropriate format and creating sum node...")
 
@@ -218,5 +221,6 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		sum.AddChildW(Gens(nsc, ndata, kclusters), float64(ni)/float64(len(data)))
 	}
 
+	clusters = nil
 	return sum
 }

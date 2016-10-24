@@ -72,25 +72,31 @@ To run GoSPN, we must complete a few steps:
 
 ```
 Usage:
-  go run main.go [p] [rseed] [kclusters] [iterations]
+  go run main.go [p] [rseed] [kclusters] [iterations] [concurrents]
 Arguments:
-  p          - is the partition in the interval (0, 1) to be used for
-               cross-validation. If p = 0, then run an image completion job
-               instead of a classification job. If p = -1, then attempt to
-               compile data (same as make data). If ommitted, p defaults to 0.7.
-  rseed      - the seed to be used when choosing which instances to be used
-               as train and which to be used as test set. If ommitted, rseed
-               defaults to -1, which chooses a random seed according to the
-               current time.
-  kclusters  - how many k-clusters to be used during training on instance
-               splits. If kclusters = -1, then use DBSCAN. Else if
-               kclusters = -2, then use OPTICS. Else, if kclusters > 0,
-               then use k-means clustering. By default, kclusters is set
-               to -1.
-  iterations - How many iterations to be run when running a
-               classification job. This allows for better, more general
-               and randomized results, as some test/train partitions may
-               become degenerated.
+  p           - is the partition in the interval (0, 1) to be used for
+                cross-validation. If p = 0, then run an image completion job
+                instead of a classification job. If p = -1, then attempt to
+                compile data (same as make data). If ommitted, p defaults to 0.7.
+  rseed       - the seed to be used when choosing which instances to be used
+                as train and which to be used as test set. If ommitted, rseed
+                defaults to -1, which chooses a random seed according to the
+                current time.
+  kclusters   - how many k-clusters to be used during training on instance
+                splits. If kclusters = -1, then use DBSCAN. Else if
+                kclusters = -2, then use OPTICS. Else, if kclusters > 0,
+                then use k-means clustering. By default, kclusters is set
+                to -1.
+  iterations  - how many iterations to be run when running a
+                classification job. This allows for better, more general
+                and randomized results, as some test/train partitions may
+                become degenerated.
+  concurrents - GoSPN makes use of Go's native concurrency and is able
+                to run on multiple cores in parallel. Argument concurrents
+                defines the number of concurrent jobs GoSPN should run
+                at most. If concurrents <= 0, then concurrents = nCPU,
+                where nCPU is the number of CPUs the running machine has
+                available. By default, concurrents = -1.
 ```
 
 #### For step 3 to run a classification job:
