@@ -141,8 +141,6 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 	cpmutex := &sync.Mutex{}
 
 	for i := 0; i < ndata; i++ {
-		fmt.Printf("%d running, with %d max.\n", runtime.NumGoroutine(), nprocs)
-		fmt.Printf("go func %d\n", i)
 		cond.L.Lock()
 		for nrun >= nprocs {
 			cond.Wait()
@@ -175,11 +173,11 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 				}
 			}
 
-			fmt.Printf("G-%d: Training SPN with %d clusters against instance %d...\n", id, kclusters, id)
+			fmt.Printf("P-%d: Training SPN with %d clusters against instance %d...\n", id, kclusters, id)
 			s := learn.Gens(lsc, train, kclusters)
 
 			for _, v := range io.Orientations {
-				fmt.Printf("G-%d: Drawing %s image completion for instance %d.\n", id, v, id)
+				fmt.Printf("P-%d: Drawing %s image completion for instance %d.\n", id, v, id)
 				cmpl, half := halfImg(s, chosen, v, width, height)
 				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, width, height, max-1)
 				cmpl, half = nil, nil
@@ -212,7 +210,7 @@ func main() {
 	kclusters := -1
 	var rseed int64 = -1
 	iterations := 1
-	concurrents := 1
+	concurrents := -1
 	var err error
 
 	if len(os.Args) > 5 {
