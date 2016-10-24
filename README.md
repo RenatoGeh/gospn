@@ -3,6 +3,10 @@ GoSPN
 
 [![Build Status](https://travis-ci.org/RenatoGeh/gospn.svg?branch=master)](https://travis-ci.org/RenatoGeh/gospn)
 
+![](./gospnpher.png "My crude attempt at drawing Renee French's Go Gopher.")
+
+My crude (and slightly horrifying) rendition of Renee French's Go [Gopher](https://blog.golang.org/gopher) writing what's on his mind.
+
 An implementation of Sum-Product Networks (SPNs) in Go
 ------------------------------------------------------
 
