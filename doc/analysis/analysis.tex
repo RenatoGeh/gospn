@@ -18,6 +18,7 @@
 \usepackage{listings}
 \usepackage[x11names, rgb]{xcolor}
 \usepackage{tikz}
+\usepackage{hyperref}
 \usetikzlibrary{snakes,arrows,shapes}
 
 \addbibresource{references.bib}
@@ -166,30 +167,93 @@ A sum-product network represents a tractable probability distribution through a 
 must always be weakly connected. A node can either be a leaf, a sum, or a product node. The scope
 of a node is the set of all variables present in all its descendants. Leaf nodes are tractable
 probability distributions and their scope is the scope of its distribution, sum nodes represent the
-summing out of the variables in its scope and product nodes act as feature hierarchy. We refer to
-a sub-SPN $S$ rooted at node $i$ as $S(i)$, while the SPN rooted at its root is denoted as
-$S(\cdot)$ or simply $S$. The scope of a node will be denoted as $\Sc(i)$, where $i$ is a node. The
-set of children of a node will be denoted as $\Ch(i)$. Similarly, $\Pa(i)$ is the set of parents
-of node $i$.
+summing out of the variables in its scope and product nodes act as feature hierarchy. An edge that
+has its origin from a sum node has a non-negative weight. We refer to a sub-SPN $S$ rooted at node
+$i$ as $S(i)$, while the SPN rooted at its root is denoted as $S(\cdot)$ or simply $S$. The scope
+of a node will be denoted as $\Sc(i)$, where $i$ is a node. The set of children of a node will be
+denoted as $\Ch(i)$. Similarly, $\Pa(i)$ is the set of parents of node $i$.
+
+\begin{definition}[Normalized]~\\
+  Let $S$ be an SPN and $\Sigma(S)$ be the set of all sum nodes of $S$. $S$ is normalized iff, for
+  all $\sigma \in \Sigma(S)$, $\sum_{c\in Ch(\sigma)} w_{\sigma c} = 1$ and $0 \leq w_{\sigma c}
+  \leq 1$, where $w_{\sigma c}$ is the weight from edge $\sigma \to c$.
+\end{definition}
 
 \begin{definition}[Completeness]~\\
-  Let $S$ be an SPN and $r$ be its root. $S$ is complete iff $Sc(i)=Sc(j), i\neq j; \forall i,j\in
-  \Ch(r)$.
+  Let $S$ be an SPN and $\Sigma(S)$ be the set of all sum nodes of $S$. $S$ is complete iff, for
+  all $\sigma \in \Sigma(S)$, $Sc(i)=Sc(j), i\neq j; \forall i,j\in \Ch(\sigma)$.
 \end{definition}
 
 \begin{definition}[Consistency]~\\
-  Let $S$ be an SPN, $r$ be its root and $X$ a variable in $Sc(r)$. $S$ is consistent iff $X$ takes
-  the same value in all product nodes in $S$.
+  Let $S$ be an SPN, $\Pi(S)$ be the set of all product nodes of $S$ and $X$ a variable in $Sc(S)$.
+  $S$ is consistent iff $X$ takes the same value for all elements in $\Pi(S)$ that contain $X$.
 \end{definition}
 
 \begin{definition}[Validity]~\\
-  An SPN $S$ is valid iff it always computes the correct probability of
-  evidence $S$ represents.
+  An SPN $S$ is valid iff it always computes the correct probability of evidence $S$ represents.
 \end{definition}
 
-\begin{theorem}
+\begin{theorem}\label{thm:validity}
   An SPN $S$ is valid if it is both complete and consistent.
 \end{theorem}
+
+Validity guarantees that the SPN will compute not only the correct probability of evidence, but
+also in time linear to its graph's edges. Therefore, it is preferable to learn valid SPNs. Notice
+that~\autoref{thm:validity} is not restricted by completeness and consistency. In fact, incomplete
+and/or inconsistent SPNs can compute the probability of evidence correctly, but consistency and
+completeness guarantee that all sub-SPNs are also valid.
+
+\begin{definition}[Decomposability]~\\
+  Let $S$ be an SPN and $\Pi(S)$ be the set of all product nodes in $S$. $S$ is decomposable iff,
+  for all $\pi \in \Pi(S)$, $Sc(i)\cap Sc(j)=\emptyset, i\neq j; \forall i,j\in \Ch(\pi)$.
+\end{definition}
+
+It is clear that decomposability implies consistency, therefore if an SPN is both complete and
+decomposable, than it is also valid. We choose to work with decomposability because it is easier to
+learn decomposable SPNs then it is to learn consistent ones. We do not lose representation power
+because a complete and consistent SPN can be transformed into a complete and decomposable SPN in no
+more than a polynomial number of edge and node additions~\cite{theoretical-spn}. We can now
+formally define an SPN\@.
+
+\begin{definition}[Sum-product network]~\\
+  A sum-product network (SPN) is a weakly connected DAG that can be recursively defined as
+  following.
+
+  An SPN\@:
+  \begin{enumerate}
+    \item with a single node is a monovariate tractable probability distribution (\textbf{leaf});
+    \item is a normalized weighted sum of SPNs (\textbf{sum});
+    \item is a product of SPNs (\textbf{product}).
+  \end{enumerate}
+  The value of an SPN is defined by its type. Let $\lambda$, $\sigma$ and $\pi$ be a leaf, sum and
+  product respectively. The values of such SPNs are given by $\lambda(\mathbf{x})$,
+  $\sigma(\mathbf{x})$ and $\pi(\mathbf{x})$, where $\mathbf{x}$ is a certain evidence
+  instantiation.
+  \begin{description}
+    \item[Leaf] $\lambda(\mathbf{x})$ is the value of the probability distribution at point
+      $\mathbf{x}$.
+    \item[Product] $\pi(\mathbf{x}) = \prod_{c \in \Ch(\pi)} c(\mathbf{x})$.
+    \item[Sum] $\sigma(\mathbf{x}) = \sum_{c \in \Ch(\sigma)} w_{\sigma c} c(\mathbf{x})$, with
+      $\sum_{c \in \Ch(\sigma)} w_{\sigma c} = 1$ and $0 \leq w_{\sigma c} \leq 1$.
+  \end{description}
+\end{definition}
+
+Note that this definition assumes an SPN to be complete, decomposable and normalized. Other
+definitions in literature may differ from ours, but as we have mentioned before, for our
+implementation, this definition is convenient for us. Another observation worthy of notice is the
+value of $\lambda(\mathbf{x})$. Although here we consider $\mathbf{x}$ to be a multivariate
+instantiation (i.e.\ a set of --- potentially multiple --- variable valuations), we had initially
+defined a leaf to be a monovariate distribution. Although it is possible to attribute leaves as
+multivariate probability distributions~\cite{id-spn}, for our definition we have chosen to keep a
+leaf's scope unitary. Therefore, in the case of a leaf's value, $\mathbf{x}$ is a unitary
+(monovariate) variable instantiation.
+
+\section{The \code{LearnGD} Schema}
+
+The \code{LearnGD} schema was proposed by Robert Gens and Pedro Domingos on \textit{Learning the
+Structure of Sum-Product Networks}~\cite{gens-domingos}. In this section we will outline the schema
+in pseudo-code and analyse a few properties derived from the algorithm.
+
 
 
 %--------------------------------------------------------------------------------------------------
