@@ -1,0 +1,204 @@
+\documentclass{amsart}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{thmtools,thm-restate}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+\usepackage[singlelinecheck=false]{caption}
+\usepackage[backend=biber,url=true,doi=true,eprint=false,style=alphabetic]{biblatex}
+\usepackage{enumitem}
+\usepackage[justification=centering]{caption}
+\usepackage{indentfirst}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage[x11names, rgb]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
+
+\addbibresource{references.bib}
+
+\makeatletter
+\def\subsection{\@startsection{subsection}{3}%
+  \z@{.5\linespacing\@plus.7\linespacing}{.1\linespacing}%
+  {\normalfont}}
+\makeatother
+
+\makeatletter
+\patchcmd{\@setauthors}{\MakeUppercase}{}{}{}
+\makeatother
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\Val}{\text{Val}}
+\DeclareMathOperator*{\Ch}{\text{Ch}}
+\DeclareMathOperator*{\Pa}{\text{Pa}}
+\DeclareMathOperator*{\Sc}{\text{Sc}}
+\newcommand{\ov}{\overline}
+
+\newcommand\defeq{\mathrel{\overset{\makebox[0pt]{\mbox{\normalfont\tiny\sffamily def}}}{=}}}
+
+\algrenewcommand\algorithmicrequire{\textbf{Input}}
+\algrenewcommand\algorithmicensure{\textbf{Output}}
+
+\captionsetup[table]{labelsep=space}
+
+\theoremstyle{plain}
+
+\newcounter{dummy-def}\numberwithin{dummy-def}{section}
+\newtheorem{definition}[dummy-def]{Definition}
+\newcounter{dummy-thm}\numberwithin{dummy-thm}{section}
+\newtheorem{theorem}[dummy-thm]{Theorem}
+\newcounter{dummy-prop}\numberwithin{dummy-prop}{section}
+\newtheorem{proposition}[dummy-prop]{Proposition}
+\newcounter{dummy-corollary}\numberwithin{dummy-corollary}{section}
+\newtheorem{corollary}[dummy-corollary]{Corollary}
+\newcounter{dummy-ex}\numberwithin{dummy-ex}{section}
+\newtheorem{exercise}[dummy-ex]{Exercise}
+\newcounter{dummy-eg}\numberwithin{dummy-eg}{section}
+\newtheorem{example}[dummy-eg]{Example}
+
+\numberwithin{equation}{section}
+
+\newcommand{\set}[1]{\mathbf{#1}}
+\newcommand{\pr}{\mathbb{P}}
+\renewcommand{\implies}{\Rightarrow}
+
+\newcommand{\bigo}{\mathcal{O}}
+
+\setlength{\parskip}{1em}
+
+\lstset{frameround=fttt,
+	numbers=left,
+	breaklines=true,
+	keywordstyle=\bfseries,
+	basicstyle=\ttfamily,
+}
+
+\newcommand{\code}[1]{\lstinline[mathescape=true]{#1}}
+\newcommand{\mcode}[1]{\lstinline[mathescape]!#1!}
+
+
+\title{%
+  \noindent\rule{13cm}{1.0pt}\\
+  \vspace{0.2cm}
+  Analysis on an Implementation of the Gens-Domingos Sum-Product Network Structural Learning
+  Schema
+  \noindent\rule{13cm}{0.8pt}
+}
+\xdef\shorttitle{Analysis on the GD Schema}
+\author[]{\normalsize\textbf{Renato Lui Geh}\\\small Computer Science\\Institute of Mathematics
+  and Statistics\\University of São Paulo\\\texttt{renatolg@ime.usp.br}}
+
+\begin{document}
+
+\begin{abstract}
+  Sum-Product Networks (SPNs) are a class of deep probabilistic graphical models. Inference in them
+  is linear in the number of edges of the graph. Furthermore, exact inference is achieved, in a
+  valid SPN, by running through its edges twice at most, making exact inference linear. The
+  Gens-Domingos SPN Schema is an algorithm for structural learning on such models. In this paper we
+  present an implementation of such schema, analyzing its complexity, discoursing implementational
+  and theoretical details, and finally presenting results and experiments achieved with this
+  implementation.
+
+  \smallskip
+  \smallskip
+  \smallskip
+  \textbf{Keywords}
+  \smallskip
+  \texttt{cluster analysis; data mining; probabilistic graphical models; tractable models; machine
+  learning; deep learning}
+  \vspace*{-3.5em}
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+A Sum-Product Network (SPN) is a probabilistic graphical model that represents a tractable
+distribution of probability. If an SPN is valid, then we can perform exact inference in time linear
+to the graph's edges. Its syntax is different to other conventional models (read bayesian and
+markov networks) in the sense that its graph does not explicitly model events and (in) dependencies
+between variables. That is, whilst variables in a bayesian network are represented as nodes in the
+graph, with each edge connecting two nodes asserting a dependency relationship between the
+connected variables, a node in an SPN may not necessarily represent a variable or event, neither an
+edge connecting two nodes represent dependence. In this sense, SPNs can be seen as a type of
+probabilistic Artificial Neural Network (ANN). However, whilst neural networks represent a
+function, SPNs model a tractable probability distribution. Furthermore, SPNs are distinct from
+standard neural networks seeing that, whereas ANNs have only one type of neuron with an activation
+function mapping to values in $[0,1]$, SPNs have two kind of neurons, which we will see in the next
+sections. Still, SPNs retain certain important characteristics from ANNs as we will discuss later,
+with mainly its deep structure properties as the most interesting feature.
+
+The Gens-Domingos Schema~\cite{gens-domingos}, or \code{LearnGD} as we will reference it throughout
+this paper, is an SPN structural learning algorithm proposed by Robert Gens and Pedro Domingos.
+Gens and Domingos call it a schema because it only provides a template of what the algorithm should
+be like. We will discuss \code{LearnGD} in details in the next section. This paper documents a
+particular implementation of the GD schema. Other implementations may have different results.
+
+In this document, we show how we implemented the \code{LearnGD} algorithm. We analyse the
+complexity of each algorithm component in detail, later referring to such analyses when drawing
+conclusions on the overall complexity of the algorithm. As we have mentioned before, since the
+\code{LearnGD} schema depends heavily on implementation, the complexity we achieve in this
+particular case may differ from other implementations. After each analysis, we then look at the
+algorithm as whole, drawing conclusions on time and memory usage, as well as implementation details
+that could potentially decrease the algorithm runtime. We also comment on how to implement better
+concurrency then how it is currently coded in our implementation. We then show some results on
+experiments made on image classification and image completion.
+
+\section{Sum-Product Networks}
+
+In this section we will define SPNs differently from other articles~\cite{gens-domingos,
+poon-domingos, clustering} as the original more convoluted definition is of little use for the
+\code{LearnGD} algorithm. Our definition is almost identical to the original \code{LearnGD} article
+\cite{gens-domingos}, with the exception that we assume that an SPN is already normalized. This
+fact changes nothing, since Peharz \textit{et al} recently proved that normalized SPNs have as much
+representability power as unnormalized SPNs~\cite{theoretical-spn}. Before we enunciate the formal
+definition of an SPN, we will give an informal, vague definition of an SPN in order to explain what
+completeness, consistency, validity and decomposability --- which are an important set of
+definitions --- of an SPN mean.
+
+A sum-product network represents a tractable probability distribution through a DAG\@. Such digraph
+must always be weakly connected. A node can either be a leaf, a sum, or a product node. The scope
+of a node is the set of all variables present in all its descendants. Leaf nodes are tractable
+probability distributions and their scope is the scope of its distribution, sum nodes represent the
+summing out of the variables in its scope and product nodes act as feature hierarchy. We refer to
+a sub-SPN $S$ rooted at node $i$ as $S(i)$, while the SPN rooted at its root is denoted as
+$S(\cdot)$ or simply $S$. The scope of a node will be denoted as $\Sc(i)$, where $i$ is a node. The
+set of children of a node will be denoted as $\Ch(i)$. Similarly, $\Pa(i)$ is the set of parents
+of node $i$.
+
+\begin{definition}[Completeness]~\\
+  Let $S$ be an SPN and $r$ be its root. $S$ is complete iff $Sc(i)=Sc(j), i\neq j; \forall i,j\in
+  \Ch(r)$.
+\end{definition}
+
+\begin{definition}[Consistency]~\\
+  Let $S$ be an SPN, $r$ be its root and $X$ a variable in $Sc(r)$. $S$ is consistent iff $X$ takes
+  the same value in all product nodes in $S$.
+\end{definition}
+
+\begin{definition}[Validity]~\\
+  An SPN $S$ is valid iff it always computes the correct probability of
+  evidence $S$ represents.
+\end{definition}
+
+\begin{theorem}
+  An SPN $S$ is valid if it is both complete and consistent.
+\end{theorem}
+
+
+%--------------------------------------------------------------------------------------------------
+
+\newpage
+\appendix
+
+\newpage
+
+\printbibliography[]
+
+\end{document}

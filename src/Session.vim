@@ -7,10 +7,10 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +169 learn/gens.go
-badd +162 main.go
+badd +52 learn/gens.go
+badd +219 main.go
 badd +27 io/input.go
-badd +105 io/output.go
+badd +106 io/output.go
 badd +51 utils/unionfind.go
 badd +109 spn/sum.go
 badd +61 spn/product.go
@@ -25,7 +25,7 @@ badd +80 utils/cluster/dbscan.go
 badd +136 utils/cluster/kmeans.go
 badd +29 common/queue.go
 badd +13 utils/cluster/metrics/euclid.go
-badd +104 utils/cluster/optics.go
+badd +81 utils/cluster/optics.go
 badd +1 Makefile
 badd +21 main_test.go
 badd +1 4
@@ -309,7 +309,8 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-wincmd =
+exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
+exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -320,12 +321,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 231 - ((0 * winheight(0) + 23) / 47)
+let s:l = 220 - ((15 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-231
-normal! 03|
+220
+normal! 012|
 wincmd w
 argglobal
 edit io/input.go
@@ -345,8 +346,9 @@ normal! zt
 141
 normal! 05|
 wincmd w
-wincmd =
-tabedit learn/gens.go
+exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
+exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
+tabedit utils/cluster/metrics/euclid.go
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -360,7 +362,11 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-wincmd =
+exe '1resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
+exe '2resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 2resize ' . ((&columns * 117 + 119) / 239)
+exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -371,11 +377,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 52 - ((28 * winheight(0) + 14) / 29)
+let s:l = 13 - ((12 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-52
+13
 normal! 0
 wincmd w
 argglobal
@@ -397,7 +403,7 @@ normal! zt
 normal! 0
 wincmd w
 argglobal
-edit utils/cluster/optics.go
+edit utils/cluster/kmeans.go
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -407,14 +413,18 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 81 - ((17 * winheight(0) + 29) / 58)
+let s:l = 68 - ((23 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-81
-normal! 073|
+68
+normal! 0
 wincmd w
-wincmd =
+exe '1resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
+exe '2resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 2resize ' . ((&columns * 117 + 119) / 239)
+exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
 tabedit Makefile
 set splitbelow splitright
 set nosplitbelow
@@ -431,13 +441,13 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 21 - ((20 * winheight(0) + 29) / 58)
+let s:l = 8 - ((7 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-21
-normal! 028|
-tabnext 4
+8
+normal! 041|
+tabnext 6
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
 endif
