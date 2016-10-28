@@ -43,6 +43,7 @@
 
 \newcommand\defeq{\mathrel{\overset{\makebox[0pt]{\mbox{\normalfont\tiny\sffamily def}}}{=}}}
 
+\newcommand{\algorithmautorefname}{Algorithm}
 \algrenewcommand\algorithmicrequire{\textbf{Input}}
 \algrenewcommand\algorithmicensure{\textbf{Output}}
 
@@ -58,6 +59,8 @@
 \newtheorem{proposition}[dummy-prop]{Proposition}
 \newcounter{dummy-corollary}\numberwithin{dummy-corollary}{section}
 \newtheorem{corollary}[dummy-corollary]{Corollary}
+\newcounter{dummy-lemma}\numberwithin{dummy-lemma}{section}
+\newtheorem{lemma}[dummy-lemma]{Lemma}
 \newcounter{dummy-ex}\numberwithin{dummy-ex}{section}
 \newtheorem{exercise}[dummy-ex]{Exercise}
 \newcounter{dummy-eg}\numberwithin{dummy-eg}{section}
@@ -133,7 +136,7 @@ function, SPNs model a tractable probability distribution. Furthermore, SPNs are
 standard neural networks seeing that, whereas ANNs have only one type of neuron with an activation
 function mapping to values in $[0,1]$, SPNs have two kind of neurons, which we will see in the next
 sections. Still, SPNs retain certain important characteristics from ANNs as we will discuss later,
-with mainly its deep structure properties as the most interesting feature.
+with mainly its deep structure properties~\cite{shallow-vs-deep} as the most interesting feature.
 
 The Gens-Domingos Schema~\cite{gens-domingos}, or \code{LearnGD} as we will reference it throughout
 this paper, is an SPN structural learning algorithm proposed by Robert Gens and Pedro Domingos.
@@ -181,12 +184,13 @@ denoted as $\Ch(i)$. Similarly, $\Pa(i)$ is the set of parents of node $i$.
 
 \begin{definition}[Completeness]~\\
   Let $S$ be an SPN and $\Sigma(S)$ be the set of all sum nodes of $S$. $S$ is complete iff, for
-  all $\sigma \in \Sigma(S)$, $Sc(i)=Sc(j), i\neq j; \forall i,j\in \Ch(\sigma)$.
+  all $\sigma \in \Sigma(S)$, $\Sc(i)=\Sc(j), i\neq j; \forall i,j\in \Ch(\sigma)$.
 \end{definition}
 
 \begin{definition}[Consistency]~\\
-  Let $S$ be an SPN, $\Pi(S)$ be the set of all product nodes of $S$ and $X$ a variable in $Sc(S)$.
-  $S$ is consistent iff $X$ takes the same value for all elements in $\Pi(S)$ that contain $X$.
+  Let $S$ be an SPN, $\Pi(S)$ be the set of all product nodes of $S$ and $X$ a variable in
+  $\Sc(S)$. $S$ is consistent iff $X$ takes the same value for all elements in $\Pi(S)$ that
+  contain $X$.
 \end{definition}
 
 \begin{definition}[Validity]~\\
@@ -205,7 +209,7 @@ completeness guarantee that all sub-SPNs are also valid.
 
 \begin{definition}[Decomposability]~\\
   Let $S$ be an SPN and $\Pi(S)$ be the set of all product nodes in $S$. $S$ is decomposable iff,
-  for all $\pi \in \Pi(S)$, $Sc(i)\cap Sc(j)=\emptyset, i\neq j; \forall i,j\in \Ch(\pi)$.
+  for all $\pi \in \Pi(S)$, $\Sc(i)\cap \Sc(j)=\emptyset, i\neq j; \forall i,j\in \Ch(\pi)$.
 \end{definition}
 
 It is clear that decomposability implies consistency, therefore if an SPN is both complete and
@@ -221,9 +225,9 @@ formally define an SPN\@.
 
   An SPN\@:
   \begin{enumerate}
-    \item with a single node is a monovariate tractable probability distribution (\textbf{leaf});
-    \item is a normalized weighted sum of SPNs (\textbf{sum});
-    \item is a product of SPNs (\textbf{product}).
+    \item with a single node is a univariate tractable probability distribution (\textbf{leaf});
+    \item is a normalized weighted sum of SPNs of same scope (\textbf{sum});
+    \item is a product of SPNs with disjoint scopes (\textbf{product}).
   \end{enumerate}
   The value of an SPN is defined by its type. Let $\lambda$, $\sigma$ and $\pi$ be a leaf, sum and
   product respectively. The values of such SPNs are given by $\lambda(\mathbf{x})$,
@@ -243,10 +247,10 @@ definitions in literature may differ from ours, but as we have mentioned before,
 implementation, this definition is convenient for us. Another observation worthy of notice is the
 value of $\lambda(\mathbf{x})$. Although here we consider $\mathbf{x}$ to be a multivariate
 instantiation (i.e.\ a set of --- potentially multiple --- variable valuations), we had initially
-defined a leaf to be a monovariate distribution. Although it is possible to attribute leaves as
+defined a leaf to be a univariate distribution. Although it is possible to attribute leaves as
 multivariate probability distributions~\cite{id-spn}, for our definition we have chosen to keep a
-leaf's scope unitary. Therefore, in the case of a leaf's value, $\mathbf{x}$ is a unitary
-(monovariate) variable instantiation.
+leaf's scope a unit set. Therefore, in the case of a leaf's value, $\mathbf{x}$ is a singleton
+(univariate) variable instantiation.
 
 \section{The \code{LearnGD} Schema}
 
@@ -254,8 +258,102 @@ The \code{LearnGD} schema was proposed by Robert Gens and Pedro Domingos on \tex
 Structure of Sum-Product Networks}~\cite{gens-domingos}. In this section we will outline the schema
 in pseudo-code and analyse a few properties derived from the algorithm.
 
+\begin{algorithm}[H]
+  \caption{\code{LearnGD}}\label{alg:learngd}
+  \begin{algorithmic}[1]
+    \Require\,Set $D$ of instances (data)
+    \Require\,Set $V$ of variables (scope)
+    \Ensure\,An SPN representing a probability distribution given by $D$ and $V$
+    \If{$|\set{V}|=1$} \Comment{univariate data sample}
+      \State\,\textbf{return} univariate distribution estimated from $T[V]$ (data of $V$)
+    \EndIf%
+    \State\,Take $V$ and find mutually independent subsets $V_i$ of variables
+    \If{possible to partition} \Comment{i.e.\ we have found independent subsets}
+      \State\,\textbf{return} $\prod_i$ \mcode{LearnGD ($D$, $V_i$)}
+    \Else\Comment{we cannot say there is independence}
+      \State\,Take $D$ and find $D_j$ subsets of similar instances
+      \If{possible to partition}
+        \State\,\textbf{return} $\sum_i \frac{|D_j|}{|D|} \cdot$ \mcode{LearnGD ($D_j$, $V$)}
+      \Else\Comment{i.e.\ data is one big cluster}
+        \State\,\textbf{return} fully factorized distribution.
+      \EndIf%
+    \EndIf%
+  \end{algorithmic}
+\end{algorithm}
 
+Let us now, for a moment, suppose that SPNs are not necessarily complete, decomposable and
+normalized. We shall prove a few results derived from SPNs generated by~\autoref{alg:learngd}.
 
+\begin{lemma}
+  An SPN $S$ generated by \code{LearnGD} is complete, decomposable and normalized.
+\end{lemma}
+\begin{proof}
+  Lines 4--6 show that the scope of each child in a product node of $S$ is a partition of the scope
+  of their parent. Therefore, children have pairwise disjoint scopes on line 6, which proves
+  decomposability for this part of the algorithm. In lines 8--10, since we are clustering similar
+  instances, $D$ is being partitioned but we are not changing $V$ in any way. In fact, line 10
+  shows that we pass $V$ to all other children. That is, all children of sum nodes have the same
+  scope as their parent, which proves completeness.  Let $D_1,\ldots,D_n$ be the subsets of similar
+  instances. By the definition of clustering, $D_1\cup\ldots\cup D_n=D$ and $D_i\cap D_j=
+  \emptyset$, $i\neq j$, $1\leq i,j\leq n$. Thus it follows that $\sum_{i=1}^n \frac{|D_i|}{|D|}=1$
+  and thus line 10 always creates complete and normalized sum nodes. Line 12 is a special case
+  where, if we have discovered that $D$ is one big data cluster, we shall create a product node
+  $\pi$ in which all children of $\pi$ are leaves and
+  \begin{equation*}
+    \bigcup_{\lambda\in\Ch(\pi)} \Sc(\lambda) = \Sc(\pi).
+  \end{equation*}
+  In other words, we fully factorize our product node into leaves. In this case, it is obvious that
+  this product node is decomposable.
+\end{proof}
+
+\code{LearnGD} can be divided into three parts:
+
+\begin{enumerate}
+  \item Is the data univariate? If it is, return a leaf.
+  \item Are partitions of the data independent? If they are, return a product node whose children
+    are the independent partitions.
+  \item Are partitions of the data similar? If they are, return a sum node whose children are the
+    partition clusters.
+  \item In case all else fails, we have a fully factorized distribution.
+\end{enumerate}
+
+Going back to our definition of an SPN, we can now take a more intuitive approach and make the
+following observations:
+
+\begin{enumerate}
+  \item A leaf is nothing but a local/partitioned/sample distribution of a probability distribution
+    given by a single variable.
+  \item A product node determines independence between variables.
+  \item A sum node is a clustering of similar data values (i.e.\ instances that are ``alike'').
+\end{enumerate}
+
+This gives more semantic value to SPNs, whilst still retaining its expressivity. Following this
+approach, one can easily notice that each ``layer'' corresponds to a recursive call in
+\code{LearnGD}. In fact, each recursive call constructs a hidden layer that tries to partition the
+SPN even further. This gives SPNs a deep architecture that resembles deep models in that the deeper
+the model, the more representation power it has~\cite{shallow-vs-deep}.
+
+Let us now observe the scope of each type of node. A leaf is the trivial case, since it has a
+single variable in its scope by definition. Each layer above it can have either sum or product
+nodes. Let us now look at decomposability, that is: if a variable $X$ appears in a child of a
+product node $\pi$, then $X$ cannot appear in another child of $\pi$. This gives us the following
+result:
+
+\begin{proposition}
+  Let $S$ be an SPN generated by \code{LearnGD}, and let $\Lambda(S)$ be the set of all leaves of
+  $S$. Then, $\forall \lambda \in \Lambda(S)$, we have that, $\forall p \in \Pa(\lambda)$, $p$ is a
+  product node.
+\end{proposition}
+\begin{proof}
+  Our proof is by contradiction. Let us assume that $\exists p \in \Pa(\lambda)$ such that $p$ is
+  a sum node and $\exists c^* \in \Ch(p)$ a leaf. From our assumption that $p$ is a sum node, we
+  have that, since the SPN is complete, the scope of all children of $p$ are the same and are all
+  equal to the scope of $p$. Now let $c \in \Ch(p)$. There must exist another child $c$ such that
+  $c\neq c^*$ because of lines 5 and 9. From that we have $\Sc(c)=\Sc(c^*)$ because of
+  completeness, and since $\Sc(c^*)$ is singular, then $c$ must also be leaf. But it is impossible
+  to have leaves with same scope and same parent (line 1 from~\autoref{alg:learngd}). Therefore,
+  $p$ is actually a product node.
+\end{proof}
 %--------------------------------------------------------------------------------------------------
 
 \newpage
