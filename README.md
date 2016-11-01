@@ -2,6 +2,7 @@ GoSPN
 =====
 
 [![Build Status](https://travis-ci.org/RenatoGeh/gospn.svg?branch=master)](https://travis-ci.org/RenatoGeh/gospn)
+[![Go Report Card](https://goreportcard.com/badge/github.com/renatogeh/gospn)](https://goreportcard.com/report/github.com/renatogeh/gospn)
 
 ![](./gospnpher.png "My crude attempt at drawing Renee French's Go Gopher.")
 
