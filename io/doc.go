@@ -1,2 +1,2 @@
-// Input/Output package.
+// Package io is an Input/Output package.
 package io
