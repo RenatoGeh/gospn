@@ -2,8 +2,7 @@ package spn
 
 import (
 	//"fmt"
-
-	utils "github.com/RenatoGeh/gospn/src/utils"
+	utils "github.com/RenatoGeh/gospn/utils"
 )
 
 // Mode of a univariate distribution.
@@ -14,8 +13,8 @@ type Mode struct {
 	val float64
 }
 
-// A univariate distribution is a probability distribution with unary scope.
-// UnivDist actually represents a multinomial distribution.
+// UnivDist represents a univariate distribution which is a probability distribution with unary
+// scope.  UnivDist actually represents a multinomial distribution.
 type UnivDist struct {
 	// Parent node.
 	pa Node
@@ -29,11 +28,11 @@ type UnivDist struct {
 	sc []int
 }
 
-// Constructs a new UnivDist.
+// NewUnivDist constructs a new UnivDist.
 func NewUnivDist(varid int, dist []float64) *UnivDist {
 	n := len(dist)
-	var m float64 = 0
-	var mi int = 0
+	var m float64
+	var mi int
 
 	for i := 0; i < n; i++ {
 		if dist[i] > m {
@@ -45,6 +44,7 @@ func NewUnivDist(varid int, dist []float64) *UnivDist {
 	return &UnivDist{nil, varid, dist, Mode{mi, m}, []int{varid}}
 }
 
+// NewCountingUnivDist constructs a new UnivDist from a count slice.
 func NewCountingUnivDist(varid int, counts []int) *UnivDist {
 	n := len(counts)
 
@@ -59,8 +59,8 @@ func NewCountingUnivDist(varid int, counts []int) *UnivDist {
 		pr[i] /= float64(s)
 	}
 
-	var m float64 = 0
-	var mi int = 0
+	var m float64
+	var mi int
 
 	for i := 0; i < n; i++ {
 		if pr[i] > m {
@@ -72,8 +72,8 @@ func NewCountingUnivDist(varid int, counts []int) *UnivDist {
 	return &UnivDist{nil, varid, pr, Mode{mi, m}, []int{varid}}
 }
 
-// Constructs a new empty UnivDist for learning. We initialize pr to a uniform distribution.
-// Argument m is the cardinality of varid.
+// NewEmptyUnivDist constructs a new empty UnivDist for learning. We initialize pr to a uniform
+// distribution.  Argument m is the cardinality of varid.
 func NewEmptyUnivDist(varid, m int) *UnivDist {
 	pr := make([]float64, m)
 
@@ -99,16 +99,16 @@ func (ud *UnivDist) Sc() []int {
 	return ud.sc
 }
 
-// Sets the parent node.
+// SetParent sets the parent node.
 func (ud *UnivDist) SetParent(pa Node) { ud.pa = pa }
 
-// Returns nil. Leaves have no weights.
+// Weights returns nil. Leaves have no weights.
 func (ud *UnivDist) Weights() []float64 { return nil }
 
-// Adds a child, but actually doesn't since it's a leaf.
+// AddChild adds a child, but actually doesn't since it's a leaf.
 func (ud *UnivDist) AddChild(c Node) {}
 
-// Returns the probability of a certain valuation. That is Pr(X=valuation[varid]), where
+// Value returns the probability of a certain valuation. That is Pr(X=valuation[varid]), where
 // Pr=UnivDist.
 func (ud *UnivDist) Value(valuation VarSet) float64 {
 	val, ok := valuation[ud.varid]

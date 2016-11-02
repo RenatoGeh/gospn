@@ -1,12 +1,12 @@
 package cluster
 
 import (
-	common "github.com/RenatoGeh/gospn/src/common"
-	utils "github.com/RenatoGeh/gospn/src/utils"
-	metrics "github.com/RenatoGeh/gospn/src/utils/cluster/metrics"
+	common "github.com/RenatoGeh/gospn/common"
+	utils "github.com/RenatoGeh/gospn/utils"
+	metrics "github.com/RenatoGeh/gospn/utils/cluster/metrics"
 )
 
-// Density-based spatial clustering of applications with noise (DBSCAN).
+// DBSCAN Density-based spatial clustering of applications with noise.
 // Parameters:
 //  - data is data matrix;
 //  - eps is epsilon maximum distance between density core points;
@@ -77,7 +77,7 @@ func DBSCAN(data [][]int, eps float64, mp int) []map[int][]int {
 
 	// Convert Union-Find format to []map[int][]int format.
 	k := 0
-	var clusters []map[int][]int = nil
+	var clusters []map[int][]int
 	for i := 0; i < n; i++ {
 		if rgs[i].Pa == rgs[i] {
 			clusters = append(clusters, make(map[int][]int))

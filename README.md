@@ -50,7 +50,7 @@ To run GoSPN, we must complete a few steps:
     `dog`, `cat` and `mouse`.
   - Copy your class instances into `/data/ds/classname`.
 2. Compile the dataset into a `.data` file:
-  - Go to `/src/main.go` and replace the dataset name with your own:
+  - Go to `/main.go` and replace the dataset name with your own:
 
     ```
     const dataset = "ds"
@@ -142,16 +142,16 @@ To use Chi-Square:
 ChiSquareTest(p, q, int, data [][]int) float64
 ```
 
-In `/src/utils/indep/indgraph.go`, search for either functions and
+In `/utils/indep/indgraph.go`, search for either functions and
 replace with the desired function.
 
 To change the significance level on the independence tests, go to
-`/src/utils/indep/chisq.go` and `/src/utils/indep/gtest.go` and change
+`/utils/indep/chisq.go` and `/utils/indep/gtest.go` and change
 the `sigval` variable.
 
 #### DBSCAN and OPTICS parameters:
 
-To change DBSCAN's and OPTICS's parameters, go to `/src/learn/gens.go`
+To change DBSCAN's and OPTICS's parameters, go to `/learn/gens.go`
 and change the function`s
 
 ```
@@ -214,27 +214,27 @@ GoSPN uses GNU GSL to compute the cumulative probability function
 Pr(X^2 <= chi), X^2(df)
 ```
 
-For the independence test (`src/utils/indep/indtest.go`). A builtin
-Chi-Square function is already present in `src/utils/indep/indtest.go`
+For the independence test (`utils/indep/indtest.go`). A builtin
+Chi-Square function is already present in `utils/indep/indtest.go`
 under the name of `Chisquare`. However `Chisquare` has worse numerical
 error when compared to its GSL equivalent `ChiSquare` (see
-`src/utils/indep/chisq.go`).
+`utils/indep/chisq.go`).
 
 For information on how to compile and install GNU GSL, see
 <https://www.gnu.org/software/gsl/>.
 
 If you do not wish to install GNU GSL, simply rename `ChiSquare` in file
-`src/utils/indep/indtest.go` to `Chisquare`.
+`utils/indep/indtest.go` to `Chisquare`.
 
 GoSPN uses Go's `cgo` to run C code inside Go. File
-`src/utils/indep/chisq.go` contains the wrapper function `ChiSquare`
+`utils/indep/chisq.go` contains the wrapper function `ChiSquare`
 that calls `gsl_cdf_chisq_P` from `gsl/gsl_cdf.h`.
 
 #### godebug
 
 Although Go does work with GNU's GDB, GDB doesn't understand Go well.
 An alternative to that is mailgun's godebug. If you do not intend on
-using the debugging script `src/debug.sh` then there is no need for
+using the debugging script `debug.sh` then there is no need for
 godebug. Otherwise install it by running `go get`:
 
 ```
@@ -327,7 +327,7 @@ brew install graph-tool
 GoSPN outputs all graphs to:
 
 ```
-$GOPATH/src/github.com/RenatoGeh/gospn/results/dataset_name/
+$GOPATH/github.com/RenatoGeh/gospn/results/dataset_name/
 ```
 
 Simply run python on the python source code and it will output a PNG
@@ -353,7 +353,7 @@ This should install GoSPN to your $GOPATH directory. Compiling the code
 is easy. First go to the GoSPN source dir.
 
 ```
-$ cd $GOPATH/src/github.com/RenatoGeh/gospn/src
+$ cd $GOPATH/github.com/RenatoGeh/gospn/
 ```
 
 To compile and run:

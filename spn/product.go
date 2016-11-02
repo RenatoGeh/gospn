@@ -1,10 +1,5 @@
 package spn
 
-import (
-//"fmt"
-//utils "github.com/RenatoGeh/gospn/src/utils"
-)
-
 // Product represents an SPN product node.
 type Product struct {
 	// Children nodes.
@@ -29,7 +24,7 @@ func (p *Product) AddChild(c Node) {
 	p.sc = nil
 }
 
-// Sets the parent node.
+// SetParent sets the parent node.
 func (p *Product) SetParent(pa Node) { p.pa = pa }
 
 // Ch returns the set of children nodes.
@@ -41,7 +36,7 @@ func (p *Product) Pa() Node { return p.pa }
 // Type returns the type of this node: 'product'.
 func (p *Product) Type() string { return "product" }
 
-// Returns nil, since product nodes have no weights.
+// Weights returns nil, since product nodes have no weights.
 func (p *Product) Weights() []float64 { return nil }
 
 // Sc returns the scope of this node.

@@ -5,9 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	common "github.com/RenatoGeh/gospn/src/common"
-	spn "github.com/RenatoGeh/gospn/src/spn"
-	utils "github.com/RenatoGeh/gospn/src/utils"
+	common "github.com/RenatoGeh/gospn/common"
+	spn "github.com/RenatoGeh/gospn/spn"
+	utils "github.com/RenatoGeh/gospn/utils"
 )
 
 // CmplType indicates which type of image completion are we referring to.

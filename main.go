@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"sync"
 
-	io "github.com/RenatoGeh/gospn/src/io"
-	learn "github.com/RenatoGeh/gospn/src/learn"
-	spn "github.com/RenatoGeh/gospn/src/spn"
-	utils "github.com/RenatoGeh/gospn/src/utils"
+	io "github.com/RenatoGeh/gospn/io"
+	learn "github.com/RenatoGeh/gospn/learn"
+	spn "github.com/RenatoGeh/gospn/spn"
+	utils "github.com/RenatoGeh/gospn/utils"
 )
 
 const dataset = "olivetti_3bit"
@@ -182,7 +182,7 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, width, height, max-1)
 				cmpl, half = nil, nil
 			}
-			//out, _ := filepath.Abs("../results/" + dataset + "/models")
+			//out, _ := filepath.Abs("results/" + dataset + "/models")
 			//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
 
 			// Force garbage collection.
@@ -201,7 +201,7 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 }
 
 func convertData() {
-	cmn, _ := filepath.Abs("../data/" + dataset + "/")
+	cmn, _ := filepath.Abs("data/" + dataset + "/")
 	io.PGMFToData(cmn, "all.data")
 }
 
@@ -254,8 +254,8 @@ func main() {
 		}
 	}
 
-	in, _ := filepath.Abs("../data/" + dataset + "/compiled")
-	out, _ := filepath.Abs("../results/" + dataset + "/models")
+	in, _ := filepath.Abs("data/" + dataset + "/compiled")
+	out, _ := filepath.Abs("results/" + dataset + "/models")
 
 	if p == 0 {
 		fmt.Printf("Running image completion on dataset %s...\n", dataset)

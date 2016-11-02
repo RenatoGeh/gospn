@@ -4,9 +4,9 @@ import (
 	"container/heap"
 	"math"
 	"sort"
-	//common "github.com/RenatoGeh/gospn/src/common"
-	//utils "github.com/RenatoGeh/gospn/src/utils"
-	metrics "github.com/RenatoGeh/gospn/src/utils/cluster/metrics"
+	//common "github.com/RenatoGeh/gospn/common"
+	//utils "github.com/RenatoGeh/gospn/utils"
+	metrics "github.com/RenatoGeh/gospn/utils/cluster/metrics"
 )
 
 var distance = metrics.Euclidean

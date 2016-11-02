@@ -12,7 +12,7 @@ type VarData struct {
 	Data []int
 }
 
-// Constructs a new VarData. Equivalent to &VarData{varid, categories, data}.
+// NewVarData constructs a new VarData. Equivalent to &VarData{varid, categories, data}.
 func NewVarData(varid, categories int, data []int) *VarData {
 	return &VarData{varid, categories, data}
 }

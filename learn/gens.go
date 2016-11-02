@@ -5,10 +5,10 @@ import (
 	//"math"
 	"sort"
 
-	spn "github.com/RenatoGeh/gospn/src/spn"
-	utils "github.com/RenatoGeh/gospn/src/utils"
-	cluster "github.com/RenatoGeh/gospn/src/utils/cluster"
-	indep "github.com/RenatoGeh/gospn/src/utils/indep"
+	spn "github.com/RenatoGeh/gospn/spn"
+	utils "github.com/RenatoGeh/gospn/utils"
+	cluster "github.com/RenatoGeh/gospn/utils/cluster"
+	indep "github.com/RenatoGeh/gospn/utils/indep"
 )
 
 // Gens Learning Algorithm
@@ -24,12 +24,12 @@ import (
 //
 // For clustering we use k-means clustering. Our implementation can be seen in file:
 //
-// 		/src/utils/cluster/kmeans.go
+// 		/utils/cluster/kmeans.go
 //
 // As for testing the independency between two variables we use the Chi-Square independence test,
 // present in file:
 //
-// 		/src/utils/cluster/indtest.go
+// 		/utils/cluster/indtest.go
 //
 // Function Gens takes as input a matrix of data instances, where the columns are variables and
 // lines are the observed instantiations of each variable.

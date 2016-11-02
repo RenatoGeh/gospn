@@ -1,6 +1,6 @@
 package spn
 
-// A node represents a node in a DAG. There can only be three types of nodes: a univariate
+// Node represents a node in a DAG. There can only be three types of nodes: a univariate
 // distribution node, a sum node and a product node.
 type Node interface {
 	// Node value given a valuation.

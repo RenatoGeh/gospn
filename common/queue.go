@@ -1,9 +1,10 @@
 package common
 
 import (
-	spn "github.com/RenatoGeh/gospn/src/spn"
+	spn "github.com/RenatoGeh/gospn/spn"
 )
 
+// QueueSPN is a queue of spn.SPNs.
 type QueueSPN struct {
 	data []spn.SPN
 }
@@ -40,7 +41,7 @@ func (q *QueueSPN) Empty() bool { return len(q.data) == 0 }
 
 /*************************************************************************************************/
 
-// Queue of BFSPairs.
+// QueueBFSPair is a queue of BFSPairs.
 type QueueBFSPair struct {
 	data []*BFSPair
 }
@@ -77,7 +78,7 @@ func (q *QueueBFSPair) Empty() bool { return len(q.data) == 0 }
 
 /*************************************************************************************************/
 
-// Queue of integers.
+// QueueInteger is a queue of integers.
 type QueueInteger struct {
 	data []int
 }

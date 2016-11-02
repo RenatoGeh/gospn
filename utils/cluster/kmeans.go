@@ -11,8 +11,10 @@ type Distancer interface {
 	Distance(mean float64) float64
 }
 
-// Little hack to allow interface Distancer to allow float64 and []float64.
+// Float is a little hack to allow interface Distancer to allow float64 and []float64.
 type Float float64
+
+// FSlice is a slice of floats.
 type FSlice []float64
 
 // Distance between value Float and a given float64 mean.
@@ -31,7 +33,7 @@ func (v FSlice) Distance(mean float64) float64 {
 	return d * d
 }
 
-func recompute_mean(which int, means []float64, clusters []map[int][]int) {
+func recomputeMean(which int, means []float64, clusters []map[int][]int) {
 	mean, s := 0.0, 0
 	for _, v := range clusters[which] {
 		l := len(v)
@@ -44,6 +46,7 @@ func recompute_mean(which int, means []float64, clusters []map[int][]int) {
 	//fmt.Printf("change cluster(m=%f) size[%d]: %d\n", means[which], which, len(clusters[which]))
 }
 
+// KMeansV does k-means clustering for a slice of values.
 func KMeansV(k int, data [][]int) []map[int][]int {
 	n := len(data)
 
@@ -102,15 +105,15 @@ func KMeansV(k int, data [][]int) []map[int][]int {
 				chkdata[i] = which
 				clusters[which][i] = make([]int, len(data[i]))
 				copy(clusters[which][i], data[i])
-				recompute_mean(which, means, clusters)
+				recomputeMean(which, means, clusters)
 			} else if v != which {
 				// If instance has an earlier attached cluster.
 				delete(clusters[v], i)
 				clusters[which][i] = make([]int, len(data[i]))
 				copy(clusters[which][i], data[i])
 				chkdata[i] = which
-				recompute_mean(which, means, clusters)
-				recompute_mean(v, means, clusters)
+				recomputeMean(which, means, clusters)
+				recomputeMean(v, means, clusters)
 			}
 		}
 
@@ -185,7 +188,7 @@ func KMeans(k int, data []int) []map[int]int {
 		// Recompute means.
 		for i := 0; i < k; i++ {
 			// Iterate over map clusters[i]
-			var m float64 = 0
+			var m float64
 			for _, value := range clusters[i] {
 				m += float64(value)
 			}

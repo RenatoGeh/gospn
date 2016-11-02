@@ -1,10 +1,10 @@
 package common
 
 import (
-	spn "github.com/RenatoGeh/gospn/src/spn"
+	spn "github.com/RenatoGeh/gospn/spn"
 )
 
-// A Stack of SPNs (nodes).
+// StackSPN is a stack of SPNs (nodes).
 type StackSPN struct {
 	data []spn.SPN
 }

@@ -42,17 +42,16 @@ func Union(x, y *UFNode) (*UFNode, int) {
 		y.Pa = x
 		x.Ch = append(x.Ch, y)
 		return x, 1
-	} else {
-		x.Pa = y
-		y.Ch = append(y.Ch, x)
-		if x.rank == y.rank {
-			y.rank++
-		}
-		return y, 2
 	}
+	x.Pa = y
+	y.Ch = append(y.Ch, x)
+	if x.rank == y.rank {
+		y.rank++
+	}
+	return y, 2
 }
 
-// Returns a slice with all varids in union-find tree x.
+// UFVarids returns a slice with all varids in union-find tree x.
 func UFVarids(x *UFNode) []int {
 	n := len(x.Ch)
 

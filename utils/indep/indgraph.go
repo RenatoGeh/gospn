@@ -2,7 +2,7 @@ package indep
 
 import (
 	"fmt"
-	utils "github.com/RenatoGeh/gospn/src/utils"
+	utils "github.com/RenatoGeh/gospn/utils"
 )
 
 /*

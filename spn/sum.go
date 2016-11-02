@@ -3,7 +3,7 @@ package spn
 import (
 	//"fmt"
 
-	utils "github.com/RenatoGeh/gospn/src/utils"
+	utils "github.com/RenatoGeh/gospn/utils"
 )
 
 // Sum represents an SPN sum node.
@@ -25,7 +25,7 @@ func NewSum() *Sum {
 	return s
 }
 
-// Adds a child without adding weight. After this function call you must call AddWeight (or call
+// AddChild adds a child without adding weight. After this function call you must call AddWeight (or call
 // AddChildW instead.
 func (s *Sum) AddChild(c Node) {
 	s.ch = append(s.ch, c)
@@ -33,11 +33,12 @@ func (s *Sum) AddChild(c Node) {
 	s.sc = nil
 }
 
+// AddWeight adds a new weight to the latest added edge.
 func (s *Sum) AddWeight(w float64) {
 	s.w = append(s.w, w)
 }
 
-// AddChild adds a new child to this sum node with a weight w.
+// AddChildW adds a new child to this sum node with a weight w.
 func (s *Sum) AddChildW(c Node, w float64) {
 	s.ch = append(s.ch, c)
 	s.w = append(s.w, w)
@@ -45,7 +46,7 @@ func (s *Sum) AddChildW(c Node, w float64) {
 	s.sc = nil
 }
 
-// Sets the parent node.
+// SetParent sets the parent node.
 func (s *Sum) SetParent(pa Node) { s.pa = pa }
 
 // Ch returns the set of children nodes.
@@ -67,7 +68,7 @@ func (s *Sum) Sc() []int {
 	return s.sc
 }
 
-// Returns weights.
+// Weights returns weights.
 func (s *Sum) Weights() []float64 { return s.w }
 
 // Value returns the value of this SPN given a set of valuations.
@@ -111,7 +112,7 @@ func (s *Sum) Max(valuation VarSet) float64 {
 // ArgMax returns both the arguments and the value of the MAP state given a certain valuation.
 func (s *Sum) ArgMax(valuation VarSet) (VarSet, float64) {
 	n, max := len(s.ch), utils.Inf(-1)
-	var mch Node = nil
+	var mch Node
 
 	// Since a sum node must be complete, there can never be a leaf adjacent to a sum node, as that
 	// would imply that all its children would also have to be leaves with the same scope as each

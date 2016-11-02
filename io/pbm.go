@@ -5,17 +5,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 
-	common "github.com/RenatoGeh/gospn/src/common"
-	spn "github.com/RenatoGeh/gospn/src/spn"
-	utils "github.com/RenatoGeh/gospn/src/utils"
+	common "github.com/RenatoGeh/gospn/common"
+	spn "github.com/RenatoGeh/gospn/spn"
+	utils "github.com/RenatoGeh/gospn/utils"
 )
 
-// PGMFToData (PGM Folder to Data file). Each class is in a subfolder of dirname. dname is the
+// PBMFToData (PBM Folder to Data file). Each class is in a subfolder of dirname. dname is the
 // output file. Arg dirname must be an absolute path. Arg dname must be the filename only.
-func PGMFToData(dirname, dname string) (int, int, int) {
+func PBMFToData(dirname, dname string) {
 	sdir, err := os.Open(dirname)
 
 	if err != nil {
@@ -117,20 +115,17 @@ func PGMFToData(dirname, dname string) (int, int, int) {
 	}
 	defer out.Close()
 
-	// Deal with magical number.
+	// Deal with P1.
 	instreams[0].Scan()
 
-	// Read width, height and max value.
-	w, h, max := -1, -1, -1
+	// Read width and height.
+	w, h := -1, -1
 	instreams[0].Scan()
 	fmt.Sscanf(instreams[0].Text(), "%d %d", &w, &h)
-	instreams[0].Scan()
-	fmt.Sscanf(instreams[0].Text(), "%d", &max)
 
 	nin := len(instreams)
 	// Move stream pointer to the right position.
 	for i := 1; i < nin; i++ {
-		instreams[i].Scan()
 		instreams[i].Scan()
 		instreams[i].Scan()
 	}
@@ -138,32 +133,110 @@ func PGMFToData(dirname, dname string) (int, int, int) {
 	// Declare variables to data file.
 	tt := w * h
 	for i := 0; i < tt; i++ {
-		fmt.Fprintf(out, "var %d %d\n", i, max+1)
+		fmt.Fprintf(out, "var %d 2\n", i)
 	}
 	fmt.Fprintf(out, "var %d %d\n", tt, nsdirs)
 
 	for i := 0; i < nin; i++ {
 		stream := instreams[i]
+
 		for stream.Scan() {
 			line := stream.Text()
-			tokens := strings.Split(line, " ")
-			ntokens := len(tokens)
-			for j := 0; j < ntokens; j++ {
-				tkn, err := strconv.Atoi(tokens[j])
-				if err == nil {
-					fmt.Fprintf(out, "%d ", tkn)
-				}
+			nline := len(line)
+			for j := 0; j < nline; j++ {
+				fmt.Fprintf(out, "%c ", line[j])
 			}
 		}
 
 		fmt.Fprintf(out, "%d\n", labels[i])
 	}
-
-	return w, h, max
 }
 
-// PGMFToEvidence (PGM file to evidence).
-func PGMFToEvidence(dirname, dname string) (int, int, int) {
+// PBMToData (PBM to Data file). If class is true, it's a classifying problem and will label as
+// class.
+func PBMToData(dirname, dname string, class int) {
+	dir, err := os.Open(dirname)
+
+	if err != nil {
+		fmt.Printf("Error. Could not open directory [%s].\n", dirname)
+		panic(err)
+	}
+	defer dir.Close()
+
+	filenames, err := dir.Readdirnames(-1)
+
+	if err != nil {
+		fmt.Printf("Error. Could not extract filenames from directory [%s].\n", dirname)
+		panic(err)
+	}
+
+	in := make([]*os.File, len(filenames))
+	nin := len(in)
+	instream := make([]*bufio.Scanner, nin)
+
+	tdir := utils.StringConcat(dirname, "/")
+	for i := 0; i < nin; i++ {
+		inname := utils.StringConcat(tdir, filenames[i])
+		in[i], err = os.Open(inname)
+
+		if err != nil {
+			fmt.Printf("Error. Could not open file [%s]\n", inname)
+			panic(err)
+		}
+		defer in[i].Close()
+
+		instream[i] = bufio.NewScanner(in[i])
+	}
+
+	out, err := os.Create(dname)
+
+	if err != nil {
+		fmt.Printf("Error. Could not create file [%s].\n", dname)
+		panic(err)
+	}
+	defer out.Close()
+
+	// Deal with P1.
+	instream[0].Scan()
+
+	// Read width and height.
+	w, h := -1, -1
+	instream[0].Scan()
+	fmt.Sscanf(instream[0].Text(), "%d %d", &w, &h)
+
+	// Move stream pointer to the right position.
+	for i := 1; i < nin; i++ {
+		instream[i].Scan()
+		instream[i].Scan()
+	}
+
+	// Declare variables to data file.
+	tt := w * h
+	for i := 0; i < tt; i++ {
+		fmt.Fprintf(out, "var %d 2\n", i)
+	}
+
+	for i := 0; i < nin; i++ {
+		stream := instream[i]
+
+		for stream.Scan() {
+			line := stream.Text()
+			nline := len(line)
+			for j := 0; j < nline; j++ {
+				fmt.Fprintf(out, "%c ", line[j])
+			}
+		}
+
+		if class > 0 {
+			fmt.Fprintf(out, "%d\n", class)
+		} else {
+			fmt.Fprintf(out, "\n")
+		}
+	}
+}
+
+// PBMFToEvidence (PBM file to evidence).
+func PBMFToEvidence(dirname, dname string) {
 	sdir, err := os.Open(dirname)
 
 	if err != nil {
@@ -264,20 +337,17 @@ func PGMFToEvidence(dirname, dname string) (int, int, int) {
 	}
 	defer out.Close()
 
-	// Deal with magical number.
+	// Deal with P1.
 	instreams[0].Scan()
 
-	// Read width, height and max value.
-	w, h, max := -1, -1, -1
+	// Read width and height.
+	w, h := -1, -1
 	instreams[0].Scan()
 	fmt.Sscanf(instreams[0].Text(), "%d %d", &w, &h)
-	instreams[0].Scan()
-	fmt.Sscanf(instreams[0].Text(), "%d", &max)
 
 	nin := len(instreams)
 	// Move stream pointer to the right position.
 	for i := 1; i < nin; i++ {
-		instreams[i].Scan()
 		instreams[i].Scan()
 		instreams[i].Scan()
 	}
@@ -295,7 +365,7 @@ func PGMFToEvidence(dirname, dname string) (int, int, int) {
 	// Declare variables to data file.
 	tt := w * h
 	for i := 0; i < tt; i++ {
-		fmt.Fprintf(out, "var %d %d\n", i, max+1)
+		fmt.Fprintf(out, "var %d 2\n", i)
 	}
 
 	for i := 0; i < nin; i++ {
@@ -303,22 +373,18 @@ func PGMFToEvidence(dirname, dname string) (int, int, int) {
 
 		for stream.Scan() {
 			line := stream.Text()
-			tokens := strings.Split(line, " ")
-			ntokens := len(tokens)
-			for j := 0; j < ntokens; j++ {
-				tkn, _ := strconv.Atoi(tokens[j])
-				fmt.Fprintf(out, "%d ", tkn)
+			nline := len(line)
+			for j := 0; j < nline; j++ {
+				fmt.Fprintf(out, "%c ", line[j])
 			}
 		}
 
 		fmt.Fprintf(out, "\n")
 	}
-
-	return w, h, max
 }
 
-// VarSetToPGM takes a state and draws according to the SPN that generated the instantiation.
-func VarSetToPGM(filename string, state spn.VarSet, w, h, max int) {
+// VarSetToPBM takes a state and draws according to the SPN that generated the instantiation.
+func VarSetToPBM(filename string, state spn.VarSet, w, h int) {
 	file, err := os.Create(filename)
 	if err != nil {
 		fmt.Printf("Could not create file [%s].\n", filename)
@@ -326,7 +392,7 @@ func VarSetToPGM(filename string, state spn.VarSet, w, h, max int) {
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "P2\n%d %d\n%d\n", w, h, max)
+	fmt.Fprintf(file, "P1\n%d %d\n", w, h)
 
 	n := len(state)
 	pixels := make([]int, n)
@@ -342,9 +408,9 @@ func VarSetToPGM(filename string, state spn.VarSet, w, h, max int) {
 	}
 }
 
-// ImgCmplToPGM creates a new file distinguishing the original part of the image from the
+// ImgCmplToPPM creates a new file distinguishing the original part of the image from the
 // completion done by the SPN and indicated by typ.
-func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h, max int) {
+func ImgCmplToPPM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h int) {
 	file, err := os.Create(filename)
 	if err != nil {
 		fmt.Printf("Could not create file [%s].\n", filename)
@@ -366,7 +432,7 @@ func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h, ma
 		}
 	}
 
-	fmt.Fprintf(file, "P3\n%d %d\n%d\n", w, h, max)
+	fmt.Fprintf(file, "P3\n%d %d\n255\n", w, h)
 
 	n, j := w*h, 0
 	for i := 0; i < n; i++ {
@@ -374,10 +440,18 @@ func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h, ma
 			common.DrawColor(file, common.Red)
 			goto cleanup
 		} else if v, eo := orig[j]; eo {
-			common.DrawColorRGB(file, v, v, v)
+			if v == 1 {
+				common.DrawColor(file, common.Blue)
+			} else {
+				common.DrawColor(file, common.White)
+			}
 		} else {
 			u, _ := cmpl[j]
-			common.DrawColorRGB(file, 0, u, 0)
+			if u == 1 {
+				common.DrawColor(file, common.Green)
+			} else {
+				common.DrawColor(file, common.White)
+			}
 		}
 		j++
 	cleanup:
