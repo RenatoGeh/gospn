@@ -3,6 +3,7 @@ GoSPN
 
 [![Build Status](https://travis-ci.org/RenatoGeh/gospn.svg?branch=master)](https://travis-ci.org/RenatoGeh/gospn)
 [![Go Report Card](https://goreportcard.com/badge/github.com/renatogeh/gospn)](https://goreportcard.com/report/github.com/renatogeh/gospn)
+[![GoDoc](https://godoc.org/github.com/RenatoGeh/gospn?status.svg)](https://godoc.org/github.com/RenatoGeh/gospn)
 
 ![](./gospnpher.png "My crude attempt at drawing Renee French's Go Gopher.")
 
@@ -393,43 +394,7 @@ the documentation present in this repository under directory `/doc`.
 
 #### Code
 
-Source code for GoSPN is organized in Go packages. Each Go package is a
-component of GoSPN's main package:
-
-* `common`: contains the usual "common" data structures, such as pairs,
-  queues and stacks.
-* `io`: contains Input/Output code. Namely evidence/data parsing and
-  graph drawing.
-* `learn`: contains learning algorithms.
-* `spn`: code that encapsulates the structure of SPNs (nodes and
-  MAP, evidence inference).
-* `utils`: algorithms that deserve their own package (e.g. clustering
-  and independency tests)
-
-For more information on each source file, generate a `godoc` doc page.
-
-```
-# Creates a server with all the documentation at localhost:6060.
-$ godoc -http=:6060
-# Replace chromium with your favorite browser.
-$ chromium 127.0.0.1:6060/pkg/github.com/RenatoGeh/gospn
-```
-
-If `godoc` is not installed, install it. For Arch Linux:
-
-```
-$ pacman -S go-tools
-```
-
-Linux distributions that contain a package manager should have similar
-package names (e.g. golang-tools for Debian/Ubuntu). If that doesn't
-work:
-
-```
-$ sudo -E go get golang.org/x/tools/cmd/godoc
-```
-
-For more information on `godoc` <http://godoc.org/golang.org/x/tools/cmd/godoc>.
+Code documentation can be found at <https://godoc.org/github.com/RenatoGeh/gospn>.
 
 #### Documentation
 
