@@ -20,6 +20,7 @@
 \usepackage{tikz}
 \usepackage{hyperref}
 \usepackage{subcaption}
+\usepackage{booktabs}
 \usetikzlibrary{snakes,arrows,shapes}
 
 \addbibresource{references.bib}
@@ -574,7 +575,96 @@ $\alpha(n)$ as a constant, giving the final amortized complexity of
 Before we analyze \code{IndepGraph}, we need to review our previous assumption that a certain
 independence oracle $\Omega$ returns, in $\bigo(1)$, whether two variables are independent of each
 other given data. We will now show two independence tests we used for our implementation. The first
-is the standard Chi-Square independence test and the second is the G-test.
+is the standard Pearson's chi-square independence test and the second is the G-test. Both of these
+tests use the chi-square distribution. In our implementation we provide two options for computing
+the cumulative probability function (CDF) of a chi-square distribution of $k$ degrees of freedom.
+One is based on the GNU Scientific Library (GSL) written in C, and the other is a Go implementation
+that calls Go's gamma function implementation. To simplify our analysis, we assume both of these
+implementations have same execution time $T(x)$. Furthermore, it is widely known that Pearson's and
+G-test's have same asymptotic time. In this paper we will assume all independence tests were run
+using the G-test. Therefore, when we refer to an ``independence test'' or ``oracle'', we mean we
+use a G-test to infer the dependency relation between two variables.
+
+We shall call our independence test an \code{Oracle}. Our implementation is defined in pseudo-code
+as~\autoref{alg:oracle}. Let $X$ be a variable and $\set{D}$ be the dataset. We shall call
+$\Val(X)$ the possible valuations of $X$. That is, if we had a variable $Animal$ and we were only
+considering cats and dogs, we would then say that the possible valuations of $Animal$ is defined
+by the set $\Val(Animal)=\{Cat, Dog\}$. Let $\set{V}$ be the set of variables in our local scope,
+and $\set{v}$ be the set of instantiations of $\set{V}$. Let us denote the cartesian product
+$\underbrace{\set{v}\times\cdots\times\set{v}}_n$ as $\set{v}^n$, and $N:\set{v}^n\to
+\mathbb{Z^*}$, where $N$ is a function that takes a set of valuations $\set{v}$ and returns the
+number of instantiations that are consistent with $\set{v}$ in $\set{D}$. For instance, take our
+previous example where we have two possible valuations for $Animal$: $Cat$ and $Dog$. Suppose our
+$D$ shows we have three cats and four dogs in our data. Then $N[Animal=Cat]=3$ and
+$N[Animal=Dog]=4$. If we had a second variable $Behavior$ with $\Val(Behavior)=\{Agitated, Calm\}$,
+and $D$ showed:
+
+\begin{tabular}{l l}
+  \textbf{Animal} & \textbf{Behavior}\\
+  \midrule
+  Dog    & Agitated\\
+  Cat    & Calm\\
+  Cat    & Agitated\\
+  Dog    & Agitated\\
+  Cat    & Calm\\
+  Dog    & Calm\\
+  Dog    & Agitated\\
+\end{tabular}
+
+We could say that $N[Animal=Cat, Behavior=Calm]=2/3$. \autoref{alg:oracle} builds a contingency
+table from data $D$, computing the $N$ counts of each possible instantiations of the two
+populations. We call these counts the observed frequencies. We then compute the expected
+frequencies from the ratios of the totals. Next we compute $G=2\sum_i O_i\cdot\ln\left(
+\frac{O_i}{E_i}\right)$, find the CDF of $G$ in the corresponding chi-square distribution and
+compare with a certain significance value. If the area found on the chi-square distribution is
+less than the significance value, than we can, under the null hypothesis, reject the fact that
+they are independent.
+
+Let $A$ be an $m\times n$ matrix with elements denoted by $a_{ij}$. We shall use the notation
+$A[i:j][p:q]$ as the submatrix derived from taking the columns $[a_{ip},\dots,a_{iq}]$, $\ldots$,
+$[a_{jp}\ldots,a_{jq}]$ from $A$. To simplify our algorithm, we assume $\Val(X)$ is an ordered set
+and is indexed from $1$.
+
+\begin{algorithm}[H]
+  \caption{\code{Oracle}}\label{alg:oracle}
+  \begin{algorithmic}[1]
+    \Require\,Variables $X$ and $Y$
+    \Require\,Dataset $D$
+    \Ensure\,Returns the result of the evaluation $X\perp Y$
+    \State\,Let $p=|\Val(X)|$ and $q=|\Val(Y)|$
+    \State\,Let $C$ be a $(p+1)\times(q+1)$ matrix
+    \State\,Let $C^*$ be the submatrix $C[1:p][1:q]$
+    \For{$i\gets 1$ to $p$}
+      \State\,$\nu_X\gets\Val(X)[i]$
+      \For{$j\gets 1$ to $q$}
+        \State\,$\nu_Y\gets\Val(Y)[j]$
+        \State\,$c_{ij} \gets N[X=\nu_X,Y=\nu_Y]$
+        \State\,$c_{(p+1,j)}\gets N[Y=\nu_Y]$
+      \EndFor%
+      \State\,$c_{(i,q+1)}\gets N[X=\nu_X]$
+    \EndFor%
+    \State\,$c_{(p+1,q+1)}\gets N[X=\cdot,Y=\cdot]$\Comment{Total number of instances}
+    \State\,$E_{ij} = \frac{c_{(p+1,j)}c_{(i,q+1)}}{c_{(p+1,q+1)}}$, for $i=1,\ldots,p$ and
+      $j=1,\ldots,q$
+    \State\,$g\gets\sum_{i=1}^p\sum_{j=1}^q c_{ij}*\ln\left(\frac{c_{ij}}{E_{ij}}\right)$
+    \State\,Let $F$ be the CDF for $\chi^2((p-1)\cdot(q-1))$, and $\sigma$ be the significance
+      value \State\,\textbf{return} $F(g) \geq \sigma$
+  \end{algorithmic}
+\end{algorithm}
+
+\autoref{alg:oracle} has time $\bigo(|Val(X)|\cdot|Val(Y)| + T(m))$. If we consider a series of
+\code{Oracle} operations on all variables, we can conclude that our worst time asymptotically would
+be $\bigo(m^2+T(m))$, where $m=\max |Val(V)|$. Going back to~\autoref{alg:indepgraph}, we now have
+that our independence oracle no longer takes time $\bigo(1)$. In fact, our \code{IndepGraph}
+routine has time
+\begin{equation*}
+  n^2\cdot(m^2 T(m))+\frac{n(n-1)}{2}\log_2^*n
+\end{equation*}
+where $n=|\set{V}|$. Let us assume, for simplicity, that $\bigo(T(x))=\bigo(1)$. The asymptotic
+time is then
+\begin{equation*}
+  \bigo(n^2m^2 + \frac{n(n-1)}{2}\log_2^*n) = \bigo(n^2m^2 + n^2) = \bigo(n^2m^2)
+\end{equation*}
 
 %--------------------------------------------------------------------------------------------------
 
