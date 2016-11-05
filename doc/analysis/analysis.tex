@@ -574,13 +574,14 @@ $\alpha(n)$ as a constant, giving the final amortized complexity of
 
 Before we analyze \code{IndepGraph}, we need to review our previous assumption that a certain
 independence oracle $\Omega$ returns, in $\bigo(1)$, whether two variables are independent of each
-other given data. We will now show two independence tests we used for our implementation. The first
+other given data. We will now show the independence test we used for our implementation. We have
+implemented two independence tests, however we shall only describe one in our analysis. The first
 is the standard Pearson's chi-square independence test and the second is the G-test. Both of these
 tests use the chi-square distribution. In our implementation we provide two options for computing
 the cumulative probability function (CDF) of a chi-square distribution of $k$ degrees of freedom.
 One is based on the GNU Scientific Library (GSL) written in C, and the other is a Go implementation
 that calls Go's gamma function implementation. To simplify our analysis, we assume both of these
-implementations have same execution time $T(x)$. Furthermore, it is widely known that Pearson's and
+implementations have same execution time $T(n)$. Furthermore, it is widely known that Pearson's and
 G-test's have same asymptotic time. In this paper we will assume all independence tests were run
 using the G-test. Therefore, when we refer to an ``independence test'' or ``oracle'', we mean we
 use a G-test to infer the dependency relation between two variables.
@@ -624,7 +625,6 @@ Let $A$ be an $m\times n$ matrix with elements denoted by $a_{ij}$. We shall use
 $A[i:j][p:q]$ as the submatrix derived from taking the columns $[a_{ip},\dots,a_{iq}]$, $\ldots$,
 $[a_{jp}\ldots,a_{jq}]$ from $A$. To simplify our algorithm, we assume $\Val(X)$ is an ordered set
 and is indexed from $1$.
-
 \begin{algorithm}[H]
   \caption{\code{Oracle}}\label{alg:oracle}
   \begin{algorithmic}[1]
@@ -665,6 +665,45 @@ time is then
 \begin{equation*}
   \bigo(n^2m^2 + \frac{n(n-1)}{2}\log_2^*n) = \bigo(n^2m^2 + n^2) = \bigo(n^2m^2)
 \end{equation*}
+Our implementation is extremely slow when $n$ and $m$ are moderately large. On some experiments we
+shall mention later, we dealt with $n=2576$ and $m=8$. Running \code{IndepGraph} became
+impractical. We can improve the runtime of \code{IndepGraph} using a heuristic based on Union-Find.
+The idea of the heuristic is to avoid evaluating edges that do not change the complete subgraphs in
+representability.
+
+\begin{definition}[Minimal Independence Graph] Let $I=(\set{V},\set{E})$ be an independence graph
+  and $S=(\set{V},\set{E}')$ an undirected graph. Let $\set{H}$ be the set of connected subgraphs
+  in $I$ and $\set{Z}$ be the set of connected subgraphs of $S$. $S$ is a minimal (independence
+  graph) of $I$ if for every $H\in\set{H}$ with vertex set $\set{V}_H$, there exists one and only
+  one $Z\in\set{Z}$, and $Z$ is a spanning tree of $H$.
+\end{definition}
+
+\begin{definition}[Representability] Let $G=(\set{V},\set{E})$ and $H=(\set{V},\set{E}')$ be
+  undirected graphs. Let $R(X,Y,G)$ be a function that takes two variables $X$ and $Y$, and an
+  undirected graph $G$ and returns whether $X$ is reachable from $Y$. $G$ is as representable as
+  $H$ if, for every pair of vertices $X,Y \in\set{V}$, $R(X,Y,G)=R(X,Y,H)$.
+\end{definition}
+
+\begin{theorem} Let $I$ be an independence graph and $S$ be its minimal independence graph. $I$ is
+  as representable as $S$.
+\end{theorem}
+\begin{proof}
+  Let $\set{H}$ and $\set{Z}$ be the set of connected subgraphs of $I$ and $S$ respectively. To
+  prove $I$ is as representable as $S$ we must prove that, for every $H\in\set{H}$ and its
+  equivalent spanning tree $Z\in\set{Z}$, $R(X,Y,H)=R(X,Y,Z)$. This condition suffices because the
+  case of $X$ and $Y$ not being in the same connected subgraph is already defined as non-reachable
+  from the definition of connected subgraphs. Since $Z$ is a spanning tree of $H$, from the
+  definition of spanning tree, we know that there exists a path from $X$ to $Y$ if they are both in
+  $Z$, which is also true in the case of $H$. If $X$ is not reachable from $Y$, then $X$ and $Y$
+  are in different connected subgraphs, in which case $R(X,Y,H)=R(X,Y,Z)=$ \texttt{false}.
+\end{proof}
+
+\begin{definition}[Irrelevant Edge] Let $I=(\set{V},\set{E})$ be an independence graph and
+  $S=(\set{V},\set{E}')$ be a minimal independence graph of $I$. An edge $e_{ij}\in\set{E}$
+  connecting vertices $i,j\in\set{V}$ is an irrelevant edge wrt $S$ if $e_{ij}\not\in\set{E}'$.
+\end{definition}
+
+We want to find minimal independence graphs, instead of a full independence graph.
 
 %--------------------------------------------------------------------------------------------------
 
