@@ -141,7 +141,7 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 	cond := sync.NewCond(&sync.Mutex{})
 	cpmutex := &sync.Mutex{}
 
-	for i := 0; i < nprocs; i++ {
+	for i := 0; i < ndata; i++ {
 		cond.L.Lock()
 		for nrun >= nprocs {
 			cond.Wait()

@@ -8,18 +8,18 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +32 learn/gens.go
-badd +217 main.go
+badd +15 main.go
 badd +14 io/input.go
 badd +107 io/output.go
 badd +54 utils/unionfind.go
 badd +63 spn/sum.go
 badd +118 spn/product.go
-badd +150 spn/univdist.go
+badd +148 spn/univdist.go
 badd +28 spn/node.go
 badd +2 spn/varset.go
 badd +57 utils/log.go
 badd +15 utils/vardata.go
-badd +236 utils/indep/indgraph.go
+badd +264 utils/indep/indgraph.go
 badd +5 utils/indep/fisher.go
 badd +35 utils/cluster/dbscan.go
 badd +191 utils/cluster/kmeans.go
@@ -95,7 +95,7 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 30 - ((29 * winheight(0) + 14) / 29)
+let s:l = 30 - ((28 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
@@ -322,12 +322,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 189 - ((38 * winheight(0) + 29) / 58)
+let s:l = 144 - ((26 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-189
-normal! 0
+144
+normal! 023|
 wincmd w
 argglobal
 edit io/input.go
