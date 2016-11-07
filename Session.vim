@@ -161,9 +161,9 @@ set nosplitright
 wincmd t
 set winheight=1 winwidth=1
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe '2resize ' . ((&lines * 29 + 30) / 61)
+exe '2resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
-exe '3resize ' . ((&lines * 28 + 30) / 61)
+exe '3resize ' . ((&lines * 29 + 30) / 61)
 exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
 argglobal
 setlocal fdm=manual
@@ -193,7 +193,7 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 360 - ((4 * winheight(0) + 14) / 29)
+let s:l = 360 - ((4 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
@@ -211,18 +211,17 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 16 - ((0 * winheight(0) + 14) / 28)
+let s:l = 48 - ((24 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-16
-normal! 03|
+48
+normal! 0
 wincmd w
-3wincmd w
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe '2resize ' . ((&lines * 29 + 30) / 61)
+exe '2resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
-exe '3resize ' . ((&lines * 28 + 30) / 61)
+exe '3resize ' . ((&lines * 29 + 30) / 61)
 exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
 tabedit common/stack.go
 set splitbelow splitright
@@ -449,7 +448,7 @@ exe s:l
 normal! zt
 9
 normal! 0
-tabnext 2
+tabnext 4
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
 endif
