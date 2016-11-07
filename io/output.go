@@ -209,3 +209,45 @@ func DrawGraph(filename string, s spn.SPN) {
 
 	fmt.Fprintf(file, "}")
 }
+
+// WriteToFile writes an SPN to a file.
+func WriteToFile(filename string, s spn.SPN) {
+	file, err := os.Create(filename)
+
+	if err != nil {
+		fmt.Printf("Error. Could not create file [%s].\n", filename)
+		panic(err)
+	}
+	defer file.Close()
+
+	stack := common.StackSPN{}
+	stack.Push(s)
+	for !stack.Empty() {
+		c := stack.Pop()
+		if c.Type() == "leaf" {
+			id, pr := c.Data()
+			n := len(pr)
+			fmt.Fprintf(file, "L %d %d", id, n)
+			for i := 0; i < n; i++ {
+				fmt.Fprintf(file, " %.5f", pr[i])
+			}
+			fmt.Fprintf(file, "\n")
+		} else if c.Type() == "sum" {
+			ch, w := c.Ch(), c.Weights()
+			n := len(ch)
+			fmt.Fprintf(file, "S %d", n)
+			for i := 0; i < n; i++ {
+				fmt.Fprintf(file, " %.5f", w[i])
+				stack.Push(ch[i])
+			}
+			fmt.Fprintf(file, "\n")
+		} else {
+			ch := c.Ch()
+			n := len(ch)
+			fmt.Fprintf(file, "P %d\n", n)
+			for i := 0; i < n; i++ {
+				stack.Push(ch[i])
+			}
+		}
+	}
+}

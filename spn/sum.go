@@ -96,7 +96,7 @@ func (s *Sum) Value(valuation VarSet) float64 {
 
 // Max returns the MAP state given a valuation.
 func (s *Sum) Max(valuation VarSet) float64 {
-	var max float64 = utils.Inf(-1)
+	var max = utils.Inf(-1)
 	n := len(s.ch)
 
 	for i := 0; i < n; i++ {
@@ -132,4 +132,9 @@ func (s *Sum) ArgMax(valuation VarSet) (VarSet, float64) {
 	set, _ := mch.ArgMax(valuation)
 	//fmt.Printf("Sum: %f, %v\n", utils.AntiLog(max), set)
 	return set, max
+}
+
+// Data for a sum node is the number of children and weights.
+func (s *Sum) Data() (int, []float64) {
+	return len(s.ch), s.w
 }

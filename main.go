@@ -12,6 +12,7 @@ import (
 	learn "github.com/RenatoGeh/gospn/learn"
 	spn "github.com/RenatoGeh/gospn/spn"
 	utils "github.com/RenatoGeh/gospn/utils"
+	profile "github.com/pkg/profile"
 )
 
 const dataset = "olivetti_3bit"
@@ -140,7 +141,7 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 	cond := sync.NewCond(&sync.Mutex{})
 	cpmutex := &sync.Mutex{}
 
-	for i := 0; i < ndata; i++ {
+	for i := 0; i < nprocs; i++ {
 		cond.L.Lock()
 		for nrun >= nprocs {
 			cond.Wait()
@@ -212,6 +213,8 @@ func main() {
 	iterations := 1
 	concurrents := -1
 	var err error
+
+	defer profile.Start().Stop()
 
 	if len(os.Args) > 5 {
 		concurrents, err = strconv.Atoi(os.Args[5])

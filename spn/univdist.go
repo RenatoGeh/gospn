@@ -146,3 +146,9 @@ func (ud *UnivDist) ArgMax(valuation VarSet) (VarSet, float64) {
 	retval[ud.varid] = ud.mode.index
 	return retval, utils.Log(ud.mode.val)
 }
+
+// Data is a pair (varid, pr) where varid is the variable ID and pr is the probability
+// distribution.
+func (ud *UnivDist) Data() (int, []float64) {
+	return ud.varid, ud.pr
+}

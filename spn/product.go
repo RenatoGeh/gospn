@@ -114,3 +114,8 @@ func (p *Product) ArgMax(valuation VarSet) (VarSet, float64) {
 	//fmt.Printf("Product: %f %v\n", utils.AntiLog(v), argmax)
 	return argmax, v
 }
+
+// Data for a product node is the number of children.
+func (p *Product) Data() (int, []float64) {
+	return len(p.ch), nil
+}
