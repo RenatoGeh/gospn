@@ -412,3 +412,13 @@ There are two submodules under `/doc`:
   detailed document on SPNs.
 * `/doc/code`: is a detailed documentation on the code. It contains only
   the implementational aspect of GoSPN.
+
+#### Datasets
+
+We use the following datasets:
+
+* Olivetti Faces Dataset by AT&T Laboratories Cambridge
+* Caltech101: L. Fei-Fei, R. Fergus and P. Perona. *Learning generative visual models
+  from few training examples: an incremental Bayesian approach tested on
+  101 object categories.* IEEE. CVPR 2004, Workshop on Generative-Model
+  Based Vision. 2004
