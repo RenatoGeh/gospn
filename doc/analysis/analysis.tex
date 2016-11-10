@@ -130,17 +130,18 @@
 A Sum-Product Network (SPN) is a probabilistic graphical model that represents a tractable
 distribution of probability. If an SPN is valid, then we can perform exact inference in time linear
 to the graph's edges. Its syntax is different to other conventional models (read bayesian and
-markov networks) in the sense that its graph does not explicitly model events and (in) dependencies
-between variables. That is, whilst variables in a bayesian network are represented as nodes in the
-graph, with each edge connecting two nodes asserting a dependency relationship between the
-connected variables, a node in an SPN may not necessarily represent a variable or event, neither an
-edge connecting two nodes represent dependence. In this sense, SPNs can be seen as a type of
-probabilistic Artificial Neural Network (ANN). However, whilst neural networks represent a
-function, SPNs model a tractable probability distribution. Furthermore, SPNs are distinct from
-standard neural networks seeing that, whereas ANNs have only one type of neuron with an activation
-function mapping to values in $[0,1]$, SPNs have two kind of neurons, which we will see in the next
-sections. Still, SPNs retain certain important characteristics from ANNs as we will discuss later,
-with mainly its deep structure properties~\cite{shallow-vs-deep} as the most interesting feature.
+markov networks) in the sense that its graph does not explicitly model events and
+(in)\,dependencies between variables. That is, whilst variables in a bayesian network are
+represented as nodes in the graph, with each edge connecting two nodes asserting a dependency
+relationship between the connected variables, a node in an SPN may not necessarily represent a
+variable or event, neither an edge connecting two nodes represent dependence. In this sense, SPNs
+can be seen as a type of probabilistic Artificial Neural Network (ANN). However, whilst neural
+networks represent a function, SPNs model a tractable probability distribution. Furthermore, SPNs
+are distinct from standard neural networks seeing that, whereas ANNs have only one type of neuron
+with an activation function mapping to values in $[0,1]$, SPNs have two kinds of neurons, which we
+will see in the next sections. Still, SPNs retain certain important characteristics from ANNs as we
+will discuss later, with mainly its deep structure properties~\cite{shallow-vs-deep} as the most
+interesting feature.
 
 The Gens-Domingos Schema~\cite{gens-domingos}, or \code{LearnGD} as we will reference it throughout
 this paper, is an SPN structural learning algorithm proposed by Robert Gens and Pedro Domingos.
@@ -149,14 +150,14 @@ be like. We will discuss \code{LearnGD} in details in the next section. This pap
 particular implementation of the GD schema. Other implementations may have different results.
 
 In this document, we show how we implemented the \code{LearnGD} algorithm. We analyze the
-complexity of each algorithm component in detail, later referring to such analyzes when drawing
+complexity of each algorithm component in detail, later referring to such analyses when drawing
 conclusions on the overall complexity of the algorithm. As we have mentioned before, since the
-\code{LearnGD} schema depends heavily on implementation, the complexity we achieve in this
+\code{LearnGD} schema heavily depends on implementation, the complexity we achieve in this
 particular case may differ from other implementations. After each analysis, we then look at the
-algorithm as whole, drawing conclusions on time and memory usage, as well as implementation details
-that could potentially decrease the algorithm runtime. We also comment on how to implement better
-concurrency then how it is currently coded in our implementation. We then show some results on
-experiments made on image classification and image completion.
+algorithm as a whole, drawing conclusions on time and memory usage, as well as implementation
+details that could potentially decrease the algorithm runtime. We also comment on how to implement
+better concurrency then how it is currently coded in our implementation. We then show some results
+on experiments made on image classification and image completion.
 
 \section{Sum-Product Networks}
 
@@ -796,7 +797,40 @@ no edges in $G$. When that happens, we have
   \bigo(n + n^2\cdot m^2 + n) = \bigo(n^2 m^2).
 \end{equation*}
 Which is the same time for \code{IndepGraph}. However, the Union-Find heuristic decreases time
-significantly in the general case.
+significantly in the general case. In fact, if we analyse the best case for \code{IndepGraph}, we
+find that the complexity for such instance is $\Omega(n^2 m^2)$, which in turn gives us a tight
+bound $\Theta(n^2 m^2)$ on our algorithm with no heuristics. If we examine \code{IndepGraphUF}
+however, we find that our best case is much faster and occurs when our graph is fully connected.
+
+Consider the graph $G$ in~\autoref{alg:indepgraphuf}. At the point of Invariant 1, $G$ has no edges
+and thus all vertices are disjoint sets. At each iteration of vertices $X,Y$ such that $X\neq Y$,
+we check if they are in the same set. Assuming \code{Find} to compute the set representative in
+constant time, we can find whether the two vertices are in the same set in time $\bigo(1)$. On the
+first iteration we have, from Invariant 1, that they are not in the same set, possibly causing a
+new edge to be created. This takes time $\bigo(m^2)$ because of \code{Oracle} (note we are
+assuming \code{Union} to run in constant time). Next we decide, from the result of \code{Oracle},
+whether we add a new edge or not. If we decide not to add a new edge, we will eventually have to
+pass through the two vertices multiple more times in order to test their independency with other
+vertices. If we decide to add a new edge $e_{XY}$, we will only look to one of them instead (their
+representative).  Therefore we shall consider $e_{XY}$ to have been created. The next step checks
+another pair of vertices. The best case occurs when the pair of vertices being tested are $X, Z$,
+where $X$ is one of the vertices that have already been already tested and added to the set. Under
+the same hypothesis as with the previous pair, we add a new edge $e_{XZ}$ and add $Z$ to the set of
+$X$. This gives us a cost of $\bigo(m^2)$. If we keep this same routine with all vertices in $G$,
+we have that the final cost of all operations is the sum of each of these $\bigo(m^2)$ costs, which
+means our best case is given by $\Omega(n\cdot m^2)$, which is better than \code{IndepGraph}.
+
+Since finding a minimal independence graph is sufficient to our uses, we shall refer to an
+independence graph as one of its minimal. For this reason, we shall always use \code{IndepGraphUF}
+instead of \code{indepGraph}. A brief analysis of the memory usage in \code{IndepGraphUF} gives us
+a linear amount of memory used. Suppose each vertex uses a single unit of memory. We never create
+more units except when we create a set of Union-Find for each vertex. This gives us $2n$ units of
+memory. If we count the units used in \code{Oracle}, we then have $2n + {(m+1)}^2$. Therefore, our
+memory usage's upper bound is $\bigo(2n + {(m+1)}^2)=\bigo(2n+m^2)$.
+
+\section{Clustering}
+
+
 
 %--------------------------------------------------------------------------------------------------
 
