@@ -1,5 +1,8 @@
 4 CPUs:
   make  23747.22s user 87.75s system 344% cpu 1:55:09.37 total
-  6h36min47s
+  1h38min57s
 1 CPU:
   
+
+Memory:
+  2141MB

@@ -8,7 +8,7 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +32 learn/gens.go
-badd +15 main.go
+badd +182 main.go
 badd +14 io/input.go
 badd +107 io/output.go
 badd +54 utils/unionfind.go
@@ -211,12 +211,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 48 - ((24 * winheight(0) + 14) / 29)
+let s:l = 47 - ((23 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-48
-normal! 0
+47
+normal! 016|
 wincmd w
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
 exe '2resize ' . ((&lines * 28 + 30) / 61)
@@ -322,12 +322,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 144 - ((26 * winheight(0) + 29) / 58)
+let s:l = 217 - ((57 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-144
-normal! 023|
+217
+normal! 07|
 wincmd w
 argglobal
 edit io/input.go
