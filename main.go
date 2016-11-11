@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -124,6 +125,27 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	return s, corrects, lines
 }
 
+func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
+	nsc := len(sc)
+	vs := make(spn.VarSet)
+
+	for i := 0; i < n; i++ {
+		r := rand.Intn(nsc)
+		id := sc[r]
+		v := int(rand.NormFloat64()*(float64(id.Categories)/6) + float64(id.Categories/2))
+		if v >= id.Categories {
+			v = id.Categories - 1
+		} else if v < 0 {
+			v = 0
+		}
+		vs[id.Varid] = v
+	}
+
+	mpe, _ := s.ArgMax(vs)
+	vs = nil
+	return mpe
+}
+
 func imageCompletion(filename string, kclusters int, concurrents int) {
 	fmt.Printf("Parsing data from [%s]...\n", filename)
 	sc, data, lbls := io.ParseDataNL(filename)
@@ -183,6 +205,10 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, width, height, max-1)
 				cmpl, half = nil, nil
 			}
+			fmt.Printf("P-%d: Drawing MPE image for instance %d.\n", id, id)
+			io.VarSetToPGM(fmt.Sprintf("mpe_cmpl_%d.pgm", id), randVarSet(s, lsc, 100),
+				width, height, max-1)
+
 			//out, _ := filepath.Abs("results/" + dataset + "/models")
 			//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
 

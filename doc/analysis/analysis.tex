@@ -830,7 +830,12 @@ memory usage's upper bound is $\bigo(2n + {(m+1)}^2)=\bigo(2n+m^2)$.
 
 \section{Clustering}
 
-
+The task of clustering is associated with the function of the sum node. We wish to classify
+subsets of instances that present similarities. In this section we present two types of clustering
+we implemented. The first is k-means clustering, a simple partitioning algorithm that uses the
+centroid of a fixed number of $k$ clusters to identify in which partition each instance belongs to.
+The second is DBSCAN, a density algorithm that automatically identifies the number of possible
+clusters based on the distance between high-density groups of instances.
 
 %--------------------------------------------------------------------------------------------------
 

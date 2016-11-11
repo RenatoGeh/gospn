@@ -413,7 +413,7 @@ There are two submodules under `/doc`:
 * `/doc/code`: is a detailed documentation on the code. It contains only
   the implementational aspect of GoSPN.
 
-#### Datasets
+### Datasets
 
 We use the following datasets:
 

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	learn "github.com/RenatoGeh/gospn/learn"
+	spn "github.com/RenatoGeh/gospn/spn"
 )
 
 // GetPath gets the absolute path relative to relpath.
@@ -326,4 +327,16 @@ func ParsePartitionedData(filename string, p float64, rseed int64) (map[int]lear
 	}
 
 	return vartable, fdata, test, lbls
+}
+
+// ReadFromFile reads an SPN from an spn mdl file.
+func ReadFromFile(filename string) spn.SPN {
+	file, err := os.Create(filename)
+	if err != nil {
+		fmt.Printf("Error. Could not create file [%s].\n", filename)
+		panic(err)
+	}
+	defer file.Close()
+
+	return nil
 }

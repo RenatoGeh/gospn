@@ -326,7 +326,7 @@ func VarSetToPGM(filename string, state spn.VarSet, w, h, max int) {
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "P2\n%d %d\n%d\n", w, h, max)
+	fmt.Fprintf(file, "P3\n%d %d\n%d\n", w, h, max)
 
 	n := len(state)
 	pixels := make([]int, n)
@@ -338,7 +338,9 @@ func VarSetToPGM(filename string, state spn.VarSet, w, h, max int) {
 		if i%71 == 0 {
 			fmt.Fprintf(file, "\n")
 		}
-		fmt.Fprintf(file, "%d", pixels[i])
+		p := pixels[i]
+		common.DrawColorRGB(file, p, p, p)
+		fmt.Fprintf(file, " ")
 	}
 }
 
