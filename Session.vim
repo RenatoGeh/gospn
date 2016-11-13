@@ -8,14 +8,14 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +47 learn/gens.go
-badd +136 main.go
+badd +92 main.go
 badd +326 io/input.go
 badd +242 io/output.go
 badd +54 utils/unionfind.go
 badd +63 spn/sum.go
 badd +118 spn/product.go
-badd +84 spn/univdist.go
-badd +28 spn/node.go
+badd +7 spn/univdist.go
+badd +31 spn/node.go
 badd +2 spn/varset.go
 badd +57 utils/log.go
 badd +15 utils/vardata.go
@@ -59,14 +59,14 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe '1resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 1resize ' . ((&columns * 119 + 119) / 239)
-exe '2resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 2resize ' . ((&columns * 119 + 119) / 239)
-exe '3resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 3resize ' . ((&columns * 119 + 119) / 239)
-exe '4resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 4resize ' . ((&columns * 119 + 119) / 239)
+exe '1resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
+exe '2resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
+exe '3resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 3resize ' . ((&columns * 117 + 119) / 239)
+exe '4resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 4resize ' . ((&columns * 121 + 119) / 239)
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -77,15 +77,15 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 84 - ((28 * winheight(0) + 14) / 29)
+let s:l = 7 - ((6 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-84
+7
 normal! 0
 wincmd w
 argglobal
-edit spn/node.go
+edit utils/log.go
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -95,12 +95,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 30 - ((28 * winheight(0) + 14) / 29)
+let s:l = 56 - ((26 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-30
-normal! 04|
+56
+normal! 0
 wincmd w
 argglobal
 edit spn/sum.go
@@ -113,12 +113,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 110 - ((27 * winheight(0) + 14) / 28)
+let s:l = 107 - ((15 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-110
-normal! 0
+107
+normal! 03|
 wincmd w
 argglobal
 edit spn/product.go
@@ -131,21 +131,21 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 56 - ((13 * winheight(0) + 14) / 28)
+let s:l = 4 - ((3 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-56
-normal! 05|
+4
+normal! 0
 wincmd w
-exe '1resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 1resize ' . ((&columns * 119 + 119) / 239)
-exe '2resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 2resize ' . ((&columns * 119 + 119) / 239)
-exe '3resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 3resize ' . ((&columns * 119 + 119) / 239)
-exe '4resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 4resize ' . ((&columns * 119 + 119) / 239)
+exe '1resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
+exe '2resize ' . ((&lines * 28 + 30) / 61)
+exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
+exe '3resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 3resize ' . ((&columns * 117 + 119) / 239)
+exe '4resize ' . ((&lines * 29 + 30) / 61)
+exe 'vert 4resize ' . ((&columns * 121 + 119) / 239)
 tabedit utils/indep/indgraph.go
 set splitbelow splitright
 wincmd _ | wincmd |
@@ -211,12 +211,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 47 - ((19 * winheight(0) + 14) / 29)
+let s:l = 39 - ((18 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-47
-normal! 024|
+39
+normal! 017|
 wincmd w
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
 exe '2resize ' . ((&lines * 28 + 30) / 61)
@@ -329,15 +329,15 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 209 - ((35 * winheight(0) + 29) / 58)
+let s:l = 12 - ((11 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-209
-normal! 078|
+12
+normal! 03|
 wincmd w
 argglobal
-edit learn/variable.go
+edit io/input.go
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -347,12 +347,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 1 - ((0 * winheight(0) + 14) / 28)
+let s:l = 300 - ((0 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-1
-normal! 0
+300
+normal! 03|
 wincmd w
 argglobal
 edit io/pgm.go
@@ -365,11 +365,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 346 - ((15 * winheight(0) + 14) / 29)
+let s:l = 347 - ((16 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-346
+347
 normal! 0
 wincmd w
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)

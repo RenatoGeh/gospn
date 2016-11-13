@@ -118,7 +118,8 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 		for _, v := range io.Orientations {
 			fmt.Printf("Drawing %s completion for digit %d.\n", v, i)
 			cmpl, half := halfImg(s, reps[i], v, width, height)
-			io.ImgCmplToPPM(fmt.Sprintf("cmpl_%d-%s.ppm", i, v), half, cmpl, v, width, height)
+			//io.ImgCmplToPPM(fmt.Sprintf("cmpl_%d-%s.ppm", i, v), half, cmpl, v, width, height)
+			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height, max)
 		}
 	}
 
@@ -284,7 +285,7 @@ func main() {
 	}
 
 	in, _ := filepath.Abs("data/" + dataset + "/compiled")
-	out, _ := filepath.Abs("results/" + dataset + "/models")
+	//out, _ := filepath.Abs("results/" + dataset + "/models")
 
 	if p == 0 {
 		fmt.Printf("Running image completion on dataset %s...\n", dataset)
@@ -301,12 +302,13 @@ func main() {
 		fmt.Printf("+-----------------------------------------------+\n")
 		fmt.Printf("|================ Iteration %d ==================|\n", i+1)
 		fmt.Printf("+-----------------------------------------------+\n")
-		s, c, t := classify(utils.StringConcat(in, "/all.data"), p, rseed, kclusters)
+		//s, c, t := classify(utils.StringConcat(in, "/all.data"), p, rseed, kclusters)
+		_, c, t := classify(utils.StringConcat(in, "/all.data"), p, rseed, kclusters)
 		corrects, total = corrects+c, total+t
 		fmt.Printf("+-----------------------------------------------+\n")
 		fmt.Printf("|============= End of Iteration %d =============|\n", i+1)
 		fmt.Printf("+-----------------------------------------------+\n")
-		io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
+		//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
 	}
 	fmt.Printf("---------------------------------\n")
 	fmt.Printf(">>>>>>>>> Final Results <<<<<<<<<\n")

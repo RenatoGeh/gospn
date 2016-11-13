@@ -116,7 +116,7 @@ func (ud *UnivDist) Value(valuation VarSet) float64 {
 		//fmt.Printf("Value of leaf node: %f\n", ud.pr[val])
 		return utils.Log(ud.pr[val])
 	}
-	//fmt.Printf("Value of leaf node: 1.00\n")
+	//fmt.Printf("Value of leaf node: 0.00\n")
 
 	//	return 1.0
 	return 0.0 // ln(1.0) = 0.0

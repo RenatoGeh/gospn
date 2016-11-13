@@ -1,5 +1,10 @@
 package spn
 
+//import (
+//"fmt"
+//"github.com/RenatoGeh/gospn/utils"
+//)
+
 // Product represents an SPN product node.
 type Product struct {
 	// Children nodes.
