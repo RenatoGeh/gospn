@@ -8,7 +8,7 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +47 learn/gens.go
-badd +92 main.go
+badd +12 main.go
 badd +326 io/input.go
 badd +242 io/output.go
 badd +54 utils/unionfind.go
@@ -77,12 +77,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 7 - ((6 * winheight(0) + 14) / 28)
+let s:l = 128 - ((26 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-7
-normal! 0
+128
+normal! 03|
 wincmd w
 argglobal
 edit utils/log.go
@@ -113,12 +113,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 107 - ((15 * winheight(0) + 14) / 29)
+let s:l = 94 - ((19 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-107
-normal! 03|
+94
+normal! 021|
 wincmd w
 argglobal
 edit spn/product.go
@@ -131,13 +131,14 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 4 - ((3 * winheight(0) + 14) / 29)
+let s:l = 80 - ((17 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-4
-normal! 0
+80
+normal! 029|
 wincmd w
+3wincmd w
 exe '1resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
 exe '2resize ' . ((&lines * 28 + 30) / 61)
@@ -329,12 +330,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 12 - ((11 * winheight(0) + 29) / 58)
+let s:l = 92 - ((40 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-12
-normal! 03|
+92
+normal! 042|
 wincmd w
 argglobal
 edit io/input.go
@@ -347,12 +348,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 300 - ((0 * winheight(0) + 14) / 28)
+let s:l = 326 - ((18 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-300
-normal! 03|
+326
+normal! 0
 wincmd w
 argglobal
 edit io/pgm.go
@@ -476,7 +477,7 @@ exe s:l
 normal! zt
 9
 normal! 0
-tabnext 4
+tabnext 1
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
 endif

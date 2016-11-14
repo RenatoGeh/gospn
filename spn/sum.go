@@ -1,7 +1,7 @@
 package spn
 
 import (
-	"fmt"
+	//"fmt"
 	"math"
 	"sort"
 
@@ -73,39 +73,22 @@ func (s *Sum) Sc() []int {
 // Weights returns weights.
 func (s *Sum) Weights() []float64 { return s.w }
 
-type wval struct {
-	lw float64
-	lv float64
-	r  float64
-}
-type wvalSorter []wval
-
-func (s wvalSorter) Len() int      { return len(s) }
-func (s wvalSorter) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-func (s wvalSorter) Less(i, j int) bool {
-	return s[i].r < s[j].r
-}
-
 // Value returns the value of this SPN given a set of valuations.
 func (s *Sum) Value(valuation VarSet) float64 {
 	n := len(s.ch)
 	ch := s.Ch()
 
-	vals := make(wvalSorter, n)
+	vals := make([]float64, n)
 	for i := 0; i < n; i++ {
 		v, w := ch[i].Value(valuation), math.Log(s.w[i])
-		vals[i] = wval{
-			lw: w,
-			lv: v,
-			r:  w + v,
-		}
+		vals[i] = v + w
 	}
-	sort.Sort(vals)
-	p, r := vals[0].r, 0.0
+	sort.Float64s(vals)
+	p, r := vals[n-1], 0.0
 
-	for i := 1; i < n; i++ {
-		fmt.Printf("vals[i].r = %f vs p = %f\n", vals[i].r, p)
-		r += vals[i].r / p
+	for i := 0; i < n-1; i++ {
+		//fmt.Printf("vals[i] = %f vs p = %f\n", vals[i], p)
+		r += math.Exp(vals[i] - p)
 	}
 
 	r = p + math.Log1p(r)
@@ -124,7 +107,7 @@ func (s *Sum) Value(valuation VarSet) float64 {
 	//v += s.w[i] * vch
 	//}
 
-	fmt.Printf("Value of sum node: antiln(%f)=%f\n", r, utils.AntiLog(r))
+	//fmt.Printf("Value of sum node: antiln(%f)=%f\n", r, utils.AntiLog(r))
 	return r
 }
 
