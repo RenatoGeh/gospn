@@ -2,16 +2,16 @@ OUT=out.put
 ARGS=-p=0.7 -rseed=123456 -clusters=-1 -iterations=1
 
 completion:
-	go run main.go -p=0 | tee $(OUT)
+	go run main.go -mode=cmpl | tee $(OUT)
 
 completion_single:
-	go run main.go -p=0 -concurrents=1 | tee $(OUT)
+	go run main.go -mode=cmpl -concurrents=1 | tee $(OUT)
 
-all:
+classification:
 	go run main.go $(ARGS) | tee $(OUT)
 
 data:
-	go run main.go -p=-1 | tee $(OUT)
+	go run main.go -mode=cmpl | tee $(OUT)
 
 debug:
 	./debug.sh 0

@@ -15,12 +15,12 @@ import (
 	//profile "github.com/pkg/profile"
 )
 
-const dataset = "olivetti_3bit"
+var dataset = "olivetti_3bit"
 
-const (
-	width  int = 46
-	height int = 56
-	max    int = 8
+var (
+	width  = 46
+	height = 56
+	max    = 8
 )
 
 func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, spn.VarSet) {
@@ -238,38 +238,57 @@ func main() {
 	var rseed int64
 	var iterations int
 	var concurrents int
+	var mode string
 
-	flag.Float64Var(&p, "p", 0.7, "Train/test partition ratio to be used for cross-validation. If\n"+
-		"p = -1, then attempt to compile the indicated dataset into a data file.")
-	flag.IntVar(&clusters, "clusters", -1, "Number of clusters to be used during training. If\n"+
-		"clusters = -1, GoSPN shall use DBSCAN. Else, if clusters = -2, then use OPTICS\n"+
-		"(experimental). Else, if clusters > 0, then use k-means clustering with the indicated\n"+
+	flag.Float64Var(&p, "p", 0.7, "Train/test partition ratio to be used for cross-validation. ")
+	flag.IntVar(&clusters, "clusters", -1, "Number of clusters to be used during training. If "+
+		"clusters = -1, GoSPN shall use DBSCAN. Else, if clusters = -2, then use OPTICS "+
+		"(experimental). Else, if clusters > 0, then use k-means clustering with the indicated "+
 		"number of clusters.")
-	flag.Int64Var(&rseed, "rseed", -1, "Seed to be used when choosing which instances to be used as\n"+
-		"training set and which to be used as testing set. If ommitted, rseed defaults to -1, which\n"+
+	flag.Int64Var(&rseed, "rseed", -1, "Seed to be used when choosing which instances to be used as "+
+		"training set and which to be used as testing set. If ommitted, rseed defaults to -1, which "+
 		"means GoSPN chooses a random seed according to the current time.")
-	flag.IntVar(&iterations, "iterations", 1, "How many iterations to be run when running a\n"+
-		"classification job. This allows for better, more general and randomized results, as some\n"+
+	flag.IntVar(&iterations, "iterations", 1, "How many iterations to be run when running a "+
+		"classification job. This allows for better, more general and randomized results, as some "+
 		"test/train partitions may become degenerated.")
-	flag.IntVar(&concurrents, "concurrents", -1, "GoSPN makes use of Go's natie concurrency and is\n"+
-		"able to run on multiple cores in parallel. Argument concurrents defines the number of\n"+
-		"concurrent jobs GoSPN should run at most. If concurrents <= 0, then concurrents = nCPU,\n"+
+	flag.IntVar(&concurrents, "concurrents", -1, "GoSPN makes use of Go's natie concurrency and is "+
+		"able to run on multiple cores in parallel. Argument concurrents defines the number of "+
+		"concurrent jobs GoSPN should run at most. If concurrents <= 0, then concurrents = nCPU, "+
 		"where nCPU is the number of CPUs the running machine has available.")
+	flag.StringVar(&dataset, "dataset", dataset, "The name of the directory containing the "+
+		"dataset structure inside the data folder. Setting -mode=data will cause a new given "+
+		"dataset data file to be created. Ommitting -mode or setting -mode to something different "+
+		"than data will run a job on the given dataset.")
+	flag.IntVar(&width, "width", width, "The width of the images to be classified or completed.")
+	flag.IntVar(&height, "height", height, "The height of the images to be classified or completed.")
+	flag.IntVar(&max, "max", max, "The maximum pixel value the images can have.")
+	flag.StringVar(&mode, "mode", "cmpl", "Whether to convert a directory structure into a data "+
+		"file (data), run an image completion job (cmpl) or a classification job (class).")
 
 	flag.Parse()
+
+	if p == 0 || p < 0 || p == 1 {
+		fmt.Println("Argument p must be a float64 in range (0, 1).")
+		return
+	}
+	if iterations <= 0 {
+		fmt.Println("Argument iterations must be an integer greater than 0.")
+		return
+	}
 
 	//defer profile.Start().Stop()
 
 	in, _ := filepath.Abs("data/" + dataset + "/compiled")
 	//out, _ := filepath.Abs("results/" + dataset + "/models")
 
-	if p == 0 {
-		fmt.Printf("Running image completion on dataset %s with %d threads...\n", dataset, concurrents)
-		imageCompletion(utils.StringConcat(in, "/all.data"), clusters, concurrents)
-		return
-	} else if p < 0 {
+	if mode == "data" {
 		fmt.Printf("Converting dataset %s...", dataset)
 		convertData()
+		return
+	}
+	if mode == "cmpl" {
+		fmt.Printf("Running image completion on dataset %s with %d threads...\n", dataset, concurrents)
+		imageCompletion(utils.StringConcat(in, "/all.data"), clusters, concurrents)
 		return
 	}
 
