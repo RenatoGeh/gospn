@@ -66,7 +66,7 @@ To run GoSPN, we must complete a few steps:
       max    int = 8
     )
     ```
-  - Compile the data with Makefile:
+  - Compile the data with `go run main.go -p=-1` or with Makefile:
 
     ```
     make data
@@ -78,7 +78,7 @@ To run GoSPN, we must complete a few steps:
 
 ```
 Usage:
-  go run main.go [p] [rseed] [kclusters] [iterations] [concurrents]
+  go run main.go [-p] [-rseed] [-clusters] [-iterations] [-concurrents]
 Arguments:
   p           - is the partition in the interval (0, 1) to be used for
                 cross-validation. If p = 0, then run an image completion job
@@ -88,10 +88,10 @@ Arguments:
                 as train and which to be used as test set. If ommitted, rseed
                 defaults to -1, which chooses a random seed according to the
                 current time.
-  kclusters   - how many k-clusters to be used during training on instance
-                splits. If kclusters = -1, then use DBSCAN. Else if
-                kclusters = -2, then use OPTICS. Else, if kclusters > 0,
-                then use k-means clustering. By default, kclusters is set
+  clusters    - how many k-clusters to be used during training on instance
+                splits. If clusters = -1, then use DBSCAN. Else if
+                clusters = -2, then use OPTICS. Else, if clusters > 0,
+                then use k-means clustering. By default, clusters is set
                 to -1.
   iterations  - how many iterations to be run when running a
                 classification job. This allows for better, more general
@@ -110,15 +110,15 @@ Arguments:
 1. Choose a partition value `p` such that `0 < p < 1`. For instance,
    `p=0.8`.
 2. Choose an `rseed` value. For instance, `rseed=-1`.
-3. Choose a `kclusters` value (k-means with `kclusters` clusters, DBSCAN
-   or OPTICS). For instance, `kclusters=-1`.
+3. Choose a `clusters` value (k-means with `clusters` clusters, DBSCAN
+   or OPTICS). For instance, `clusters=-1`.
 4. Choose the number of iterations `iterations`. For instance,
    `iterations=5`.
-5. Run `go run main.go 0.8 -1 -1 5`.
+5. Run `go run main.go -p=0.8 -rseed=-1 -clusters=-1 -iterations=5`.
 
 #### For step 3 to run an image completion job:
 
-1. Run `go run main.go 0`.
+1. Run `go run main.go -p=0`.
 
 It is recommended that you output `stdout` to some file, since GoSPN can
 be quite verbose in certain cases. Append a `| tee out.put` to generate
@@ -126,7 +126,7 @@ a file `out.put` with all the information GoSPN prints to the screen
 whilst still printing `stdout`. For example:
 
 ```
-  go run main.go 0 | tee out.put
+  go run main.go -p=0 | tee out.put
 ```
 
 #### Independence tests:

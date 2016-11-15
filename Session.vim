@@ -8,13 +8,13 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +47 learn/gens.go
-badd +12 main.go
+badd +92 main.go
 badd +326 io/input.go
 badd +242 io/output.go
 badd +54 utils/unionfind.go
 badd +63 spn/sum.go
 badd +118 spn/product.go
-badd +7 spn/univdist.go
+badd +128 spn/univdist.go
 badd +31 spn/node.go
 badd +2 spn/varset.go
 badd +57 utils/log.go
@@ -38,6 +38,7 @@ badd +362 utils/indep/chisq.go
 badd +1 utils/indep/gtest.go
 badd +7 common/pair.go
 badd +40 common/stack.go
+badd +0 README.md
 argglobal
 silent! argdel *
 argadd learn/gens.go
@@ -113,12 +114,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 94 - ((19 * winheight(0) + 14) / 29)
+let s:l = 4 - ((3 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-94
-normal! 021|
+4
+normal! 0
 wincmd w
 argglobal
 edit spn/product.go
@@ -138,7 +139,6 @@ normal! zt
 80
 normal! 029|
 wincmd w
-3wincmd w
 exe '1resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
 exe '2resize ' . ((&lines * 28 + 30) / 61)
@@ -330,15 +330,15 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 92 - ((40 * winheight(0) + 29) / 58)
+let s:l = 225 - ((0 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-92
-normal! 042|
+225
+normal! 05|
 wincmd w
 argglobal
-edit io/input.go
+edit README.md
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -348,12 +348,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 326 - ((18 * winheight(0) + 14) / 28)
+let s:l = 90 - ((27 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-326
-normal! 0
+90
+normal! 029|
 wincmd w
 argglobal
 edit io/pgm.go
@@ -373,6 +373,7 @@ normal! zt
 347
 normal! 0
 wincmd w
+2wincmd w
 exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
 exe '2resize ' . ((&lines * 28 + 30) / 61)
 exe 'vert 2resize ' . ((&columns * 121 + 119) / 239)
@@ -471,13 +472,13 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 9 - ((8 * winheight(0) + 29) / 58)
+let s:l = 2 - ((1 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-9
-normal! 0
-tabnext 1
+2
+normal! 040|
+tabnext 4
 if exists('s:wipebuf') && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
 endif

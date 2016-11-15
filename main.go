@@ -1,12 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"math/rand"
-	"os"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"sync"
 
 	io "github.com/RenatoGeh/gospn/io"
@@ -234,67 +233,48 @@ func convertData() {
 }
 
 func main() {
-	p := 0.7
-	kclusters := -1
-	var rseed int64 = -1
-	iterations := 1
-	concurrents := -1
-	var err error
+	var p float64
+	var clusters int
+	var rseed int64
+	var iterations int
+	var concurrents int
+
+	flag.Float64Var(&p, "p", 0.7, "Train/test partition ratio to be used for cross-validation. If\n"+
+		"p = -1, then attempt to compile the indicated dataset into a data file.")
+	flag.IntVar(&clusters, "clusters", -1, "Number of clusters to be used during training. If\n"+
+		"clusters = -1, GoSPN shall use DBSCAN. Else, if clusters = -2, then use OPTICS\n"+
+		"(experimental). Else, if clusters > 0, then use k-means clustering with the indicated\n"+
+		"number of clusters.")
+	flag.Int64Var(&rseed, "rseed", -1, "Seed to be used when choosing which instances to be used as\n"+
+		"training set and which to be used as testing set. If ommitted, rseed defaults to -1, which\n"+
+		"means GoSPN chooses a random seed according to the current time.")
+	flag.IntVar(&iterations, "iterations", 1, "How many iterations to be run when running a\n"+
+		"classification job. This allows for better, more general and randomized results, as some\n"+
+		"test/train partitions may become degenerated.")
+	flag.IntVar(&concurrents, "concurrents", -1, "GoSPN makes use of Go's natie concurrency and is\n"+
+		"able to run on multiple cores in parallel. Argument concurrents defines the number of\n"+
+		"concurrent jobs GoSPN should run at most. If concurrents <= 0, then concurrents = nCPU,\n"+
+		"where nCPU is the number of CPUs the running machine has available.")
+
+	flag.Parse()
 
 	//defer profile.Start().Stop()
-
-	if len(os.Args) > 5 {
-		concurrents, err = strconv.Atoi(os.Args[5])
-		if err != nil {
-			fmt.Printf("Argument invalid. Argument concurrents must be an integer.\n")
-			return
-		}
-	}
-	if len(os.Args) > 4 {
-		iterations, err = strconv.Atoi(os.Args[4])
-		if err != nil {
-			fmt.Printf("Argument invalid. Argument iterations must be an integer greater than zero.\n")
-			return
-		}
-	}
-	if len(os.Args) > 3 {
-		kclusters, err = strconv.Atoi(os.Args[3])
-		if err != nil {
-			fmt.Printf("Argument invalid. Argument kcluster must be an integer.\n")
-			return
-		}
-	}
-	if len(os.Args) > 2 {
-		rseed, err = strconv.ParseInt(os.Args[2], 10, 64)
-		if err != nil {
-			fmt.Printf("Argument invalid. Argument rseed must be a 64-bit integer.\n")
-			return
-		}
-	}
-	if len(os.Args) > 1 {
-		p, err = strconv.ParseFloat(os.Args[1], 64)
-		if err != nil || p < 0 || p >= 1 {
-			if p == -1 {
-				fmt.Printf("Converting dataset %s...", dataset)
-				convertData()
-				return
-			}
-			fmt.Printf("Argument invalid. Argument p must be a 64-bit float in the interval (0, 1).")
-			return
-		}
-	}
 
 	in, _ := filepath.Abs("data/" + dataset + "/compiled")
 	//out, _ := filepath.Abs("results/" + dataset + "/models")
 
 	if p == 0 {
-		fmt.Printf("Running image completion on dataset %s...\n", dataset)
-		imageCompletion(utils.StringConcat(in, "/all.data"), kclusters, concurrents)
+		fmt.Printf("Running image completion on dataset %s with %d threads...\n", dataset, concurrents)
+		imageCompletion(utils.StringConcat(in, "/all.data"), clusters, concurrents)
+		return
+	} else if p < 0 {
+		fmt.Printf("Converting dataset %s...", dataset)
+		convertData()
 		return
 	}
 
 	fmt.Printf("Running cross-validation test with p = %.2f%%, random seed = %d and kclusters = %d "+
-		"on the dataset = %s.\n", 100.0*p, rseed, kclusters, dataset)
+		"on the dataset = %s.\n", 100.0*p, rseed, clusters, dataset)
 	fmt.Printf("Iterations to run: %d\n\n", iterations)
 
 	corrects, total := 0, 0
@@ -303,7 +283,7 @@ func main() {
 		fmt.Printf("|================ Iteration %d ==================|\n", i+1)
 		fmt.Printf("+-----------------------------------------------+\n")
 		//s, c, t := classify(utils.StringConcat(in, "/all.data"), p, rseed, kclusters)
-		_, c, t := classify(utils.StringConcat(in, "/all.data"), p, rseed, kclusters)
+		_, c, t := classify(utils.StringConcat(in, "/all.data"), p, rseed, clusters)
 		corrects, total = corrects+c, total+t
 		fmt.Printf("+-----------------------------------------------+\n")
 		fmt.Printf("|============= End of Iteration %d =============|\n", i+1)

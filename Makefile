@@ -1,17 +1,17 @@
 OUT=out.put
-ARGS=0.7 123456 -1 1
+ARGS=-p=0.7 -rseed=123456 -clusters=-1 -iterations=1
 
 completion:
-	go run main.go 0 | tee $(OUT)
+	go run main.go -p=0 | tee $(OUT)
 
 completion_single:
-	go run main.go 0 -1 -1 1 1 | tee $(OUT)
+	go run main.go -p=0 -concurrents=1 | tee $(OUT)
 
 all:
 	go run main.go $(ARGS) | tee $(OUT)
 
 data:
-	go run main.go -1 | tee $(OUT)
+	go run main.go -p=-1 | tee $(OUT)
 
 debug:
 	./debug.sh 0
