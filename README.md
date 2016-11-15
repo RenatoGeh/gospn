@@ -67,7 +67,7 @@ Usage:
   go run main.go [-p] [-rseed] [-clusters] [-iterations] [-concurrents]
 Arguments:
   p           - is the partition in the interval (0, 1) to be used for
-                cross-vdalidation. If ommitted, p defaults to 0.7.
+                cross-validation. If ommitted, p defaults to 0.7.
   rseed       - the seed to be used when choosing which instances to be used
                 as train and which to be used as test set. If ommitted, rseed
                 defaults to -1, which chooses a random seed according to the

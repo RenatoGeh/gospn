@@ -8,7 +8,7 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +47 learn/gens.go
-badd +282 main.go
+badd +190 main.go
 badd +326 io/input.go
 badd +242 io/output.go
 badd +54 utils/unionfind.go
@@ -38,7 +38,7 @@ badd +362 utils/indep/chisq.go
 badd +1 utils/indep/gtest.go
 badd +7 common/pair.go
 badd +40 common/stack.go
-badd +102 README.md
+badd +70 README.md
 argglobal
 silent! argdel *
 argadd learn/gens.go
@@ -301,18 +301,21 @@ exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
 exe '2resize ' . ((&lines * 29 + 30) / 61)
 exe 'vert 2resize ' . ((&columns * 117 + 119) / 239)
 exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
-tabedit main.go
+tabedit io/pgm.go
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
 1wincmd h
+wincmd _ | wincmd |
+split
+1wincmd k
+wincmd w
 wincmd w
 set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 119 + 119) / 239)
-exe 'vert 2resize ' . ((&columns * 119 + 119) / 239)
+wincmd =
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -323,11 +326,29 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 265 - ((24 * winheight(0) + 29) / 58)
+let s:l = 165 - ((27 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-265
+165
+normal! 0
+wincmd w
+argglobal
+edit main.go
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 248 - ((27 * winheight(0) + 14) / 28)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+248
 normal! 03|
 wincmd w
 argglobal
@@ -341,16 +362,15 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 346 - ((30 * winheight(0) + 29) / 58)
+let s:l = 363 - ((45 * winheight(0) + 23) / 47)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-346
+363
 normal! 0
 wincmd w
-2wincmd w
-exe 'vert 1resize ' . ((&columns * 119 + 119) / 239)
-exe 'vert 2resize ' . ((&columns * 119 + 119) / 239)
+3wincmd w
+wincmd =
 tabedit utils/cluster/metrics/euclid.go
 set splitbelow splitright
 wincmd _ | wincmd |
@@ -365,11 +385,7 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe '1resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe '2resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 2resize ' . ((&columns * 117 + 119) / 239)
-exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
+wincmd =
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -423,11 +439,7 @@ normal! zt
 70
 normal! 0
 wincmd w
-exe '1resize ' . ((&lines * 29 + 30) / 61)
-exe 'vert 1resize ' . ((&columns * 117 + 119) / 239)
-exe '2resize ' . ((&lines * 28 + 30) / 61)
-exe 'vert 2resize ' . ((&columns * 117 + 119) / 239)
-exe 'vert 3resize ' . ((&columns * 121 + 119) / 239)
+wincmd =
 tabedit Makefile
 set splitbelow splitright
 set nosplitbelow

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 
 	common "github.com/RenatoGeh/gospn/common"
 	spn "github.com/RenatoGeh/gospn/spn"
@@ -158,6 +160,206 @@ func PGMFToData(dirname, dname string) (int, int, int) {
 
 		fmt.Fprintf(out, "%d\n", labels[i])
 	}
+
+	return w, h, max
+}
+
+// BufferedPGMFToData parses large quantities of files concurrently into a data file dname.
+func BufferedPGMFToData(dirname, dname string) (int, int, int) {
+	sdir, err := os.Open(dirname)
+
+	if err != nil {
+		fmt.Printf("Error. Could not open superdirectory [%s].\n", dirname)
+		panic(err)
+	}
+	defer sdir.Close()
+
+	subdirs, err := sdir.Readdirnames(-1)
+
+	if err != nil {
+		fmt.Printf("Error. Could not extract subdirectories from directory [%s].\n", dirname)
+		panic(err)
+	}
+
+	nsdirs := len(subdirs)
+	tpath := utils.StringConcat(dirname, "/")
+	var mrkrm []int
+	// Reserved dirname compiled for output. Also remove non-dirs.
+	for i := 0; i < nsdirs; i++ {
+		// m marks the spot.
+		// Since for every removed item the slice shrinks by one, we keep track of the indices by
+		// taking into account the subslices "translated" at the right moment.
+		if subdirs[i] == "compiled" {
+			m := i
+			if len(mrkrm) > 0 {
+				m = i - 1
+			}
+			mrkrm = append(mrkrm, m)
+		} else if fi, _ := os.Stat(utils.StringConcat(tpath, subdirs[i])); !fi.IsDir() {
+			m := i
+			if len(mrkrm) > 0 {
+				m = i - 1
+			}
+			mrkrm = append(mrkrm, m)
+		}
+	}
+
+	// Remove marked elements.
+	for i := 0; i < len(mrkrm); i++ {
+		j := mrkrm[i]
+		subdirs, nsdirs = append(subdirs[:j], subdirs[j+1:]...), nsdirs-1
+	}
+	mrkrm = nil
+
+	// Memorize filenames.
+	var files []string
+	var labels []int
+	topdir := dirname + "/"
+	for i := 0; i < nsdirs; i++ {
+		sdir, err := os.Open(topdir + subdirs[i])
+		if err != nil {
+			fmt.Printf("Could not open subdirectory %s.\n", subdirs[i])
+			sdir.Close()
+			panic(err)
+		}
+		names, err := sdir.Readdirnames(-1)
+		if err != nil {
+			fmt.Printf("Coult not read files from subdirectory %s.\n", subdirs[i])
+			sdir.Close()
+			panic(err)
+		}
+		cmn := topdir + subdirs[i] + "/"
+		for _, name := range names {
+			files = append(files, cmn+name)
+			labels = append(labels, i)
+		}
+		sdir.Close()
+	}
+
+	// Create compiled folder.
+	cmpname, err := filepath.Abs(dirname)
+
+	if err != nil {
+		fmt.Printf("Error retrieving path [%s].\n", dirname)
+		panic(err)
+	}
+
+	cmpname = utils.StringConcat(cmpname, "/compiled")
+	if _, err := os.Stat(cmpname); os.IsNotExist(err) {
+		os.Mkdir(cmpname, 0777)
+	}
+
+	cmpname = utils.StringConcat(cmpname, "/")
+	out, err := os.Create(utils.StringConcat(cmpname, dname))
+
+	if err != nil {
+		fmt.Printf("Error creating output file [%s/%s].\n", cmpname, dname)
+		panic(err)
+	}
+	defer out.Close()
+
+	// Parse the first file separately to find variables and image dimensions/max value.
+	f, err := os.Open(files[0])
+	if err != nil {
+		fmt.Printf("Could not read file %s.\n", files[0])
+		f.Close()
+		panic(err)
+	}
+	stream := bufio.NewScanner(f)
+	files = files[1:]
+
+	// Deal with magical number.
+	stream.Scan()
+	w, h, max := -1, -1, -1
+	stream.Scan()
+	fmt.Sscanf(stream.Text(), "%d %d", &w, &h)
+	stream.Scan()
+	fmt.Sscanf(stream.Text(), "%d", &max)
+
+	tt := w * h
+	for i := 0; i < tt; i++ {
+		fmt.Fprintf(out, "var %d %d\n", i, max+1)
+	}
+	fmt.Fprintf(out, "var %d %d\n", tt, nsdirs)
+
+	for stream.Scan() {
+		line := stream.Text()
+		tokens := strings.Split(line, " ")
+		ntokens := len(tokens)
+		for i := 0; i < ntokens; i++ {
+			tkn, err := strconv.Atoi(tokens[i])
+			if err == nil {
+				fmt.Fprintf(out, "%d ", tkn)
+			}
+		}
+	}
+	fmt.Fprintf(out, "%d\n", labels[0])
+	labels = labels[1:]
+	f.Close()
+
+	var wg sync.WaitGroup
+	nprocs, nrun := runtime.NumCPU(), 0
+	cond, mutex := sync.NewCond(&sync.Mutex{}), &sync.Mutex{}
+	nfiles := len(files)
+
+	//fmt.Printf("nfiles: %d\n", nfiles)
+	for i := 0; i < nfiles; i++ {
+		cond.L.Lock()
+		for nrun >= nprocs {
+			cond.Wait()
+		}
+		nrun++
+		cond.L.Unlock()
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			mutex.Lock()
+			//fmt.Printf("File: %s, id: %d\n", files[id], id)
+			lf, err := os.Open(files[id])
+			if err != nil {
+				fmt.Printf("Could not read file %s.\n", files[id])
+				panic(err)
+			}
+			mutex.Unlock()
+			defer lf.Close()
+			lstream := bufio.NewScanner(lf)
+			// Magical number.
+			lstream.Scan()
+			// Width, height.
+			lstream.Scan()
+			// Max val.
+			lstream.Scan()
+
+			var vals []int
+			for lstream.Scan() {
+				line := lstream.Text()
+				tokens := strings.Split(line, " ")
+				ntokens := len(tokens)
+				for j := 0; j < ntokens; j++ {
+					tkn, err := strconv.Atoi(tokens[j])
+					if err == nil {
+						vals = append(vals, tkn)
+					}
+				}
+			}
+			vals = append(vals, labels[id])
+
+			mutex.Lock()
+			for j := 0; j < len(vals); j++ {
+				fmt.Fprintf(out, "%d ", vals[j])
+			}
+			fmt.Fprintf(out, "%d\n", vals[len(vals)-1])
+			mutex.Unlock()
+
+			lf.Close()
+			cond.L.Lock()
+			nrun--
+			cond.L.Unlock()
+			cond.Signal()
+		}(i)
+	}
+
+	wg.Wait()
 
 	return w, h, max
 }

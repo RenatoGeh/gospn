@@ -229,7 +229,7 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 
 func convertData() {
 	cmn, _ := filepath.Abs("data/" + dataset + "/")
-	io.PGMFToData(cmn, "all.data")
+	io.BufferedPGMFToData(cmn, "all.data")
 }
 
 func main() {
@@ -282,7 +282,7 @@ func main() {
 	//out, _ := filepath.Abs("results/" + dataset + "/models")
 
 	if mode == "data" {
-		fmt.Printf("Converting dataset %s...", dataset)
+		fmt.Printf("Converting dataset %s...\n", dataset)
 		convertData()
 		return
 	}
