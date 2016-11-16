@@ -837,6 +837,95 @@ centroid of a fixed number of $k$ clusters to identify in which partition each i
 The second is DBSCAN, a density algorithm that automatically identifies the number of possible
 clusters based on the distance between high-density groups of instances.
 
+\begin{algorithm}[H]
+  \caption{\code{KMeans}}\label{alg:kmeans}
+  \begin{algorithmic}[1]
+    \Require\,An integer $k$ that represents the fixed number of clusters to be found
+    \Require\,Set $\set{D}$ of elements
+    \Ensure\,A set of partitions $\set{P}$, with each partition representing a cluster
+    \State\,Let $\set{P}=\{P_1,P_2,\ldots,P_k\}$ be the set of partitions
+    \State\,Let $\set{c}=\{c_1,c_2,\ldots,c_k\}$ be each centroid where $c_i$ represents $P_i$
+    \State\,$c_1\gets 0,c_2\gets 0,\ldots,c_k\gets 0$
+    \For{each $c_i$}
+      \State\,Select an element $e_j\in\set{D}$ that has not been previously chosen
+      \State\,$c_i\gets e_j$
+    \EndFor%
+    \Repeat%
+      \For{each $e_i\in\set{D}$}
+        \State\,Let $d(e_i,c_j)$ be the euclidean distance between $e_i$ and $c_j$
+        \State\,Find $\argmin_j d(e_i,c_j)$
+        \State\,If $e_i$ belongs to a partition $P_k$, remove $e_i$ from $P_k$
+        \State\,Add $e_i$ to $P_j$
+      \EndFor%
+      \For{each $c_i\in\set{c}$}
+        \State\,Recompute mean of all $e_j\in P_i$
+      \EndFor%
+    \Until{convergence}
+    \State\,\textbf{return} $\set{P}$
+  \end{algorithmic}
+\end{algorithm}
+
+K-means clustering is a simple clustering algorithm that finds a fixed number of $k$ partitions of
+the set by iteratively calculating the centroid and measuring the distances between each element
+and each centroid. The algorithm starts with the $k$ centroids equal to $k$ element positions
+chosen randomly. At each step, for each element $e$ in the set, we compute the $k$ distances
+between $e$ and a $c_i$ centroid. We choose the centroid that minimizes such distance and then add
+$e$ to the partition whose representative is $c_i$. We then recompute all centroids as the mean of
+each element in its partition. The algorithm stop criterion is when all centroids' last value is
+equal to their current value (i.e.\ there is no change in the centroids). We use the Forgy
+method~\cite{forgy} for initializing the centroids.
+
+
+The k-means clustering algorithm is known to have complexity $\bigo(mkdi)$, where $m$ is the number
+of elements of $\set{D}$, $k$ is the number of clusters, $d$ is the dimension of the elements, and
+$i$ is the number of iterations until convergence. We know that $d$ is the number of variables to
+be evaluated in the sum node. This gives us an upperbound of $d$ being at most $|\set{V}|$. This
+gives us a complexity of $\big(tk |\set{D}| |\set{V}|)$, where $t$ is an upperbound to $i$.
+
+We can improve the runtime of our k-means implementation by recomputing the means only when we find
+that a new element has moved to a different partition. This improvement does not change the
+asymptotic complexity, however.
+
+Although the k-means clustering algorithm is relatively fast in practice, it is restricted by the
+fixed number of clusters. We now show our implementation of the DBSCAN clustering algorithm. DBSCAN
+is a density based clustering algorithm, which means it searches for clusters based on the number
+of elements in a certain area. If there are enough many points in this area, we consider adding
+such elements to a cluster. Intuitively, we are searching for ``element-dense'' areas. We next
+formalize the notion of density.
+
+\begin{definition}[$\varepsilon$-neighborhood]
+  Let $e_1\in\set{D}$ be an element and $d:\set{D}\times\set{D}\to \mathbb{R}$ the euclidean
+  distance between two elements. The $\varepsilon$-neighborhood of $e_1$, denoted by
+  $N_\varepsilon(e_1)$ is defined as $N_\varepsilon(e_1)=\{e_2\in\set{D}|d(e_1,
+  e_2)\leq\varepsilon\}$.
+\end{definition}
+
+The $\varepsilon$-neighborhood of an element $e$ is simply the set of all elements different than
+$e$ that are at least at $\varepsilon$ of distance from $e$. We refer to \textit{core element} as
+the elements that are inside a cluster. \textit{Border elements} are elements that are on the
+border of a cluster. Note that border elements are still in their respective cluster.
+
+\begin{definition}[directly density-reachable]
+  An element $e_1$ is directly density-reachable from another element $e_2$ with parameters
+  $\varepsilon$ and $\mu$ if $e_1\in N_\varepsilon(e_2)$ and $|N_\varepsilon(e_2)|\geq\mu$.
+\end{definition}
+
+The parameters $\varepsilon$ and $\mu$ define whether two points are close enough to be considered
+part of a cluster. Parameter $\varepsilon$ defines the ``area'' to be examined and $\mu$ defines
+the ``minimum density'' or minimum number of elements for a cluster to be considered. The condition
+is assymetrical. The assymetric case guarantees that one of the elements is a border element.
+
+\begin{definition}[density-reachable]
+  An element $e_1$ is density-reachable from another element $e_k$ if there exists a chain of
+  elements $e_1,ldots,e_k$ such that $e_{i+1}$ directly density-reachable from $e_i$
+\end{definition}
+
+\section{Inference}
+
+\section{Theoretical Results}
+
+\section{Experiments}
+
 %--------------------------------------------------------------------------------------------------
 
 \newpage
