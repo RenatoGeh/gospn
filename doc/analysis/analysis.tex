@@ -74,6 +74,7 @@
 
 \newcommand{\set}[1]{\mathbf{#1}}
 \newcommand{\pr}{\mathbb{P}}
+\newcommand{\eps}{\varepsilon}
 \renewcommand{\implies}{\Rightarrow}
 
 \newcommand{\bigo}{\mathcal{O}}
@@ -891,34 +892,111 @@ fixed number of clusters. We now show our implementation of the DBSCAN clusterin
 is a density based clustering algorithm, which means it searches for clusters based on the number
 of elements in a certain area. If there are enough many points in this area, we consider adding
 such elements to a cluster. Intuitively, we are searching for ``element-dense'' areas. We next
-formalize the notion of density.
+formalize the notion of density based on the Ester \textit{et al} article~\cite{dbscan}.
 
-\begin{definition}[$\varepsilon$-neighborhood]
+\begin{definition}[$\eps$-neighborhood]
   Let $e_1\in\set{D}$ be an element and $d:\set{D}\times\set{D}\to \mathbb{R}$ the euclidean
-  distance between two elements. The $\varepsilon$-neighborhood of $e_1$, denoted by
-  $N_\varepsilon(e_1)$ is defined as $N_\varepsilon(e_1)=\{e_2\in\set{D}|d(e_1,
-  e_2)\leq\varepsilon\}$.
+  distance between two elements. The $\eps$-neighborhood of $e_1$, denoted by
+  $N_\eps(e_1)$ is defined as $N_\eps(e_1)=\{e_2\in\set{D}|d(e_1,
+  e_2)\leq\eps\}$.
 \end{definition}
 
-The $\varepsilon$-neighborhood of an element $e$ is simply the set of all elements different than
-$e$ that are at least at $\varepsilon$ of distance from $e$. We refer to \textit{core element} as
+The $\eps$-neighborhood of an element $e$ is simply the set of all elements different than
+$e$ that are at least at $\eps$ of distance from $e$. We refer to \textit{core element} as
 the elements that are inside a cluster. \textit{Border elements} are elements that are on the
 border of a cluster. Note that border elements are still in their respective cluster.
 
-\begin{definition}[directly density-reachable]
+\begin{definition}[Directly density-reachable]
   An element $e_1$ is directly density-reachable from another element $e_2$ with parameters
-  $\varepsilon$ and $\mu$ if $e_1\in N_\varepsilon(e_2)$ and $|N_\varepsilon(e_2)|\geq\mu$.
+  $\eps$ and $\mu$ if $e_1\in N_\eps(e_2)$ and $|N_\eps(e_2)|\geq\mu$.
 \end{definition}
 
-The parameters $\varepsilon$ and $\mu$ define whether two points are close enough to be considered
-part of a cluster. Parameter $\varepsilon$ defines the ``area'' to be examined and $\mu$ defines
+The parameters $\eps$ and $\mu$ define whether two points are close enough to be considered
+part of a cluster. Parameter $\eps$ defines the ``area'' to be examined and $\mu$ defines
 the ``minimum density'' or minimum number of elements for a cluster to be considered. The condition
 is assymetrical. The assymetric case guarantees that one of the elements is a border element.
 
-\begin{definition}[density-reachable]
+\begin{definition}[Density-reachable]
   An element $e_1$ is density-reachable from another element $e_k$ if there exists a chain of
-  elements $e_1,ldots,e_k$ such that $e_{i+1}$ directly density-reachable from $e_i$
+  elements $e_1,\ldots,e_k$ such that $e_{i+1}$ directly density-reachable from $e_i$
 \end{definition}
+
+\begin{definition}[Density-connected]
+  An element $e_1$ is density-connected to another element $e_2$ given parameters $\mu$ and
+  $\eps$ if there exists another element $e'$ such that $e_1$ is density-reachable from $e'$ and
+  $e_2$ is also density-reachable from $e'$ wrt $\mu$ and $\eps$.
+\end{definition}
+
+In other words, if two elements are density-connected, there exists a certain ``path'' between the
+two elements. Note that although such a path exists, it is not necessarily true that the two
+elements are density-reachable from each other, since density-reachability is not symmetric.
+
+\begin{definition}[Cluster]
+  Let $\set{D}$ be a set of elements. Given parameters $\mu$ and $\eps$, a cluster $\set{C}$ is a
+  subset of $\set{D}$ such that:
+  \begin{enumerate}[label=\roman*]
+    \item (Maximality) Let $e_1$ and $e_2$ be elements in $\set{D}$. If $e_1\in\set{C}$ and $e_2$
+      is density-reachable from $e_2$, then $e_2\in\set{C}$.
+    \item (Connectivity) Let $e_1$ and $e_2$ be elements in $\set{C}$. Then $e_1$ is
+      density-connected to $e_2$.
+  \end{enumerate}
+  Additionally, for any pair of clusters $\set{C}_i$ and $\set{C}_j$: $\set{C}_i\cap\set{C}_j=
+  \emptyset$.
+\end{definition}
+
+\begin{definition}[Noise]
+  Let $\set{C_1},\ldots,\set{C_m}$ be the set of clusters that form the set of elements $\set{D}$
+  given parameters $\mu$ and $\eps$. Noise is the set of elements $\set{N}$ in $\set{D}$ such that
+  $\set{N}=\{\forall e\in\set{N}|\forall i:e\not\in\set{C}_i\}$.
+\end{definition}
+
+The DBSCAN algorithm works as follows. We choose an arbitrary element $e$ and find all of
+density-reachable neighbours that obey the parameters $\mu$ and $\eps$. If $e$ is a core element,
+then construct a new cluster that contains $e$. Else, if it is a border element, choose another
+distinct element $e'$ and retry. We iteratively pass through each element and apply the previous
+conditions. If we find two clusters that are close enough given $\mu$ and $\eps$, we merge them
+into one. Our implementation uses a Union-Find structure as clusters. We use \code{Union} to merge
+two clusters together and \code{Find} to discover whether two elements are in the same cluster.
+Furthermore, we consider that each element has its own unique set at initialization. We shall use
+an $n\times n$ distance matrix $M$. A distance matrix is a matrix that stores the distances of each
+pair $e_i$ and $e_j$ of elements. That is, $M=(m_{ij})$ with $m_{ij}=d(e_i,e_j), 1\leq i,j\leq n$,
+where $d(e_i,e_j)$ is the euclidean distance between elements $e_i$ and $e_j$.
+
+\begin{algorithm}[H]
+  \caption{\code{DBSCAN}}\label{alg:dbscan}
+  \begin{algorithmic}[1]
+    \Require\,Parameter $\mu$ that represents the minimum number of points
+    \Require\,Parameter $\eps$ that represents the minimum distance
+    \Require\,Set $\set{D}$ of elements
+    \Ensure\,A set of partitions $\set{P}$, with each partition representing a cluster
+    \State\,Let $M$ be the distance matrix of $\set{D}$
+    \State\,Let $Q$ be a queue of elements
+    \State\,Let $e$ be an arbitrary element $e\in\set{D}$, \code{Enqueue}\,($Q, e$)
+    \Repeat%
+      \State\,$e_i\gets$\code{Dequeue}\,($Q$)
+      \State\,Let $N_\eps(e_i)$ be the $\eps$-neighborhood of $e_i$
+      \For{each $e_j\in\set{D}$, such that $e_i\neq e_j$}
+        \If{$m_{ij} \leq \eps$ \textbf{and} \code{Find}\,($e_i$) $\neq$ \code{Find}\,($e_j$)}
+          \State\,$N_\eps(e_i) \gets N_\eps(e_i) \cup e_j$
+        \EndIf%
+      \EndFor%
+      \If{$N_\eps(e_i) \geq \mu$}
+        \For{each $e_j\in N_\eps(e_i)$}
+          \State\,\code{Union}\,($e_i$, $e_j$)
+          \State\,$e_i$\code{.visited} $\gets$ \textbf{true}, $e_j$\code{.visited} $\gets$
+            \textbf{true}
+        \EndFor%
+      \EndIf%
+      \If{$Q$ is empty}
+        \State\,Try to find an element $e_k$ such that $e_k$\code{.visited} $=$ \textbf{false}
+        \If{$e_k$ exists}
+          \State\,\code{Enqueue}\,($Q$, $e_k$)
+        \EndIf%
+      \EndIf%
+    \Until{$Q$ is empty}
+    \State\,\textbf{return} the converted set of Union-Find structures into a set of sets.
+  \end{algorithmic}
+\end{algorithm}
 
 \section{Inference}
 
