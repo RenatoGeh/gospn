@@ -225,7 +225,7 @@ because a complete and consistent SPN can be transformed into a complete and dec
 more than a polynomial number of edge and node additions~\cite{theoretical-spn}. We can now
 formally define an SPN\@.
 
-\begin{definition}[Sum-product network]~\\
+\begin{definition}[Sum-product network]\label{def:spn}~\\
   A sum-product network (SPN) is a weakly connected DAG that can be recursively defined as
   following.
 
@@ -667,7 +667,7 @@ routine has time
 where $n=|\set{V}|$. Let us assume, for simplicity, that $\bigo(T(x))=\bigo(1)$. The asymptotic
 time is then
 \begin{equation*}
-  \bigo(n^2m^2 + \frac{n(n-1)}{2}\log_2^*n) = \bigo(n^2m^2 + n^2) = \bigo(n^2m^2)
+  \bigo\left(n^2m^2 + \frac{n(n-1)}{2}\log_2^*n\right) = \bigo(n^2m^2 + n^2) = \bigo(n^2m^2)
 \end{equation*}
 Our implementation is extremely slow when $n$ and $m$ are moderately large. On some experiments we
 shall mention later, we dealt with $n=2576$ and $m=8$. Running \code{IndepGraph} became
@@ -709,7 +709,7 @@ representability.
 
 \begin{lemma}\label{lemma-minimalirrelevant}
   Let $I=(\set{V},\set{E})$ be an independence graph and $G=(\set{V},\set{E'})$ an undirected graph
-  where $\set{E'}\subset\set{E}$. $G$ is minimal wrt $I$ iff there are no irrelevant edges in
+  where $\set{E'}\subseteq\set{E}$. $G$ is minimal wrt $I$ iff there are no irrelevant edges in
   $\set{E'}$.
 \end{lemma}
 \begin{proof}
@@ -975,11 +975,11 @@ where $d(e_i,e_j)$ is the euclidean distance between elements $e_i$ and $e_j$.
     \Repeat%
       \State\,$e_i\gets$\code{Dequeue}\,($Q$)
       \State\,Let $N_\eps(e_i)$ be the $\eps$-neighborhood of $e_i$
-      \For{each $e_j\in\set{D}$, such that $e_i\neq e_j$}
+      \For{each $e_j\in\set{D}$, such that $e_i\neq e_j$}\label{alg:line:dbscan-find-start}
         \If{$m_{ij} \leq \eps$ \textbf{and} \code{Find}\,($e_i$) $\neq$ \code{Find}\,($e_j$)}
           \State\,$N_\eps(e_i) \gets N_\eps(e_i) \cup e_j$
         \EndIf%
-      \EndFor%
+      \EndFor\label{alg:line:dbscan-find-end}
       \If{$N_\eps(e_i) \geq \mu$}
         \For{each $e_j\in N_\eps(e_i)$}
           \State\,\code{Union}\,($e_i$, $e_j$)
@@ -998,7 +998,84 @@ where $d(e_i,e_j)$ is the euclidean distance between elements $e_i$ and $e_j$.
   \end{algorithmic}
 \end{algorithm}
 
+The worst case input for algorithm \code{DBSCAN} is when, for every element in $\set{D}$, this
+element is not in a cluster given parameters $\mu$ and $\eps$. Lines
+\ref{alg:line:dbscan-find-start}--\ref{alg:line:dbscan-find-end} in \autoref{alg:dbscan} show the
+algorithm finding the $\eps$-neighborhood of an arbitrary $e_i$ element in $\set{D}$. Finding such
+a neighborhood is $\bigo(n)$, where $n=|\set{D}|$ as we must search for every other element not in
+the same cluster as $e_i$. We improve our running time by pre-computing a distance matrix as to
+avoid repetitive calculations when finding the $\eps$-neighborhood. Pre-computing $M$ is an
+$\bigo(n^2)$ task, as we must compute each distance for each pair. Next we find whether such a
+neighborhood is sufficiently dense. If it is, for each element in $N_\eps$, we \code{Union} the two
+sets. Assuming $\bigo(1)$ on \code{Union} and \code{Find}, we have a complexity of $\bigo(n)$ in
+the worst case --- when all elements are inside $e_i$'s neighborhood. Finally, we find the next
+unvisited element, which is clearly found in $\bigo(n)$ time. The overall complexity of
+\code{DBSCAN} is $\bigo(n^2)$, with memory usage $\bigo(n)$ because of $M$.
+
+As we shall see in the experiments section, although \code{DBSCAN} has complexity $\bigo(n^2)$, it
+is \code{IndepGraphUF} that takes most of the algorithm's run time.
+
 \section{Inference}
+
+Let $S$ be an SPN\@. The probability of evidence of a set of events $\set{X}$ is the value of the
+SPN divided by the partition function. The partition function of an SPN is the value of an SPN when
+all variables are unknown. We shall denote the partition function of $S$ as $S(\cdot)$. Therefore,
+the value of the SPN is $S(\set{X})/S(\cdot)$. When an SPN is normalized, the partition function is
+$S(\cdot)=1$ and thus the probability of evidence is the value of the SPN itself. Since we have
+defined SPNs as normalized, we shall always consider $S(\cdot)=1$.
+
+The probability of evidence is computed as follows. Let $r$ be the root node of $S$. The value of
+$S(\set{X})$ is the value of the root node $r$ given evidence $\set{X}$. The value of a node is
+described in~\autoref{def:spn}. We recursively compute the value of each node given $\set{X}$. For
+every product node $\pi$, the evidence is only relevant when $\Sc(\pi)\cap\set{X}\neq\emptyset$,
+since the children of product nodes have disjoint scopes.
+
+Computing the probability of evidence requires only that we pass each node once to get the value of
+its children, and another time to compute the true value given its children. Therefore, we can
+achieve inference in time linear to the SPN's edges.
+
+In order to avoid numerical errors, we use the logarithm of the values of each node instead of the
+true values. Therefore, the logarithm values of each node type is as follows:
+
+\begin{description}
+  \item[Leaf]~\\
+    Let $\lambda$ be a leaf node and $\{X\}=\Sc(\lambda)$. The value of the leaf node is
+    \begin{equation*}
+      \lambda(\set{X})=
+      \begin{cases}
+        \ln(\lambda(X=x)) & \text{if } X\in\set{X}\\
+        0 & \text{else}
+      \end{cases}
+    \end{equation*}
+  \item[Sum]~\\
+    Let $\sigma$ be a sum node and $\set{W}=\{w_1,\ldots,w_n\}$ be the weights of the $n$ children
+    of $\sigma$. The value of a sum node is the weighted sum of each of its children. Let $\set{A}=
+    \{a_1,\ldots, a_n\}$ a set where $a_i=\ln(w_i)+c_i(\set{X})$ with $c_i\in\Ch(\sigma)$. We shall
+    reorder $A$ such that $a_1>\cdots>a_n$.
+    \begin{equation*}
+      \sigma(\set{X})=a_1+\ln\left(1+\sum_{i=2}^n e^{\left(a_i - a_1\right)}\right)
+    \end{equation*}
+  \item[Product]~\\
+    Let $\pi$ be a product node. The value of a product node is
+    \begin{equation*}
+      \pi(\set{X})=\sum_{i=1}^n c_i(\set{X})\text{, where $c_i\in\Ch(\pi)$.}
+    \end{equation*}
+\end{description}
+
+For MAP, we slightly alter the SPN in order to maximize each children's value. We replace all sum
+nodes with max nodes. That is, the value of the sum node is now the value of the weighted child
+that has the maximum value. Since the children of sum nodes can be seen as classifications of
+categories of similar instances, we can see the max node as choosing the sub-SPN that has the most
+probability of appearing. That is, we choose the cluster that is most frequent. Let
+$\{X\}=\Sc(\lambda)$, where $\lambda$ is a leaf node. To maximize the value of $\lambda$ we check
+whether $X\in\set{X}$. If it is, then we simply return the log probability of $X$. Otherwise, we
+return the log of the mode of the univariate distribution. Thus, to compute the MAP we simply
+replace sum nodes with max nodes and return the modes of leaf nodes that have not been
+instantiated.
+
+Both MAP and probability of evidence are $\bigo(m)$, where $m$ is the number of edges in the SPN\@.
+An SPN generated by \code{LearnGD} has $n-1$ edges, with $n$ being the number of variables, since
+such an SPN will always be an SPT\@. Therefore, inference in an SPT is $\bigo(n)$.
 
 \section{Theoretical Results}
 
