@@ -173,7 +173,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		}
 		clusters = cluster.KMeansV(kclusters, mdata)
 	} else if kclusters == -1 {
-		clusters = cluster.DBSCAN(mdata, 4, 4)
+		clusters = cluster.DBSCAN(mdata, 10, 5)
 	} else {
 		clusters = cluster.OPTICS(mdata, 10, 4)
 	}

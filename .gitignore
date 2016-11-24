@@ -6,6 +6,10 @@ out.put
 *.py
 *.dot
 
+# Data image files.
+*.data
+*.pgm
+
 # LaTeX
 *.aux
 *.bbl

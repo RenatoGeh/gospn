@@ -37,6 +37,9 @@ learn more about the peculiarities of SPNs - but also documentational,
 as we also intend on documenting and recording what we have learned in a
 simpler, clearer way then how it is currently written in literature.
 
+A thorough analysis on our implementation can be found at
+(<https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf>).
+
 ### Usage
 
 To run GoSPN, we must complete a few steps:
@@ -65,6 +68,7 @@ To run GoSPN, we must complete a few steps:
 ```
 Usage:
   go run main.go [-p] [-rseed] [-clusters] [-iterations] [-concurrents]
+  [-dataset] [-width] [-height] [-max] [-mode]
 Arguments:
   p           - is the partition in the interval (0, 1) to be used for
                 cross-validation. If ommitted, p defaults to 0.7.
@@ -394,20 +398,7 @@ Code documentation can be found at <https://godoc.org/github.com/RenatoGeh/gospn
 
 #### Documentation
 
-The available documentation present at `/doc` does not only concern the
-code nor the algorithms implemented in GoSPN. It also provides an
-introduction to SPNs in the form of a tutorial, explaining how knowledge
-is represented in SPNs and how to perform exact inference. It obviously
-also contains a detailed description on the learning algorithms
-implemented in GoSPN.
-
-There are two submodules under `/doc`:
-
-* `/doc/tutorial`: is a tutorial on SPNs. It covers from how to
-  represent knowledge to inference and learning in SPNs. It is a
-  detailed document on SPNs.
-* `/doc/code`: is a detailed documentation on the code. It contains only
-  the implementational aspect of GoSPN.
+An analysis on our implementation can be found at `doc/analysis/`.
 
 ### Datasets
 

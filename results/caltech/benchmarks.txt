@@ -1,0 +1,36 @@
+First run: 9510MB - 1 class job
+Second 5-streak run: 9548MB
+
+Details on second run:
+
+go run main.go -mode=class -width=150 -height=65 -max=256 -dataset=caltech    12040.89s  user
+18.74s system 131% cpu 2:33:24.20 total
+
+avg shared (code):         0 KB
+avg unshared (data/stack): 0 KB
+total (sum):               0 KB
+max memory:                9548 MB
+page faults from disk:     1
+other page faults:         6765037
+
+Results on 5-streak run:
+
+1st iteration:
+  Correct classifications: 81/90
+  Percentage of correct hits: 90.00%
+2nd iteration:
+  Correct classifications: 78/90
+  Percentage of correct hits: 86.67%
+3rd iteration:
+  Correct classifications: 76/90
+  Percentage of correct hits: 84.44%
+4th iteration:
+  Correct classifications: 78/90
+  Percentage of correct hits: 86.67%
+5th iteration:
+  Correct classifications: 76/90
+  Percentage of correct hits: 84.44%
+
+Final results:
+  Correct classifications: 389/450
+  Percentage of correct hits: 86.44%

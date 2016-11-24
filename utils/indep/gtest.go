@@ -8,7 +8,7 @@ import (
 // G-Test of Independence
 
 // GTest is the G-Test log-likelihood independence test.
-func GTest(p, q int, data [][]int) bool {
+func GTest(p, q int, data [][]int, n int) bool {
 
 	E := make([][]float64, p)
 	for i := 0; i < p; i++ {
@@ -44,9 +44,9 @@ func GTest(p, q int, data [][]int) bool {
 	}
 
 	sum *= 2
-	sigval := 0.0001 / 2.0
+	sigval := 0.0001 / 2
 	cmp := ChiSquare(sum, df)
-	//fmt.Printf("G: df: %d, g: %f, cmp: %f\n", df, sum, cmp)
+	//fmt.Printf("G: df: %d, g: %f, cmp: %.50f, sigval: %.50f\n", df, sum, cmp, sigval)
 
 	return cmp >= sigval
 }

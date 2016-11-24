@@ -113,14 +113,14 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 			reps[lbls[i]] = test[i]
 		}
 	}
-	for i := 0; i < nclass; i++ {
-		for _, v := range io.Orientations {
-			fmt.Printf("Drawing %s completion for digit %d.\n", v, i)
-			cmpl, half := halfImg(s, reps[i], v, width, height)
-			//io.ImgCmplToPPM(fmt.Sprintf("cmpl_%d-%s.ppm", i, v), half, cmpl, v, width, height)
-			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height, max)
-		}
-	}
+	/* for i := 0; i < nclass; i++ {*/
+	//for _, v := range io.Orientations {
+	//fmt.Printf("Drawing %s completion for digit %d.\n", v, i)
+	//cmpl, half := halfImg(s, reps[i], v, width, height)
+	////io.ImgCmplToPPM(fmt.Sprintf("cmpl_%d-%s.ppm", i, v), half, cmpl, v, width, height)
+	//io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height, max-1)
+	//}
+	/* }*/
 
 	return s, corrects, lines
 }
