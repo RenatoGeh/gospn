@@ -8,7 +8,6 @@ out.put
 
 # Data image files.
 *.data
-*.pgm
 
 # LaTeX
 *.aux
