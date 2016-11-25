@@ -32,6 +32,7 @@ func PBMFToData(dirname, dname string) {
 	nsdirs := len(subdirs)
 	tpath := utils.StringConcat(dirname, "/")
 	var mrkrm []int
+	cmarks := 1
 	// Reserved dirname compiled for output. Also remove non-dirs.
 	for i := 0; i < nsdirs; i++ {
 		// m marks the spot.
@@ -40,13 +41,15 @@ func PBMFToData(dirname, dname string) {
 		if subdirs[i] == "compiled" {
 			m := i
 			if len(mrkrm) > 0 {
-				m = i - 1
+				m = i - cmarks
+				cmarks++
 			}
 			mrkrm = append(mrkrm, m)
 		} else if fi, _ := os.Stat(utils.StringConcat(tpath, subdirs[i])); !fi.IsDir() {
 			m := i
 			if len(mrkrm) > 0 {
-				m = i - 1
+				m = i - cmarks
+				cmarks++
 			}
 			mrkrm = append(mrkrm, m)
 		}
@@ -256,6 +259,7 @@ func PBMFToEvidence(dirname, dname string) {
 	tpath := utils.StringConcat(dirname, "/")
 
 	var mrkrm []int
+	cmarks := 1
 	// Reserved dirname compiled for output. Also remove non-dirs.
 	for i := 0; i < nsdirs; i++ {
 		// m marks the spot.
@@ -265,7 +269,8 @@ func PBMFToEvidence(dirname, dname string) {
 			subdirs[i] == "compiled" {
 			m := i
 			if len(mrkrm) > 0 {
-				m = i - 1
+				m = i - cmarks
+				cmarks++
 			}
 			mrkrm = append(mrkrm, m)
 		}

@@ -36,6 +36,7 @@ func PGMFToData(dirname, dname string) (int, int, int) {
 	nsdirs := len(subdirs)
 	tpath := utils.StringConcat(dirname, "/")
 	var mrkrm []int
+	cmarks := 1
 	// Reserved dirname compiled for output. Also remove non-dirs.
 	for i := 0; i < nsdirs; i++ {
 		// m marks the spot.
@@ -44,13 +45,15 @@ func PGMFToData(dirname, dname string) (int, int, int) {
 		if subdirs[i] == "compiled" {
 			m := i
 			if len(mrkrm) > 0 {
-				m = i - 1
+				m = i - cmarks
+				cmarks++
 			}
 			mrkrm = append(mrkrm, m)
 		} else if fi, _ := os.Stat(utils.StringConcat(tpath, subdirs[i])); !fi.IsDir() {
 			m := i
 			if len(mrkrm) > 0 {
-				m = i - 1
+				m = i - cmarks
+				cmarks++
 			}
 			mrkrm = append(mrkrm, m)
 		}
@@ -184,6 +187,7 @@ func BufferedPGMFToData(dirname, dname string) (int, int, int) {
 	nsdirs := len(subdirs)
 	tpath := utils.StringConcat(dirname, "/")
 	var mrkrm []int
+	cmarks := 1
 	// Reserved dirname compiled for output. Also remove non-dirs.
 	for i := 0; i < nsdirs; i++ {
 		// m marks the spot.
@@ -192,13 +196,15 @@ func BufferedPGMFToData(dirname, dname string) (int, int, int) {
 		if subdirs[i] == "compiled" {
 			m := i
 			if len(mrkrm) > 0 {
-				m = i - 1
+				m = i - cmarks
+				cmarks++
 			}
 			mrkrm = append(mrkrm, m)
 		} else if fi, _ := os.Stat(utils.StringConcat(tpath, subdirs[i])); !fi.IsDir() {
 			m := i
 			if len(mrkrm) > 0 {
-				m = i - 1
+				m = i - cmarks
+				cmarks++
 			}
 			mrkrm = append(mrkrm, m)
 		}
@@ -385,6 +391,7 @@ func PGMFToEvidence(dirname, dname string) (int, int, int) {
 	tpath := utils.StringConcat(dirname, "/")
 
 	var mrkrm []int
+	cmarks := 1
 	// Reserved dirname compiled for output. Also remove non-dirs.
 	for i := 0; i < nsdirs; i++ {
 		// m marks the spot.
@@ -394,7 +401,8 @@ func PGMFToEvidence(dirname, dname string) (int, int, int) {
 			subdirs[i] == "compiled" {
 			m := i
 			if len(mrkrm) > 0 {
-				m = i - 1
+				m = i - cmarks
+				cmarks++
 			}
 			mrkrm = append(mrkrm, m)
 		}
