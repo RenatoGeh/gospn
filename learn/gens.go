@@ -1,11 +1,12 @@
 package learn
 
 import (
-	"fmt"
+	//"fmt"
 	//"math"
 	"sort"
 
 	spn "github.com/RenatoGeh/gospn/spn"
+	sys "github.com/RenatoGeh/gospn/sys"
 	utils "github.com/RenatoGeh/gospn/utils"
 	cluster "github.com/RenatoGeh/gospn/utils/cluster"
 	indep "github.com/RenatoGeh/gospn/utils/indep"
@@ -50,11 +51,11 @@ import (
 func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
 	n := len(sc)
 
-	fmt.Printf("Sample size: %d, scope size: %d\n", len(data), n)
+	sys.Printf("Sample size: %d, scope size: %d\n", len(data), n)
 
 	// If the data's scope is unary, then we return a leaf (i.e. a univariate distribution).
 	if n == 1 {
-		fmt.Println("Creating new leaf...")
+		sys.Println("Creating new leaf...")
 
 		// m number of instantiations.
 		m := len(data)
@@ -69,15 +70,15 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 		}
 
 		leaf := spn.NewCountingUnivDist(tv.Varid, counts)
-		//fmt.Println("Leaf created.")
+		//sys.Println("Leaf created.")
 		return leaf
 	}
 
 	// Else we check for independent subsets of variables. We separate variables in k partitions,
 	// where every partition is pairwise indepedent with each other.
-	//fmt.Println("Preparing to create new product node...")
+	//sys.Println("Preparing to create new product node...")
 
-	fmt.Println("Creating VarDatas for Independency Test...")
+	sys.Println("Creating VarDatas for Independency Test...")
 	vdata, l := make([]*utils.VarData, n), 0
 	for _, v := range sc {
 		tn := len(data)
@@ -90,7 +91,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 		l++
 	}
 
-	fmt.Println("Creating new Independency graph...")
+	sys.Println("Creating new Independency graph...")
 	// Independency graph.
 	igraph := indep.NewUFIndepGraph(vdata, pval)
 	vdata = nil
@@ -98,9 +99,9 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 	// If true, then we can partition the set of variables in data into independent subsets. This
 	// means we can create a product node (since product nodes' children have disjoint scopes).
 	if len(igraph.Kset) > 1 {
-		fmt.Println("Found independency. Separating independent sets.")
+		sys.Println("Found independency. Separating independent sets.")
 
-		//fmt.Println("Found independency between variables. Creating new product node...")
+		//sys.Println("Found independency between variables. Creating new product node...")
 		// prod is the new product node. m is the number of disjoint sets. kset is a shortcut.
 		prod, m, kset := spn.NewProduct(), len(igraph.Kset), &igraph.Kset
 		tn := len(data)
@@ -113,7 +114,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 				tdata[j] = make(map[int]int)
 				for l := 0; l < s; l++ {
 					// Get the instanciations of variables in kset[i].
-					//fmt.Printf("[%d][%d] => %v vs %v | %v vs %v\n", j, k, (*kset)[i][k], len(data[j]), len(tdata[j]), k)
+					//sys.Printf("[%d][%d] => %v vs %v | %v vs %v\n", j, k, (*kset)[i][k], len(data[j]), len(tdata[j]), k)
 					k := (*kset)[i][l]
 					tdata[j][k] = data[j][k]
 				}
@@ -124,8 +125,8 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 				t := (*kset)[i][j]
 				nsc[t] = Variable{t, sc[t].Categories}
 			}
-			//fmt.Printf("LENGTH: %d\n", len(tdata))
-			//fmt.Println("Product node created. Recursing...")
+			//sys.Printf("LENGTH: %d\n", len(tdata))
+			//sys.Println("Product node created. Recursing...")
 			// Adds the recursive calls as children of this new product node.
 			prod.AddChild(Gens(nsc, tdata, kclusters, pval, eps, mp))
 		}
@@ -134,7 +135,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 	igraph = nil
 
 	// Else we perform k-clustering on the instances.
-	fmt.Println("No independency found. Preparing for clustering...")
+	sys.Println("No independency found. Preparing for clustering...")
 
 	m := len(data)
 	mdata := make([][]int, m)
@@ -155,7 +156,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 
 	var clusters []map[int][]int
 	if kclusters > 0 {
-		fmt.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
+		sys.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
 		if len(mdata) < kclusters {
 			//Fully factorized form.
 			//All instances are approximately the same.
@@ -178,7 +179,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 		clusters = cluster.OPTICS(mdata, eps, mp)
 	}
 	k := len(clusters)
-	//fmt.Printf("Clustering similar instances with %d clusters.\n", k)
+	//sys.Printf("Clustering similar instances with %d clusters.\n", k)
 	if k == 1 {
 		// Fully factorized form.
 		// All instances are approximately the same.
@@ -196,7 +197,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 	}
 	mdata = nil
 
-	fmt.Println("Reformating clusters to appropriate format and creating sum node...")
+	sys.Println("Reformating clusters to appropriate format and creating sum node...")
 
 	sum := spn.NewSum()
 	for i := 0; i < k; i++ {
@@ -217,7 +218,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 			nsc[k] = v
 		}
 
-		//fmt.Println("Created new sum node child. Recursing...")
+		//sys.Println("Created new sum node child. Recursing...")
 		sum.AddChildW(Gens(nsc, ndata, kclusters, pval, eps, mp), float64(ni)/float64(len(data)))
 	}
 

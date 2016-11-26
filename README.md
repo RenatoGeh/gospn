@@ -102,8 +102,8 @@ Arguments:
                 file (data), run an image completion job (cmpl) or a
                 classification job (class).
   pval        - the significance value for the independence test.
-	eps         - the epsilon minimum distance value for DBSCAN.
-	mp          - the minimum points density for DBSCAN.
+  eps         - the epsilon minimum distance value for DBSCAN.
+  mp          - the minimum points density for DBSCAN.
 ```
 
 Running `go run main.go -help` shows the help page.

@@ -11,21 +11,12 @@ import (
 	io "github.com/RenatoGeh/gospn/io"
 	learn "github.com/RenatoGeh/gospn/learn"
 	spn "github.com/RenatoGeh/gospn/spn"
+	sys "github.com/RenatoGeh/gospn/sys"
 	utils "github.com/RenatoGeh/gospn/utils"
 	//profile "github.com/pkg/profile"
 )
 
 var dataset = "olivetti_3bit"
-
-var (
-	width  = 46
-	height = 56
-	max    = 8
-
-	pval = 0.0001
-	eps  = 4.0
-	mp   = 4
-)
 
 func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, spn.VarSet) {
 	cmpl, half := make(spn.VarSet), make(spn.VarSet)
@@ -67,7 +58,7 @@ func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, 
 
 func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, int, int) {
 	vars, train, test, lbls := io.ParsePartitionedData(filename, p, rseed)
-	s := learn.Gens(vars, train, kclusters, pval, eps, mp)
+	s := learn.Gens(vars, train, kclusters, sys.Pval, sys.Eps, sys.Mp)
 
 	lines, n := len(test), len(vars)
 	nclass := vars[n-1].Categories
@@ -87,28 +78,30 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	for i := 0; i < lines; i++ {
 		imax, max, prs := -1, -1.0, make([]float64, nclass)
 		pz := s.Value(test[i])
-		fmt.Printf("Testing instance %d. Should be classified as %d.\n", i, lbls[i])
+		sys.Printf("Testing instance %d. Should be classified as %d.\n", i, lbls[i])
 		for j := 0; j < nclass; j++ {
 			test[i][n-1] = j
 			px := s.Value(test[i])
 			prs[j] = utils.AntiLog(px - pz)
-			fmt.Printf("  Pr(X=%d|E) = antilog(%.10f) = %.10f\n", j, px-pz, prs[j])
+			sys.Printf("  Pr(X=%d|E) = antilog(%.10f) = %.10f\n", j, px-pz, prs[j])
 			if prs[j] > max {
 				max, imax = prs[j], j
 			}
 		}
-		fmt.Printf("Instance %d should be classified as %d. SPN classified as %d.\n", i, lbls[i], imax)
+		sys.Printf("Instance %d should be classified as %d. SPN classified as %d.\n", i, lbls[i], imax)
 		if imax == lbls[i] {
 			corrects++
 		} else {
-			fmt.Printf("--------> INCORRECT! <--------\n")
+			sys.Printf("--------> INCORRECT! <--------\n")
 		}
 		delete(test[i], n-1)
 	}
 
-	fmt.Printf("\n========= Iteration Results ========\n")
+	fmt.Printf("========= Iteration Results ========\n")
 	fmt.Printf("  Correct classifications: %d/%d\n", corrects, lines)
 	fmt.Printf("  Percentage of correct hits: %.2f%%\n", 100.0*(float64(corrects)/float64(lines)))
+	fmt.Printf("  Train set size: %d\n", len(train))
+	fmt.Printf("  Test set size: %d\n", len(test))
 	fmt.Println("======================================")
 
 	reps := make([]map[int]int, nclass)
@@ -201,17 +194,18 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 			}
 
 			fmt.Printf("P-%d: Training SPN with %d clusters against instance %d...\n", id, kclusters, id)
-			s := learn.Gens(lsc, train, kclusters, pval, eps, mp)
+			s := learn.Gens(lsc, train, kclusters, sys.Pval, sys.Eps, sys.Mp)
 
 			for _, v := range io.Orientations {
 				fmt.Printf("P-%d: Drawing %s image completion for instance %d.\n", id, v, id)
-				cmpl, half := halfImg(s, chosen, v, width, height)
-				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, width, height, max-1)
+				cmpl, half := halfImg(s, chosen, v, sys.Width, sys.Height)
+				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, sys.Width,
+					sys.Height, sys.Max-1)
 				cmpl, half = nil, nil
 			}
 			fmt.Printf("P-%d: Drawing MPE image for instance %d.\n", id, id)
 			io.VarSetToPGM(fmt.Sprintf("mpe_cmpl_%d.pgm", id), randVarSet(s, lsc, 100),
-				width, height, max-1)
+				sys.Width, sys.Height, sys.Max-1)
 
 			//out, _ := filepath.Abs("results/" + dataset + "/models")
 			//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
@@ -263,14 +257,17 @@ func main() {
 		"dataset structure inside the data folder. Setting -mode=data will cause a new given "+
 		"dataset data file to be created. Ommitting -mode or setting -mode to something different "+
 		"than data will run a job on the given dataset.")
-	flag.IntVar(&width, "width", width, "The width of the images to be classified or completed.")
-	flag.IntVar(&height, "height", height, "The height of the images to be classified or completed.")
-	flag.IntVar(&max, "max", max, "The maximum pixel value the images can have.")
+	flag.IntVar(&sys.Width, "width", sys.Width, "The width of the images to be classified or "+
+		"completed.")
+	flag.IntVar(&sys.Height, "height", sys.Height, "The height of the images to be classified or "+
+		"completed.")
+	flag.IntVar(&sys.Max, "max", sys.Max, "The maximum pixel value the images can have.")
 	flag.StringVar(&mode, "mode", "cmpl", "Whether to convert a directory structure into a data "+
 		"file (data), run an image completion job (cmpl) or a classification job (class).")
-	flag.Float64Var(&pval, "pval", pval, "The significance value for the independence test.")
-	flag.Float64Var(&eps, "eps", eps, "The epsilon minimum distance value for DBSCAN.")
-	flag.IntVar(&mp, "mp", mp, "The minimum points density for DBSCAN.")
+	flag.Float64Var(&sys.Pval, "pval", sys.Pval, "The significance value for the independence test.")
+	flag.Float64Var(&sys.Eps, "eps", sys.Eps, "The epsilon minimum distance value for DBSCAN.")
+	flag.IntVar(&sys.Mp, "mp", sys.Mp, "The minimum points density for DBSCAN.")
+	flag.BoolVar(&sys.Verbose, "v", sys.Verbose, "Verbose mode.")
 
 	flag.Parse()
 

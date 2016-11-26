@@ -1,7 +1,8 @@
 package indep
 
 import (
-	"fmt"
+	//"fmt"
+	sys "github.com/RenatoGeh/gospn/sys"
 	utils "github.com/RenatoGeh/gospn/utils"
 )
 
@@ -69,14 +70,14 @@ func NewIndepGraph(data []*utils.VarData, pval float64) *Graph {
 		igraph.adjlist[ids[i]] = []int{}
 	}
 
-	fmt.Println("Constructing independence graph...")
+	sys.Println("Constructing independence graph...")
 	// Construct the indepedency graph by adding an edge if there exists a dependency relation.
 	for i := 0; i < n; i++ {
 		for j := i + 1; j < n; j++ {
 			v1, v2 := ids[i], ids[j]
 
 			// Initialize the count matrix mdata.
-			//fmt.Println("Initializing count matrix...")
+			//sys.Println("Initializing count matrix...")
 			p, q := data[i].Categories, data[j].Categories
 			mdata := make([][]int, p+1)
 			for k := 0; k < p+1; k++ {
@@ -89,10 +90,10 @@ func NewIndepGraph(data []*utils.VarData, pval float64) *Graph {
 				mdata[data[i].Data[k]][data[j].Data[k]]++
 			}
 
-			//fmt.Println("Counting totals and assigning to edges...")
+			//sys.Println("Counting totals and assigning to edges...")
 			// Total on the x axis, y axis and x+y respectively.
 			tx, ty, tt := make([]int, q), 0, 0
-			//fmt.Println("Y-axis...")
+			//sys.Println("Y-axis...")
 			for x := 0; x < p; x++ {
 				ty = 0
 				for y := 0; y < q; y++ {
@@ -102,7 +103,7 @@ func NewIndepGraph(data []*utils.VarData, pval float64) *Graph {
 				mdata[x][q] = ty
 			}
 			// Compute total on the x axis.
-			//fmt.Println("X-axis...")
+			//sys.Println("X-axis...")
 			for y := 0; y < q; y++ {
 				mdata[p][y] = tx[y]
 				tt += tx[y]
@@ -111,24 +112,24 @@ func NewIndepGraph(data []*utils.VarData, pval float64) *Graph {
 			mdata[p][q] = tt
 
 			// Checks if variables i, j are independent.
-			//fmt.Println("Checking for pairwise independence...")
+			//sys.Println("Checking for pairwise independence...")
 			indep := GTest(p, q, mdata, n*(n-1)/2, pval)
 
-			//fmt.Printf("%t\n", indep)
+			//sys.Printf("%t\n", indep)
 			// If not independent, then add an undirected edge i-j.
 			if !indep {
-				//fmt.Println("Not independent. Creating edge...")
+				//sys.Println("Not independent. Creating edge...")
 				igraph.adjlist[v1] = append(igraph.adjlist[v1], v2)
 				igraph.adjlist[v2] = append(igraph.adjlist[v2], v1)
 			} //else {
-			//fmt.Println("Independent. No edges.")
+			//sys.Println("Independent. No edges.")
 			//}
 		}
 	}
 
 	// utils.Union-utils.Find to discriminate each set of connected variables that are fully disconnected of
 	// another set of connected set of variables
-	fmt.Println("utils.Finding disconnected subgraphs...")
+	sys.Println("utils.Finding disconnected subgraphs...")
 
 	// Set of utils.Union-utils.Find trees.
 	sets := make([]*utils.UFNode, n)
@@ -138,7 +139,7 @@ func NewIndepGraph(data []*utils.VarData, pval float64) *Graph {
 		sets[i] = utils.MakeSet(ids[i])
 	}
 
-	fmt.Println("Preparing to test each vertex of the independence graph for disconnectivity...")
+	sys.Println("Preparing to test each vertex of the independence graph for disconnectivity...")
 	// If a vertex u has an edge with another vertex v, then union sets that contain u and v.
 	for i := 0; i < n; i++ {
 		v1 := ids[i]
@@ -188,7 +189,7 @@ func NewUFIndepGraph(data []*utils.VarData, pval float64) *Graph {
 		sets[i] = utils.MakeSet(ids[i])
 	}
 
-	fmt.Println("Constructing independence graph...")
+	sys.Println("Constructing independence graph...")
 	// Construct the indepedency graph by adding an edge if there exists a dependency relation.
 	for i := 0; i < n; i++ {
 		for j := i + 1; j < n; j++ {
@@ -199,7 +200,7 @@ func NewUFIndepGraph(data []*utils.VarData, pval float64) *Graph {
 			}
 
 			// Initialize the contingency matrix mdata.
-			//fmt.Println("Initializing contingency matrix...")
+			//sys.Println("Initializing contingency matrix...")
 			p, q := data[i].Categories, data[j].Categories
 			mdata := make([][]int, p+1)
 			for k := 0; k < p+1; k++ {
@@ -212,10 +213,10 @@ func NewUFIndepGraph(data []*utils.VarData, pval float64) *Graph {
 				mdata[data[i].Data[k]][data[j].Data[k]]++
 			}
 
-			//fmt.Println("Counting totals and assigning to edges...")
+			//sys.Println("Counting totals and assigning to edges...")
 			// Total on the x axis, y axis and x+y respectively.
 			tx, ty, tt := make([]int, q), 0, 0
-			//fmt.Println("Y-axis...")
+			//sys.Println("Y-axis...")
 			for x := 0; x < p; x++ {
 				ty = 0
 				for y := 0; y < q; y++ {
@@ -225,7 +226,7 @@ func NewUFIndepGraph(data []*utils.VarData, pval float64) *Graph {
 				mdata[x][q] = ty
 			}
 			// Compute total on the x axis.
-			//fmt.Println("X-axis...")
+			//sys.Println("X-axis...")
 			for y := 0; y < q; y++ {
 				mdata[p][y] = tx[y]
 				tt += tx[y]
@@ -234,21 +235,21 @@ func NewUFIndepGraph(data []*utils.VarData, pval float64) *Graph {
 			mdata[p][q] = tt
 
 			// Checks if variables i, j are independent.
-			//fmt.Println("Checking for pairwise independence...")
+			//sys.Println("Checking for pairwise independence...")
 			//indep := ChiSquareTest(p, q, mdata, n-1)
 			//chidep := ChiSquareTest(p, q, mdata, n-1)
 			indep := GTest(p, q, mdata, n*(n-1)/2, pval)
-			//fmt.Printf("Compare Chi with G: %v vs %v\n", chidep, indep)
+			//sys.Printf("Compare Chi with G: %v vs %v\n", chidep, indep)
 
-			//fmt.Printf("%t\n", indep)
+			//sys.Printf("%t\n", indep)
 			// If not independent, then add an undirected edge i-j.
 			if !indep {
-				//fmt.Println("Not independent. Creating edge...")
+				//sys.Println("Not independent. Creating edge...")
 				igraph.adjlist[v1] = append(igraph.adjlist[v1], v2)
 				igraph.adjlist[v2] = append(igraph.adjlist[v2], v1)
 				utils.Union(sets[i], sets[j])
 			} //else {
-			//fmt.Println("Independent. No edges.")
+			//sys.Println("Independent. No edges.")
 			//}
 		}
 	}
