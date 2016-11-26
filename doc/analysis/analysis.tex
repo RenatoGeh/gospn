@@ -1172,7 +1172,31 @@ evaluated our implementation by applying two classical vision problems: image cl
 image completion. We used three datasets for our experiments. The first, named \code{digits}, is
 composed of 70 hand drawn PBM images of digits ranging from zero to nine. These images are 20 by 30
 pixels wide, with two possible values for each pixel: 0 or 1. If the pixel is set to 0, we color it
-white. Otherwise, the pixel is black.
+black. Otherwise, the pixel is white. This dataset was made for hand drawn digit recognition with
+binary values. The second dataset, \code{caltech} is based on the Caltech101 object database
+\cite{caltech101} and was used for image classification. We made slight modifications to the
+database in order to simplify the tests, as we shall explain later. The third and last database is
+\code{olivetti}, a modified Olivetti Faces dataset. This dataset was used for image completion. All
+dataset images were converted to PGM format.
+
+For classification, we used cross-validation to average the error of each iteration. Let $n$ be the
+number of images of the dataset $\set{D}$ to be run, and let $k$ be the number of classes in
+$\set{D}$. We assume that each class has the same number of $n/k$ images. Let $\mathcal{T}$ be the
+training set, and $\mathcal{S}$ be the test set. We define a real $p\in (0, 1)$ that defines the
+proportion of images sent to each set. That is, the number of images in $\mathcal{T}$ is defined as
+$\lfloor n/p \rfloor$ and the size of $\mathcal{S}$ as $\lceil n/(1-p) \rceil$. Once we have $p$
+set, we randomly select which images go to $\mathcal{T}$ and which to $\mathcal{S}$, and then run
+the classification job on $\mathcal{T}$ and $\mathcal{S}$. We then repeat this procedure $t$ times
+and take the average.
+
+The \code{digits} dataset is comprised of 700 hand drawn images of digits ranging from zero to
+nine. Each class is a digit and each class has 70 instances of 20$\times$30 images. Images have a
+binary value for each pixel, zero is set as black and one as white.
+
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.8]{imgs/digits_sample.png}
+  \caption{A sample of the \code{digits} dataset.}
+\end{figure}
 
 %--------------------------------------------------------------------------------------------------
 

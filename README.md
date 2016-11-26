@@ -68,7 +68,7 @@ To run GoSPN, we must complete a few steps:
 ```
 Usage:
   go run main.go [-p] [-rseed] [-clusters] [-iterations] [-concurrents]
-  [-dataset] [-width] [-height] [-max] [-mode] [-pval] [-eps] [-mp]
+  [-dataset] [-width] [-height] [-max] [-mode] [-pval] [-eps] [-mp] [-v]
 Arguments:
   p           - is the partition in the interval (0, 1) to be used for
                 cross-validation. If ommitted, p defaults to 0.7.
@@ -104,6 +104,7 @@ Arguments:
   pval        - the significance value for the independence test.
   eps         - the epsilon minimum distance value for DBSCAN.
   mp          - the minimum points density for DBSCAN.
+  v           - Verbose mode.
 ```
 
 Running `go run main.go -help` shows the help page.

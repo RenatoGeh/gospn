@@ -39,8 +39,8 @@ badd +1 utils/indep/gtest.go
 badd +7 common/pair.go
 badd +40 common/stack.go
 badd +70 README.md
-badd +1 sys/print.go
-badd +1 sys/vars.go
+badd +15 sys/print.go
+badd +5 sys/vars.go
 argglobal
 silent! argdel *
 argadd learn/gens.go
@@ -339,11 +339,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 22 - ((10 * winheight(0) + 14) / 28)
+let s:l = 23 - ((11 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-22
+23
 normal! 05|
 wincmd w
 argglobal
@@ -357,15 +357,15 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 270 - ((25 * winheight(0) + 14) / 29)
+let s:l = 158 - ((28 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-270
-normal! 063|
+158
+normal! 03|
 wincmd w
 argglobal
-edit sys/vars.go
+edit io/input.go
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -375,12 +375,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 5 - ((4 * winheight(0) + 14) / 28)
+let s:l = 39 - ((27 * winheight(0) + 14) / 28)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-5
-normal! 011|
+39
+normal! 0
 wincmd w
 argglobal
 edit learn/gens.go
@@ -393,11 +393,11 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 190 - ((0 * winheight(0) + 14) / 29)
+let s:l = 188 - ((0 * winheight(0) + 14) / 29)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-190
+188
 normal! 07|
 wincmd w
 2wincmd w
@@ -508,12 +508,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 10 - ((9 * winheight(0) + 29) / 58)
+let s:l = 12 - ((11 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-10
-normal! 014|
+12
+normal! 0
 wincmd w
 argglobal
 edit README.md
@@ -526,12 +526,12 @@ setlocal fml=1
 setlocal fdn=20
 setlocal fen
 silent! normal! zE
-let s:l = 104 - ((51 * winheight(0) + 29) / 58)
+let s:l = 71 - ((18 * winheight(0) + 29) / 58)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-104
-normal! 0
+71
+normal! 072|
 wincmd w
 exe 'vert 1resize ' . ((&columns * 119 + 119) / 239)
 exe 'vert 2resize ' . ((&columns * 119 + 119) / 239)
