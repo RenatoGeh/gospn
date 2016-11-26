@@ -55,7 +55,7 @@ type Graph struct {
 }
 
 // NewIndepGraph constructs a new Graph given a DataGroup.
-func NewIndepGraph(data []*utils.VarData) *Graph {
+func NewIndepGraph(data []*utils.VarData, pval float64) *Graph {
 	igraph := Graph{make(map[int][]int), nil}
 	n := len(data)
 
@@ -112,7 +112,7 @@ func NewIndepGraph(data []*utils.VarData) *Graph {
 
 			// Checks if variables i, j are independent.
 			//fmt.Println("Checking for pairwise independence...")
-			indep := GTest(p, q, mdata, n*(n-1)/2)
+			indep := GTest(p, q, mdata, n*(n-1)/2, pval)
 
 			//fmt.Printf("%t\n", indep)
 			// If not independent, then add an undirected edge i-j.
@@ -166,7 +166,7 @@ func NewIndepGraph(data []*utils.VarData) *Graph {
 }
 
 // NewUFIndepGraph creates a new Graph using the Union-Find heuristic.
-func NewUFIndepGraph(data []*utils.VarData) *Graph {
+func NewUFIndepGraph(data []*utils.VarData, pval float64) *Graph {
 	igraph := Graph{make(map[int][]int), nil}
 	n := len(data)
 
@@ -237,7 +237,7 @@ func NewUFIndepGraph(data []*utils.VarData) *Graph {
 			//fmt.Println("Checking for pairwise independence...")
 			//indep := ChiSquareTest(p, q, mdata, n-1)
 			//chidep := ChiSquareTest(p, q, mdata, n-1)
-			indep := GTest(p, q, mdata, n*(n-1)/2)
+			indep := GTest(p, q, mdata, n*(n-1)/2, pval)
 			//fmt.Printf("Compare Chi with G: %v vs %v\n", chidep, indep)
 
 			//fmt.Printf("%t\n", indep)

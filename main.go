@@ -21,6 +21,10 @@ var (
 	width  = 46
 	height = 56
 	max    = 8
+
+	pval = 0.0001
+	eps  = 4.0
+	mp   = 4
 )
 
 func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, spn.VarSet) {
@@ -63,7 +67,7 @@ func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, 
 
 func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, int, int) {
 	vars, train, test, lbls := io.ParsePartitionedData(filename, p, rseed)
-	s := learn.Gens(vars, train, kclusters)
+	s := learn.Gens(vars, train, kclusters, pval, eps, mp)
 
 	lines, n := len(test), len(vars)
 	nclass := vars[n-1].Categories
@@ -197,7 +201,7 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 			}
 
 			fmt.Printf("P-%d: Training SPN with %d clusters against instance %d...\n", id, kclusters, id)
-			s := learn.Gens(lsc, train, kclusters)
+			s := learn.Gens(lsc, train, kclusters, pval, eps, mp)
 
 			for _, v := range io.Orientations {
 				fmt.Printf("P-%d: Drawing %s image completion for instance %d.\n", id, v, id)
@@ -264,6 +268,9 @@ func main() {
 	flag.IntVar(&max, "max", max, "The maximum pixel value the images can have.")
 	flag.StringVar(&mode, "mode", "cmpl", "Whether to convert a directory structure into a data "+
 		"file (data), run an image completion job (cmpl) or a classification job (class).")
+	flag.Float64Var(&pval, "pval", pval, "The significance value for the independence test.")
+	flag.Float64Var(&eps, "eps", eps, "The epsilon minimum distance value for DBSCAN.")
+	flag.IntVar(&mp, "mp", mp, "The minimum points density for DBSCAN.")
 
 	flag.Parse()
 

@@ -47,7 +47,7 @@ import (
 //
 // Where X={X_1,...,X_n} is the set of variables and I={I_1,...,I_m} is the set of instances.
 // Each x_ij is the i-th observed instantiation of X_j.
-func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
+func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
 	n := len(sc)
 
 	fmt.Printf("Sample size: %d, scope size: %d\n", len(data), n)
@@ -92,7 +92,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 
 	fmt.Println("Creating new Independency graph...")
 	// Independency graph.
-	igraph := indep.NewUFIndepGraph(vdata)
+	igraph := indep.NewUFIndepGraph(vdata, pval)
 	vdata = nil
 
 	// If true, then we can partition the set of variables in data into independent subsets. This
@@ -127,7 +127,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 			//fmt.Printf("LENGTH: %d\n", len(tdata))
 			//fmt.Println("Product node created. Recursing...")
 			// Adds the recursive calls as children of this new product node.
-			prod.AddChild(Gens(nsc, tdata, kclusters))
+			prod.AddChild(Gens(nsc, tdata, kclusters, pval, eps, mp))
 		}
 		return prod
 	}
@@ -173,9 +173,9 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		}
 		clusters = cluster.KMeansV(kclusters, mdata)
 	} else if kclusters == -1 {
-		clusters = cluster.DBSCAN(mdata, 10, 5)
+		clusters = cluster.DBSCAN(mdata, eps, mp)
 	} else {
-		clusters = cluster.OPTICS(mdata, 10, 4)
+		clusters = cluster.OPTICS(mdata, eps, mp)
 	}
 	k := len(clusters)
 	//fmt.Printf("Clustering similar instances with %d clusters.\n", k)
@@ -218,7 +218,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int) spn.SPN {
 		}
 
 		//fmt.Println("Created new sum node child. Recursing...")
-		sum.AddChildW(Gens(nsc, ndata, kclusters), float64(ni)/float64(len(data)))
+		sum.AddChildW(Gens(nsc, ndata, kclusters, pval, eps, mp), float64(ni)/float64(len(data)))
 	}
 
 	clusters = nil

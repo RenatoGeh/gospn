@@ -320,7 +320,7 @@ Argument q is the number of categories (or levels) in y.
 
 Returns true if independent and false otherwise.
 */
-func ChiSquareTest(p, q int, data [][]int) bool {
+func ChiSquareTest(p, q int, data [][]int, sigval float64) bool {
 
 	// df is the degree of freedom.
 	//fmt.Println("Computing degrees of freedom...")
@@ -354,10 +354,6 @@ func ChiSquareTest(p, q int, data [][]int) bool {
 			chi += (diff * diff) / E[i][j]
 		}
 	}
-
-	// Significance value.
-	// Dividing by n because of Bonferroni correction. Argument n should be the amount of hypothesis.
-	sigval := 0.1 / 2
 
 	// Compare cmd with sigval. If cmp < sigval, then dependent. Otherwise independent.
 	//fmt.Println("Computing integral of p-value on chi-square distribution...")
