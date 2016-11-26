@@ -1,0 +1,151 @@
+Running cross-validation test with p = 10.00%, random seed = -1 and kclusters = -1 on the dataset = digits.
+Iterations to run: 10
+
++-----------------------------------------------+
+|================ Iteration 1 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 613/630
+  Percentage of correct hits: 97.30%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 1 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 2 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 593/630
+  Percentage of correct hits: 94.13%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 2 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 3 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 587/630
+  Percentage of correct hits: 93.17%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 3 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 4 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 596/630
+  Percentage of correct hits: 94.60%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 4 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 5 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 603/630
+  Percentage of correct hits: 95.71%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 5 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 6 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 613/630
+  Percentage of correct hits: 97.30%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 6 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 7 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 601/630
+  Percentage of correct hits: 95.40%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 7 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 8 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 605/630
+  Percentage of correct hits: 96.03%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 8 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 9 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 605/630
+  Percentage of correct hits: 96.03%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 9 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 10 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 600/630
+  Percentage of correct hits: 95.24%
+  Train set size: 70
+  Test set size: 630
+======================================
++-----------------------------------------------+
+|============= End of Iteration 10 =============|
++-----------------------------------------------+
+---------------------------------
+>>>>>>>>> Final Results <<<<<<<<<
+  Correct classifications: 6016/6300
+  Percentage of correct hits: 95.49%
+---------------------------------
+	Command being timed: "go run main.go -mode=class -width=20 -height=30 -max=2 -dataset=digits -pval=0.01 -iterations=10 -p=0.1"
+	User time (seconds): 356.93
+	System time (seconds): 0.78
+	Percent of CPU this job got: 85%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 6:59.12
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 49888
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 101818
+	Voluntary context switches: 48966
+	Involuntary context switches: 102468
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 96
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
