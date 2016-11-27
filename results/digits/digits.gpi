@@ -1,0 +1,10 @@
+set title "Dataset digits for p=[0.1, 0.9]: percentage of correct classifications"
+set xrange [0:1]
+set xtics 0.1
+set yrange [90:100]
+set format y "%.0f%%"
+set ytics 1
+set key outside
+set term png size 800,500
+set output "digits.png"
+plot 'avgs.dat' using 1:2 with linespoints lw 3 title "Averages",   '' using 1:2:3:4 with errorbars lw 3 title "Min and max",   '' using 1:2:(sprintf("%.2f%%", $2)) with labels center offset 0,-1 notitle
