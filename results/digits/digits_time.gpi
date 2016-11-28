@@ -1,0 +1,15 @@
+set title "Dataset digits for p=[0.1, 0.9]: user time"
+set xrange [0:1]
+set format x "%.1f"
+set xtics 0.1
+set xlabel "(p)\nPartition for cross-validation"
+set timefmt "%H %M %S"
+set ydata time
+set format y "%tM:%.0tS"
+set ylabel "Elapsed time\n(minutes:seconds)"
+set yrange [266:1103]
+set grid
+set key outside
+set term png size 800,400
+set output "digits_time.png"
+plot 'time.dat' using 1:2:3:4 with linespoints lw 3 title "Total running time",   '' using 1:2:(sprintf("%d:%02.0f", $3, $4)):3 with labels center offset 0,1 font ',14' notitle
