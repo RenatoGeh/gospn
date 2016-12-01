@@ -1,0 +1,91 @@
+Running cross-validation test with p = 70.00%, random seed = 101 and kclusters = -1 on the dataset = caltech.
+Iterations to run: 5
+
++-----------------------------------------------+
+|================ Iteration 1 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 68/90
+  Percentage of correct hits: 75.56%
+  Train set size: 210
+  Test set size: 90
+======================================
++-----------------------------------------------+
+|============= End of Iteration 1 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 2 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 79/90
+  Percentage of correct hits: 87.78%
+  Train set size: 210
+  Test set size: 90
+======================================
++-----------------------------------------------+
+|============= End of Iteration 2 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 3 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 71/90
+  Percentage of correct hits: 78.89%
+  Train set size: 210
+  Test set size: 90
+======================================
++-----------------------------------------------+
+|============= End of Iteration 3 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 4 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 74/90
+  Percentage of correct hits: 82.22%
+  Train set size: 210
+  Test set size: 90
+======================================
++-----------------------------------------------+
+|============= End of Iteration 4 =============|
++-----------------------------------------------+
++-----------------------------------------------+
+|================ Iteration 5 ==================|
++-----------------------------------------------+
+========= Iteration Results ========
+  Correct classifications: 74/90
+  Percentage of correct hits: 82.22%
+  Train set size: 210
+  Test set size: 90
+======================================
++-----------------------------------------------+
+|============= End of Iteration 5 =============|
++-----------------------------------------------+
+---------------------------------
+>>>>>>>>> Final Results <<<<<<<<<
+  Correct classifications: 366/450
+  Percentage of correct hits: 81.33%
+---------------------------------
+	Command being timed: "go run main.go -mode=class -width=150 -height=65 -max=256 -dataset=caltech -iterations=5 -p=0.7 -rseed=101"
+	User time (seconds): 13169.68
+	System time (seconds): 22.36
+	Percent of CPU this job got: 129%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:50:10
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 9755332
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 6674958
+	Voluntary context switches: 1286016
+	Involuntary context switches: 871816
+	Swaps: 0
+	File system inputs: 184
+	File system outputs: 48
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
