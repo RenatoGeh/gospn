@@ -12,4 +12,4 @@ set grid
 set key outside
 set term png size 800,400
 set output "digits_time.png"
-plot 'time.dat' using 1:2:3:4 with linespoints lw 3 title "Total running time",   '' using 1:2:(sprintf("%d:%02.0f", $3, $4)):3 with labels center offset 0,1 font ',14' notitle
+plot 'time.dat' using 1:2:3:4 with linespoints lw 3 title "Total running time",   '' using 1:2:(sprintf("(%d:%02.0f)", $3, $4)):3 with labels center offset 0,1 font ',12' notitle

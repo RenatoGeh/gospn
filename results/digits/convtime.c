@@ -14,7 +14,7 @@ int main(int argc, char *args[]) {
   secs = atof(args[1]);
 
   h = (int) secs / 3600;
-  m = (int) secs / 60;
+  m = (int) secs / 60 - h*60;
   secs -= h*3600 + m*60;
 
   printf("%d %d %.2f\n", h, m, secs);

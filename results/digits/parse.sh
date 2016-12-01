@@ -115,7 +115,7 @@ echo "set key outside" >> $out
 echo "set term png size 800,400" >> $out
 echo "set output \"${1}_time.png\"" >> $out
 echo "plot 'time.dat' using 1:2:3:4 with linespoints lw 3 title \"Total running time\", \
-  '' using 1:2:(sprintf(\"%d:%02.0f\", \$3, \$4)):3 with labels center offset 0,1 font ',14' notitle" >> $out
+  '' using 1:2:(sprintf(\"(%d:%02.0f)\", \$3, \$4)):3 with labels center offset 0,1 font ',12' notitle" >> $out
 
 # Run script.
 gnuplot $out
@@ -135,7 +135,7 @@ for i in `seq 0 $(( n - 1 ))`; do
 done
 
 n=${#mem[@]}
-min_max=`./get_delta.out ${mem[@]} -f`
+min_max=( `./get_delta.out ${mem[@]} -f` )
 
 :> mem.dat
 echo "# Gnuplot memory data file for 9 iterations of p." >> mem.dat
@@ -153,21 +153,27 @@ done
 out=${1}_mem.gpi
 :> $out
 echo "set title \"Dataset $1 for p=[0.1, 0.9]: memory usage\"" >> $out
-echo "set xrange [0:1]" >> $out
-echo "set format x \"%.1f\"" >> $out
-echo "set xtics 0.1" >> $out
-echo "set xlabel \"(p)\nPartition for cross-validation\"" >> $out
-echo "set yrange [${min_max[0]}:${min_max[1]}]" >> $out
-echo "set format y \"%d kB\"" >> $out
+echo "set format x2 \"%.1f\"" >> $out
+echo "set auto x2" >> $out
+echo "set x2tics 0.1" >> $out
+echo "set x2label \"Partition for cross-validation\n(p)\"" >> $out
+echo "set auto y" >> $out
+#echo "set format y \"%f\"" >> $out
 #echo "set ytics 1" >> $out
-echo "set ylabel \"Correct classifications\n(\%)\"" >> $out
+echo "set ylabel \"Total memory used\n(mB)\"" >> $out
+echo "set style data histogram" >> $out
+echo "set style fill solid 0.1" >> $out
+echo "set boxwidth 0.07" >> $out
+echo "set xlabel \"(mB)\nMemory values in megabytes\"" >> $out
 echo "set grid" >> $out
 echo "set key outside" >> $out
-echo "set term png size 800,500" >> $out
+echo "set term png size 900,500" >> $out
 echo "set output \"${1}_mem.png\"" >> $out
-echo "plot 'avgs.dat' using 1:2 with linespoints lw 3 title \"Averages\", \
-  '' using 1:2:3:4 with errorbars lw 3 title \"Min and max\", \
-  '' using 1:2:(sprintf(\"%.2f%%\", \$2)) with labels center offset 0,-1 notitle" >> $out
+#echo "plot 'mem.dat' using 1:2 axes x2y1 with boxes title 'RAM used', \
+  #'' using 1:(0):(0):xticlabel(3) axes x1y1 with boxes notitle" >> $out
+echo "plot 'mem.dat' using 1:3:x2ticlabel(1):xticlabel(3) with boxes title 'RAM used'" >> $out
+
+gnuplot $out
 
 # Preview graphs.
 feh *.png
