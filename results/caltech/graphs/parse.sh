@@ -146,8 +146,9 @@ for i in `seq 1 9`; do
   j=$(( i - 1 ))
   kb=${mem[j]}
   mb=`bc <<< "scale=2; $kb / 1000.0"`
-  echo "KB: $kb = MB: $mb"
-  echo " 0.$i $kb $mb" >> mem.dat
+  gb=`bc <<< "scale=2; $mb / 1000.0"`
+  echo "MB: $mb = GB: $gb"
+  echo " 0.$i $mb $gb" >> mem.dat
 done
 
 # Create Gnuplot script.
@@ -160,18 +161,18 @@ echo "set auto x2" >> $out
 echo "set x2tics 0.1" >> $out
 echo "set x2label \"Partition for cross-validation\n(p)\"" >> $out
 echo "set auto y" >> $out
-#echo "set format y \"%f\"" >> $out
+echo "set format y \"%.2f\"" >> $out
 #echo "set ytics 1" >> $out
-echo "set ylabel \"Total memory used\n(mB)\"" >> $out
+echo "set ylabel \"Maximum memory used in gigabytes\n(GB)\"" >> $out
 echo "set style data histogram" >> $out
 echo "set style fill solid 0.1" >> $out
 echo "set boxwidth 0.07" >> $out
-echo "set xlabel \"(mB)\nMemory values in megabytes\"" >> $out
+echo "set xlabel \"(MB)\nMemory values in megabytes\"" >> $out
 echo "set grid" >> $out
 echo "set key outside" >> $out
 echo "set term png size 1000,500" >> $out
 echo "set output \"${1}_mem.png\"" >> $out
-echo "plot 'mem.dat' using 1:3:x2ticlabel(1):xticlabel(3) with boxes title 'RAM used'" >> $out
+echo "plot 'mem.dat' using 1:3:x2ticlabel(1):xticlabel(2) with boxes title 'RAM used'" >> $out
 
 gnuplot $out
 

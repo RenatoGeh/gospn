@@ -4,11 +4,11 @@ set auto x2
 set x2tics 0.1
 set x2label "Partition for cross-validation\n(p)"
 set auto y
-set ylabel "Total memory used\n(mB)"
+set ylabel "Maximum memory used\n(MB)"
 set style data histogram
 set style fill solid 0.1
 set boxwidth 0.07
-set xlabel "(mB)\nMemory values in megabytes"
+set xlabel "(MB)\nMemory values in megabytes"
 set grid
 set key outside
 set term png size 900,500

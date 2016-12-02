@@ -4,13 +4,14 @@ set auto x2
 set x2tics 0.1
 set x2label "Partition for cross-validation\n(p)"
 set auto y
-set ylabel "Total memory used\n(mB)"
+set format y "%.2f"
+set ylabel "Maximum memory used in gigabytes\n(GB)"
 set style data histogram
 set style fill solid 0.1
 set boxwidth 0.07
-set xlabel "(mB)\nMemory values in megabytes"
+set xlabel "(MB)\nMemory values in megabytes"
 set grid
 set key outside
 set term png size 1000,500
 set output "caltech_mem.png"
-plot 'mem.dat' using 1:3:x2ticlabel(1):xticlabel(3) with boxes title 'RAM used'
+plot 'mem.dat' using 1:3:x2ticlabel(1):xticlabel(2) with boxes title 'RAM used'

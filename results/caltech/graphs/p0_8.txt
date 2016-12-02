@@ -124,6 +124,7 @@ Iterations to run: 5
 +-----------------------------------------------+
 ---------------------------------
 >>>>>>>>> Final Results <<<<<<<<<
+  Correct classifications: 503/590
   Percentage of correct hits: 85.25%
 ---------------------------------
 	User time (seconds): 27489.32

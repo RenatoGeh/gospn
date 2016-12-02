@@ -123,6 +123,7 @@ Iterations to run: 5
 +-----------------------------------------------+
 ---------------------------------
 >>>>>>>>> Final Results <<<<<<<<<
+  Correct classifications: 247/290
   Percentage of correct hits: 85.17%
 	User time (seconds): 30653.05
 	Maximum resident set size (kbytes): 12631004

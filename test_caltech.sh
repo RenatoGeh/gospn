@@ -8,7 +8,7 @@ for i in `seq 0 $(( tprocs - 1 ))`; do
 done
 
 # Note to self: don't forget to change this back to 1!
-i=7
+i=1
 while true; do
   if [ "$i" -gt 9 ]; then
     break
@@ -16,7 +16,7 @@ while true; do
 
   if [ "$nrun" -lt "$tprocs" ]; then
     echo "Running ${i}-th process."
-    (/usr/bin/time -v go run main.go -mode=class -width=150 -height=65 -max=256 -dataset=caltech -iterations=10 -p=0.$i) > p0_$i.put 2>&1 &
+    (/usr/bin/time -v go run main.go -mode=class -width=150 -height=65 -max=256 -dataset=caltech -iterations=5 -p=0.$i -rseed=101) > p0_$i.put 2>&1 &
     for j in `seq 0 $(( tprocs - 1 ))`; do
       if [ "${pid[j]}" -eq -1 ]; then
         pid[j]=$!
@@ -30,6 +30,7 @@ while true; do
     # Wait for any process to finish.
     found=false
     while ! $found; do
+      sleep 0.5
       for j in `seq 0 $(( tprocs - 1))`; do
         p=${pid[j]}
         if [ "$p" -ne -1 ]; then

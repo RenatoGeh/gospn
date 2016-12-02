@@ -160,11 +160,11 @@ echo "set x2label \"Partition for cross-validation\n(p)\"" >> $out
 echo "set auto y" >> $out
 #echo "set format y \"%f\"" >> $out
 #echo "set ytics 1" >> $out
-echo "set ylabel \"Total memory used\n(mB)\"" >> $out
+echo "set ylabel \"Maximum memory used\n(MB)\"" >> $out
 echo "set style data histogram" >> $out
 echo "set style fill solid 0.1" >> $out
 echo "set boxwidth 0.07" >> $out
-echo "set xlabel \"(mB)\nMemory values in megabytes\"" >> $out
+echo "set xlabel \"(MB)\nMemory values in megabytes\"" >> $out
 echo "set grid" >> $out
 echo "set key outside" >> $out
 echo "set term png size 900,500" >> $out
