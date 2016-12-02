@@ -1177,7 +1177,18 @@ binary values. The second dataset, \code{caltech} is based on the Caltech101 obj
 \cite{caltech101} and was used for image classification. We made slight modifications to the
 database in order to simplify the tests, as we shall explain later. The third and last database is
 \code{olivetti}, a modified Olivetti Faces dataset. This dataset was used for image completion. All
-dataset images were converted to PGM format.
+dataset images were converted to PGM format and all images in each dataset have same dimensions.
+We first show and elaborate on the classification results from datasets \code{digits} and
+\code{caltech}. We then talk about the image completion results achieved with dataset
+\code{olivetti}.
+
+For all datasets we assumed that each pixel is a variable that takes values according to the gray
+tone displayed in the image. Each dataset has a different fixed number of maximum values. For
+instance, dataset \code{digits} has max value 2, since it is a binary valued (black or white)
+image, whilst dataset \code{caltech} has max value 256 (8-bit grayscale). We consider each instance
+of data $\set{D}$ to be a single image represented by a vector $V$. Each element $v_i$ in $V$ is
+the value of a pixel at position $(\lfloor i/w \rfloor, i-\lfloor i/w \rfloor)$, where $w$ is the
+width of the images.
 
 For classification, we used cross-validation to average the error of each iteration. Let $n$ be the
 number of images of the dataset $\set{D}$ to be run, and let $k$ be the number of classes in
@@ -1187,7 +1198,23 @@ proportion of images sent to each set. That is, the number of images in $\mathca
 $\lfloor n/p \rfloor$ and the size of $\mathcal{S}$ as $\lceil n/(1-p) \rceil$. Once we have $p$
 set, we randomly select which images go to $\mathcal{T}$ and which to $\mathcal{S}$, and then run
 the classification job on $\mathcal{T}$ and $\mathcal{S}$. We then repeat this procedure $t$ times
-and take the average.
+and take the average. The training dataset contains $w\times h$ variables representing the pixels,
+with $w$ and $h$ being the width and height of the image, and one more variable to represent the
+class label (e.g.\ the digit it represents).
+
+We used nine different $p$ values ranging from $p=0.1$ to $p=0.9$ with $0.1$ step increments. For
+each of these values, we fed the SPN the train set and ran classification on the test set. Each
+test set instance contains $w\times h$ variables representing the pixels of the test image. We then
+maximize the probability of finding such pixel instantiations. That is we wish to find
+
+\begin{equation*}
+  \argmax_x \Pr(X=x | \set{E}) = \argmax_x \frac{\Pr(X=x, \set{E})}{\Pr(\set{E})}
+\end{equation*}
+
+where $\set{E}$ are the values of the pixels what we have observed from our test image. If the
+argument $x$ that maximizes such probability matches the real class label, then we have classified
+correctly. For each of these $p$ values, we iterated 10 times with different random training and
+test sets such that they obey $p$. This avoids skewed results due to chance.
 
 The \code{digits} dataset is comprised of 700 hand drawn images of digits ranging from zero to
 nine. Each class is a digit and each class has 70 instances of 20$\times$30 images. Images have a
@@ -1196,6 +1223,36 @@ binary value for each pixel, zero is set as black and one as white.
 \begin{figure}[h]
   \centering\includegraphics[scale=0.8]{imgs/digits_sample.png}
   \caption{A sample of the \code{digits} dataset.}
+\end{figure}
+
+\autoref{fig:digits-perc} shows the percentages of correct classifications on the \code{digits}
+dataset. Averaging all the right classifications in all $p$ values yields a 98.249\% hit, with
+30919 images being correctly classified out of 31470. We also measured the time it took for each
+run of 10 iterations to complete. The results are shown in~\autoref{fig:digits-time}. An
+interesting point of inflection occurs when $p\geq 0.5$. We conjecture that this occurs because
+learning the structure with this dataset partition is faster than running each $\Pr(X=x | \set{E})$
+and finding the maximum. When $p > 0.5$, the train set size becomes greater than the test set size.
+When the dataset is sufficiently simple (as is the case of \code{digits}, where $\Val(X)=2$ for $X$
+a pixel variable) and sufficiently big, the learning time remains fairly short whilst computing
+each inference becomes even smaller. As we shall see from other datasets, such phenomena is not
+present in larger, more complex sets.
+
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.6]{imgs/digits_percs.png}
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{This graph shows the percentages of correct hits when classifying the \code{digits}
+  dataset. Each classification run is composed of 10 randomly selected training and testing sets
+  iterations. On each iteration, we tried to guess the class label of each test image based only on
+  the pixel values. The blue line in~\autoref{fig:digits-perc} shows the average percentage of
+  correct labeling for each $p$. The errorbars on each $p$ value shows the minimum and maximum
+  percentages of each run.}\label{fig:digits-perc}
+\end{figure}
+\begin{figure}
+  \centering\includegraphics[scale=0.6]{imgs/digits_time.png}
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{This graph shows the elapsed time of each run in minutes and seconds. The point of
+  inflection occurs when the training set is greater than the test set
+  $p>0.5$.}\label{fig:digits-time}
 \end{figure}
 
 %--------------------------------------------------------------------------------------------------
