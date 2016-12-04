@@ -24,7 +24,7 @@ const (
 	Right CmplType = "RIGHT"
 )
 
-// Orientations contains all orientations.
+// Orientations contains all CmplType orientations.
 var Orientations = []CmplType{Top, Bottom, Left, Right}
 
 // DrawGraphTools creates a file filename and draws an SPN spn in graph-tools. The resulting file

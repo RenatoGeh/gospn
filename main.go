@@ -244,7 +244,7 @@ func main() {
 		"(experimental). Else, if clusters > 0, then use k-means clustering with the indicated "+
 		"number of clusters.")
 	flag.Int64Var(&rseed, "rseed", -1, "Seed to be used when choosing which instances to be used as "+
-		"training set and which to be used as testing set. If ommitted, rseed defaults to -1, which "+
+		"training set and which to be used as testing set. If omitted, rseed defaults to -1, which "+
 		"means GoSPN chooses a random seed according to the current time.")
 	flag.IntVar(&iterations, "iterations", 1, "How many iterations to be run when running a "+
 		"classification job. This allows for better, more general and randomized results, as some "+
@@ -255,7 +255,7 @@ func main() {
 		"where nCPU is the number of CPUs the running machine has available.")
 	flag.StringVar(&dataset, "dataset", dataset, "The name of the directory containing the "+
 		"dataset structure inside the data folder. Setting -mode=data will cause a new given "+
-		"dataset data file to be created. Ommitting -mode or setting -mode to something different "+
+		"dataset data file to be created. Omitting -mode or setting -mode to something different "+
 		"than data will run a job on the given dataset.")
 	flag.IntVar(&sys.Width, "width", sys.Width, "The width of the images to be classified or "+
 		"completed.")

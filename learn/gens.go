@@ -13,41 +13,10 @@ import (
 )
 
 // Gens Learning Algorithm
-// We refer to this structural learning algorithm as the Gens Algorithm for structural learning.
-// The full article describing this algorithm schema can be found at:
-//
-// 		http://spn.cs.washington.edu/pubs.shtml
-//
-// Under the name of
-//
-// 		Learning the Structure of Sum-Product Networks
-// 		Robert Gens and Pedro Domingos; ICML 2013
-//
-// For clustering we use k-means clustering. Our implementation can be seen in file:
-//
-// 		/utils/cluster/kmeans.go
-//
-// As for testing the independency between two variables we use the Chi-Square independence test,
-// present in file:
-//
-// 		/utils/cluster/indtest.go
-//
-// Function Gens takes as input a matrix of data instances, where the columns are variables and
-// lines are the observed instantiations of each variable.
-//
-// 		+-----+------------------------------+
-// 		|     | X_1   X_2   X_3   ...   X_n  |
-// 		+-----+------------------------------+
-// 		| I_1 | x_11  x_12  x_13  ...   x_1n |
-// 		| I_2 | x_21  x_22  x_23  ...   x_2n |
-// 		|  .  |  .     .     .     .     .   |
-// 		|  .  |  .     .     .     .     .   |
-// 		|  .  |  .     .     .     .     .   |
-// 		| I_m | x_m1  x_m2  x_m3  ...   x_mn |
-// 		+-----+------------------------------+
-//
-// Where X={X_1,...,X_n} is the set of variables and I={I_1,...,I_m} is the set of instances.
-// Each x_ij is the i-th observed instantiation of X_j.
+// Based on the article
+//	Learning the Structure of Sum Product Networks
+//	Robert Gens and Pedro Domingos
+//	International Conference on Machine Learning 30 (ICML 2013)
 func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
 	n := len(sc)
 
