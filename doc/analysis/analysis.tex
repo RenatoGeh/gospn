@@ -227,7 +227,7 @@ formally define an SPN\@.
 
 \begin{definition}[Sum-product network]\label{def:spn}~\\
   A sum-product network (SPN) is a weakly connected DAG that can be recursively defined as
-  following.
+  follows.
 
   An SPN\@:
   \begin{enumerate}
@@ -240,8 +240,8 @@ formally define an SPN\@.
   $\sigma(\mathbf{x})$ and $\pi(\mathbf{x})$, where $\mathbf{x}$ is a certain evidence
   instantiation.
   \begin{description}
-    \item[Leaf] $\lambda(\mathbf{x})$ is the value of the probability distribution at point
-      $\mathbf{x}$.
+    \item[Leaf] Let $\phi_\lambda$ be a univariate tractable distribution of variable $X$.
+      $\lambda(\mathbf{x})=\phi_\lambda(\mathbf{x})$.
     \item[Product] $\pi(\mathbf{x}) = \prod_{c \in \Ch(\pi)} c(\mathbf{x})$.
     \item[Sum] $\sigma(\mathbf{x}) = \sum_{c \in \Ch(\sigma)} w_{\sigma c} c(\mathbf{x})$, with
       $\sum_{c \in \Ch(\sigma)} w_{\sigma c} = 1$ and $0 \leq w_{\sigma c} \leq 1$.
@@ -1007,7 +1007,7 @@ neighborhood is sufficiently dense. If it is, for each element in $N_\eps$, we \
 sets. Assuming $\bigo(1)$ on \code{Union} and \code{Find}, we have a complexity of $\bigo(n)$ in
 the worst case --- when all elements are inside $e_i$'s neighborhood. Finally, we find the next
 unvisited element, which is clearly found in $\bigo(n)$ time. The overall complexity of
-\code{DBSCAN} is $\bigo(n^2)$, with memory usage $\bigo(n)$ because of $M$.
+\code{DBSCAN} is $\bigo(n^2)$, with memory usage $\bigo(n^2)$ because of $M$.
 
 As we shall see in the experiments section, although \code{DBSCAN} has complexity $\bigo(n^2)$, it
 is \code{IndepGraphUF} that takes most of the algorithm's run time.
@@ -1163,7 +1163,7 @@ and add it as a child of the product node.
 We already know that the complexity of \code{IndepGraphUF} is $\bigo(|\set{V}|^2 k^2)$, where
 $k=\max |\Val(X)|$, and \code{DBSCAN}'s is $\bigo(|\set{D}|^2)$. From this, we can easily conclude
 that \code{LearnGD}, in our implementation, has complexity $\bigo(n^2 k^2 + m^2)$, where
-$n=|\set{V}|$, $m=|\set{D}|$ and $k=\max |\Val(X)|$.
+$n=|\set{V}|$, $m=|\set{D}|$ and $k=\max |\Val(X)|$. Memory usage is $\bigo(2n+k^2+m^2)$.
 
 \section{Experiments}
 
@@ -1205,7 +1205,7 @@ class label (e.g.\ the digit it represents).
 We used nine different $p$ values ranging from $p=0.1$ to $p=0.9$ with $0.1$ step increments. For
 each of these values, we fed the SPN the train set and ran classification on the test set. Each
 test set instance contains $w\times h$ variables representing the pixels of the test image. We then
-maximize the probability of finding such pixel instantiations. That is we wish to find
+maximize the probability of finding such pixel instantiations. That is, we wish to find
 
 \begin{equation*}
   \argmax_x \Pr(X=x | \set{E}) = \argmax_x \frac{\Pr(X=x, \set{E})}{\Pr(\set{E})}
@@ -1233,21 +1233,28 @@ interesting point of inflection occurs when $p\geq 0.5$. We conjecture that this
 learning the structure with this dataset partition is faster than running each $\Pr(X=x | \set{E})$
 and finding the maximum. When $p > 0.5$, the train set size becomes greater than the test set size.
 When the dataset is sufficiently simple (as is the case of \code{digits}, where $\Val(X)=2$ for $X$
-a pixel variable) and sufficiently big, the learning time remains fairly short whilst computing
-each inference becomes even smaller. As we shall see from other datasets, such phenomena is not
-present in larger, more complex sets.
+a pixel variable) and sufficiently big, learning time remains fairly short whilst computing each
+probability of $x$ given the test image pixels takes even less time at each increment of $p$. As we
+shall see in the other datasets, this phenomena is highly dependent on data.
 
-\begin{figure}[h]
+\code{LearnGD} has memory usage of $\bigo(2n+k^2+m^2)$, whilst computing the probability of
+evidence uses no significant memory (we store the logs to avoid recomputing, at most) which means
+the expected behavior of the maximum memory used in each run should always increase. This is shown
+in~\autoref{fig:digits-mem}, where we can see that a simple dataset of 700 20$\times$30 images can
+take up to $\approx 160$ MB\@.
+
+\begin{figure}[p]
   \centering\includegraphics[scale=0.6]{imgs/digits_percs.png}
   \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
   \caption{This graph shows the percentages of correct hits when classifying the \code{digits}
   dataset. Each classification run is composed of 10 randomly selected training and testing sets
   iterations. On each iteration, we tried to guess the class label of each test image based only on
   the pixel values. The blue line in~\autoref{fig:digits-perc} shows the average percentage of
-  correct labeling for each $p$. The errorbars on each $p$ value shows the minimum and maximum
+  correct labeling for each $p$. The errorbars on each $p$ value show the minimum and maximum
   percentages of each run.}\label{fig:digits-perc}
 \end{figure}
-\begin{figure}
+
+\begin{figure}[p]
   \centering\includegraphics[scale=0.6]{imgs/digits_time.png}
   \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
   \caption{This graph shows the elapsed time of each run in minutes and seconds. The point of
@@ -1255,10 +1262,27 @@ present in larger, more complex sets.
   $p>0.5$.}\label{fig:digits-time}
 \end{figure}
 
-%--------------------------------------------------------------------------------------------------
-
+\begin{figure}[t]
+  \centering\includegraphics[scale=0.5]{imgs/digits_mem.png}
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{This histogram shows the maximum memory used on the \code{digits} dataset at each run.
+  It gives us an approximate upper bound on how much memory we use in each iteration of a certain
+  value of $p$. The more $p$ grows, the higher the amount of memory used (as
+  expected).}\label{fig:digits-mem}
+\end{figure}
 \newpage
-\appendix
+The \code{caltech} dataset is a modified Caltech-101~\cite{caltech101} image database. We attemped
+to recreate the classification experiment done on~\cite{poon-domingos} with three Caltech-101
+categories: faces, motorbikes and cars. Due to memory constraints, we selected only 100 images per
+category. These images were then normalized to 150$\times$65 pixels images and converted to
+grayscale.
+
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.8]{imgs/caltech_sample.png}
+  \caption{A sample of the \code{caltech} dataset.}
+\end{figure}
+
+%--------------------------------------------------------------------------------------------------
 
 \newpage
 
