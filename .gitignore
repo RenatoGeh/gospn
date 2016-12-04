@@ -1,3 +1,6 @@
+# Vim session
+*.vim
+
 # Output files.
 src/out.put
 src/*.put
