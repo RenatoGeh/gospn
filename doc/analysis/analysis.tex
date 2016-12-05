@@ -156,9 +156,8 @@ conclusions on the overall complexity of the algorithm. As we have mentioned bef
 \code{LearnGD} schema heavily depends on implementation, the complexity we achieve in this
 particular case may differ from other implementations. After each analysis, we then look at the
 algorithm as a whole, drawing conclusions on time and memory usage, as well as implementation
-details that could potentially decrease the algorithm runtime. We also comment on how to implement
-better concurrency then how it is currently coded in our implementation. We then show some results
-on experiments made on image classification and image completion.
+details that could potentially decrease the algorithm runtime. We then show some results on
+experiments made on image classification and image completion.
 
 \section{Sum-Product Networks}
 
@@ -1180,7 +1179,7 @@ database in order to simplify the tests, as we shall explain later. The third an
 dataset images were converted to PGM format and all images in each dataset have same dimensions.
 We first show and elaborate on the classification results from datasets \code{digits} and
 \code{caltech}. We then talk about the image completion results achieved with dataset
-\code{olivetti}.
+\code{olivetti}. We ran all experiments on a 4-cores 1.8GHz processor with 16GB of RAM\@.
 
 For all datasets we assumed that each pixel is a variable that takes values according to the gray
 tone displayed in the image. Each dataset has a different fixed number of maximum values. For
@@ -1281,6 +1280,136 @@ grayscale.
   \centering\includegraphics[scale=0.8]{imgs/caltech_sample.png}
   \caption{A sample of the \code{caltech} dataset.}
 \end{figure}
+
+Our results are much worse than those achieved in~\cite{poon-domingos}. This may be due to our
+memory constraints, as we used fewer images (300 in total), whereas the original dataset has over
+2700 images in total. Another important observation when comparing the two algorithms is the
+structure learned. In~\cite{poon-domingos}, the parameters and not the structure is learned,
+however the structure is made specifically for vision problems, in contrast with \code{LearnGD}'s
+general nature. Furthermore, the parameters to clustering (in this case DBSCAN) can yield very
+different results depending on their values. We fixed the $\mu$ and $\eps$ parameters for DBSCAN on
+all datasets. Better results may be achieved by altering these parameters in accordance to the
+dataset's characteristics.
+
+The overall percentage of correct classifications was 78.078\%, lasting at most over 8 hours and 30
+minutes to complete a full run of 10 iterations. The maximum amount of memory used in a run was
+12.63GB\@.
+
+\begin{figure}[p]
+  \centering\includegraphics[scale=0.6]{imgs/caltech_percs.png}
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{The percentages of correct classifications on each run of 10 iterations for different
+  varying $p$ values. Values varied from 63\% to 95\%. The average hits are shown by the blue line,
+  with green errorbars showing minimum and maximum values at each run.}\label{fig:caltech-percs}
+\end{figure}
+
+\begin{figure}[p]
+  \centering\includegraphics[scale=0.6]{imgs/caltech_time.png}
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{The maximum elapsed time at each run. Values ranged from about 59 minutes up to 8 hours
+  and 31 minutes. Considering each run had 10 iterations, each iteration at $p=0.1$ lasted close to
+  6 minutes each, whilst each iteration with $p=0.9$ lasted about 51
+  minutes.}\label{fig:caltech-time}
+\end{figure}
+
+\begin{figure}[t]
+  \centering\includegraphics[scale=0.5]{imgs/caltech_mem.png}
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{The maximum amount of memory used on an iteration at a certain $p$ run. Memory usage
+  took about 12GB at most. Since we were running all experiments on a 16GB machine, we had to cap
+  our memory usage to 16GB\@. This meant shrinking and capping the total number of images used on
+  our classifications to 300 images.}\label{fig:caltech-mem}
+\end{figure}
+
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.75]{imgs/olivetti_sample.png}
+  \caption{A sample of the original Olivetti dataset (left) with 256 possible pixel
+  values.}\label{fig:olivetti-sample}
+\end{figure}
+
+The Olivetti Faces dataset is composed of 400 faces of 40 different people, with 10 images for each
+person, with these ten images portraying different expressions and head positionings. We converted
+the original dataset into individual 46$\times$56 PGM images with pixel values ranging from $[0,
+255]$. We used the entirety of the dataset for the experiments. However, once we converted the
+original image into a 256-PGM file, the distribution of grayscale values proved to be less than
+uniform as~\autoref{fig:olivetti-256_hist} shows. The low count of values on the extremes of the
+histogram causes incorrect variable independence results. We then normalized all images to pixel
+values ranging $[0,7]$, which caused the counts to become less extreme
+as~\autoref{fig:olivetti-8_hist} shows.
+
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.75]{imgs/olivetti-8_sample.png}
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{A sample of the \code{olivetti} dataset, where the images
+  in~\autoref{fig:olivetti-sample} were normalized to $[0,7]$ possible values. There isn't much
+  loss of facial features on our modified dataset, although it is clear that certain details were
+  indeed lost.}
+\end{figure}
+
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.45]{imgs/olivetti-256_hist.png}
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{The histogram showing the frequencies of each pixel value in all images in the original
+  Olivetti faces dataset. We can clearly see that both extremes have a very low frequency. This is
+  problematic to our variable independence algorithm.}\label{fig:olivetti-256_hist}
+\end{figure}
+
+\begin{figure}[h]
+  \centering\includegraphics[scale=0.65]{imgs/olivetti-8_hist.png}
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{The histogram for the normalized Olivetti dataset. This is the histogram for our
+  modified \code{olivetti} dataset, where pixel values only range from 0 to 7. Comparing
+  to~\autoref{fig:olivetti-256_hist} we see that the count of both 0 and 7 values are much higher
+  relative to the rest.}\label{fig:olivetti-8_hist}
+\end{figure}
+
+We ran image completion on the \code{olivetti} dataset. For this task, we had two different sets of
+test settings. In the first we chose an image of \code{olivetti} and learned all the rest of the
+dataset. This meant we had prior knowledge on the facial structure of the person whose image we
+chose. This obviously resulted in better completion for the image in question. We shall call this
+completion a C1 completion. In the second C2 setting, we chose a person and trained the SPN only
+with the images of other people. We then performed image completion on an image of the person whose
+images were not in the learning set.  This means we had no prior knowledge of that face, and based
+all completions on other people's faces. This is closer to a real-world application, as we do not
+have a database on every face in the world. Results varied according to each face. As we can see
+from the resulting images, the SPN had trouble dealing with glasses, beards and wrinkles. It also
+showed that it can succesfully recognize, in most cases, whether the face is slightly turned to the
+left or to the right, as well as identify smiles and open mouthes.
+
+For these image completions, we set $\mu=4.0$, $\eps=4.0$ for DBSCAN and set a significance value
+of $0.001$ for the variable independence test. These same parameters were used for image
+classification in the other datasets. We did not test whether other parameter settings would yield
+better results. One can test these different parameter settings by using our implementation source
+code~\cite{gospn}. DBSCAN is highly dependent on the instances it is run on. This is because of the
+nature of each image. For instance, for \code{caltech} we have clear features that are common for
+each image (e.g.\ a motorbike on the foreground), whilst for \code{olivetti} these features are
+less obvious (e.g.\ the outline of glasses or the darker tones of a moustache). For these reasons,
+we can never have a global all-fitting parameter setting.
+
+\begin{figure}[h]
+  \centering{
+    \includegraphics[scale=0.8]{imgs/c1_face_cmpl_16.png}
+    \includegraphics[scale=0.8]{imgs/c1_face_cmpl_39.png}
+  }
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{Two C1 image completions on the \code{olivetti} dataset. The green portion of each image
+  is the completion done by the SPN\@. The other gray portion is the original image. Each
+  collection of four images are the completions done for the left, bottom, top and right halves of
+  the same image.}\label{fig:c1_olivetti_cmpl}
+\end{figure}
+
+\begin{figure}[h]
+  \centering{
+    \includegraphics[scale=0.8]{imgs/c2_face_cmpl_16.png}
+    \includegraphics[scale=0.8]{imgs/c2_face_cmpl_39.png}
+  }
+  \captionsetup{singlelinecheck=false,justification=justified,margin=0cm}
+  \caption{Two C2 image completions on the \code{olivetti} dataset. When compared
+  to~\autoref{fig:c1_olivetti_cmpl}, the above results are much less accurate. It is evident the
+  presence of features that appear on other faces, such as a different shaped nose, the presence of
+  a moustache or glasses.}\label{fig:c2_olivetti_cmpl}
+\end{figure}
+\section{Conclusions}
 
 %--------------------------------------------------------------------------------------------------
 
