@@ -1169,10 +1169,10 @@ $n=|\set{V}|$, $m=|\set{D}|$ and $k=\max |\Val(X)|$. Memory usage is $\bigo(2n+k
 In this section we show the experiments we have made and the results derived from them. We have
 evaluated our implementation by applying two classical vision problems: image classification and
 image completion. We used three datasets for our experiments. The first, named \code{digits}, is
-composed of 70 hand drawn PBM images of digits ranging from zero to nine. These images are 20 by 30
-pixels wide, with two possible values for each pixel: 0 or 1. If the pixel is set to 0, we color it
-black. Otherwise, the pixel is white. This dataset was made for hand drawn digit recognition with
-binary values. The second dataset, \code{caltech} is based on the Caltech101 object database
+composed of 700 hand drawn PBM images of digits ranging from zero to nine. These images are 20 by
+30 pixels wide, with two possible values for each pixel: 0 or 1. If the pixel is set to 0, we color
+it black. Otherwise, the pixel is white. This dataset was made for hand drawn digit recognition
+with binary values. The second dataset, \code{caltech} is based on the Caltech101 object database
 \cite{caltech101} and was used for image classification. We made slight modifications to the
 database in order to simplify the tests, as we shall explain later. The third and last database is
 \code{olivetti}, a modified Olivetti Faces dataset. This dataset was used for image completion. All
@@ -1323,7 +1323,7 @@ minutes to complete a full run of 10 iterations. The maximum amount of memory us
 
 \begin{figure}[h]
   \centering\includegraphics[scale=0.75]{imgs/olivetti_sample.png}
-  \caption{A sample of the original Olivetti dataset (left) with 256 possible pixel
+  \caption{A sample of the original Olivetti dataset with 256 possible pixel
   values.}\label{fig:olivetti-sample}
 \end{figure}
 
@@ -1409,11 +1409,26 @@ we can never have a global all-fitting parameter setting.
   presence of features that appear on other faces, such as a different shaped nose, the presence of
   a moustache or glasses.}\label{fig:c2_olivetti_cmpl}
 \end{figure}
-\section{Conclusions}
+\newpage
+\section{Conclusion and Future Work}
+
+Sum-product networks (SPNs) are probabilistic graphical models that represent a tractable
+probability distribution over many variables and have interesting deep features. Furthermore,
+Inference is always linear in SPNs. In 2013, Gens and Domingos proposed~\cite{gens-domingos} a
+structure learning schema that recursively splits variables and instances into partitions as
+decomposable products and complete sum nodes. In this paper, we analyzed an implementation that
+uses G-Test for variable splitting and DBSCAN for instance splitting. We presented experiments that
+empirically show somewhat decent results, with memory and time measurements for reference.
+
+Future work can be done on concurrency implementations on the \code{LearnGD} schema, as well as
+other applications other than vision problems. Other variable and instance splitting techniques,
+such as exact independence tests and EM clustering are another possibility for comparison against
+the results shown in this paper. We also direct futher work on better memory management, as in our
+experiments we were often restricted by a high memory consumption.
+
+The code is available at \url{https://github.com/RenatoGeh/gospn}.
 
 %--------------------------------------------------------------------------------------------------
-
-\newpage
 
 \printbibliography[]
 
