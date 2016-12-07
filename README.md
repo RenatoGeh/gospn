@@ -154,18 +154,6 @@ To change the significance level on the independence tests, go to
 `/utils/indep/chisq.go` and `/utils/indep/gtest.go` and change
 the `sigval` variable.
 
-#### DBSCAN and OPTICS parameters:
-
-To change DBSCAN's and OPTICS's parameters, go to `/learn/gens.go`
-and change the function`s
-
-```
-DBSCAN(data [][]int, eps float64, mp int)
-OPTICS(data [][]int, eps float64, mp int)
-```
-
-parameters to suit your dataset.
-
 ### Dependencies
 
 GoSPN is built in Go. Go is an open source language originally developed
@@ -174,44 +162,10 @@ efficiency in mind. Installing Go is easy. Pre-compiled packages are
 available for FreeBSD, Linux, Mac OS X and Windows for both 32 and
 64-bit processors. For more information see <https://golang.org/doc/install>.
 
-#### Installing Go on Arch Linux
-```
-# Choose one of the following:
-$ pacman -S go     # for the gc compiler (official)
-$ pacman -S gcc-go # for the gccgo compiler (frontend)
-```
+The dependencies below can be considered "optional", in that the user
+can avoid using using them if one wishes so.
 
-#### Installing Go on Ubuntu
-```
-$ sudo add-apt-repository ppa:ubuntu-lxc/lxd-stable
-$ sudo apt-get update
-$ sudo apt-get install golang
-```
-
-#### Installing Go on Mac OS X
-
-Follow instructions at <https://golang.org/doc/install#darwinPackageInstructions>.
-
-#### Installing Go on Windows
-
-Follow instructions at <https://golang.org/doc/install#windows>.
-
-#### $GOPATH
-
-Once Go is installed, be sure to check if your $GOPATH is set correctly.
-From now on all Go packages should be installed to $GOPATH.
-
-If you're using Linux, your `.bashrc` or `.zshrc` should have the
-following lines:
-
-```
-# Go path. Replace $YOURDIR with a directory of your choice.
-export GOPATH=$YOURDIR/go
-# Optionally add Go's path to your $PATH environment.
-export PATH="$PATH:$GOPATH/bin"
-```
-
-#### GNU GSL Scientific Library
+#### GNU GSL Scientific Library (recommended)
 
 GoSPN uses GNU GSL to compute the cumulative probability function
 
@@ -235,20 +189,7 @@ GoSPN uses Go's `cgo` to run C code inside Go. File
 `utils/indep/chisq.go` contains the wrapper function `ChiSquare`
 that calls `gsl_cdf_chisq_P` from `gsl/gsl_cdf.h`.
 
-#### godebug
-
-Although Go does work with GNU's GDB, GDB doesn't understand Go well.
-An alternative to that is mailgun's godebug. If you do not intend on
-using the debugging script `debug.sh` then there is no need for
-godebug. Otherwise install it by running `go get`:
-
-```
-$ go get github.com/mailgun/godebug
-```
-
-More information at <https://github.com/mailgun/godebug>.
-
-#### graph-tool
+#### graph-tool (optional)
 
 Graph-tool is a Python module for graph manipulation and drawing. Since
 the SPNs we'll generate with this algorithm may have thousands of nodes
@@ -264,86 +205,8 @@ Compiling graph-tool can take up to 80 minutes and 3GB of RAM. If you do
 not plan on compiling the graphs GoSPN outputs, it is highly recommended
 that you do not install graph-tool.
 
-##### graph-tool dependencies
-
-* C++14 compiler (GCC version 5 or above; or clang 3.4 or above),
-* C++ Boost libraries v1.54+,
-* Python version 2.7, 3 or above
-* expat
-* SciPy
-* NumPy
-* CGAL C++ Geometry library v1.7+
-
-Optional dependencies are listed at <https://graph-tool.skewed.de/download>.
-
-##### Installing graph-tool
-
-After installing all dependencies, compile graph-tool by downloading the
-source (<https://graph-tool.skewed.de/download>) and compiling the usual
-way:
-
-```
-./configure
-make
-```
-
-Then install the Python module:
-
-```
-make install
-```
-
-If you use Debian, Ubuntu, Arch Linux, Gentoo or Mac OS X, there are
-pre-compiled packages available:
-
-###### Debian and Ubuntu
-
-Read <https://graph-tool.skewed.de/download#debian>.
-
-###### Arch Linux
-
-Graph-tool is available at the AUR. Replace `pacaur` with your favorite
-AUR helper.
-
-```
-pacaur -S python-graph-tool
-```
-
-###### Gentoo
-
-```
-emerge graph-tool
-```
-
-###### Mac OS X
-
-Read <https://graph-tool.skewed.de/download#note-macos> first.
-
-```
-# Macports
-port install py-graph-tool
-# Homebrew
-brew tap homebrew/science
-brew install graph-tool
-```
-
-##### Compiling graphs
-
-GoSPN outputs all graphs to:
-
-```
-$GOPATH/github.com/RenatoGeh/gospn/results/dataset_name/
-```
-
-Simply run python on the python source code and it will output a PNG
-image of the graph.
-
-```
-python graph_name.py
-```
-
-If graph-tool was compiled with OpenMP it will make use of all available
-CPU cores to compile the graph.
+Subdependencies and installation instructions are listed at
+<https://graph-tool.skewed.de/download>.
 
 ### Compiling and Running GoSPN
 
@@ -369,19 +232,6 @@ $ go run main.go <args>
 
 Where `args` is a list of arguments. See Usage for more information.
 
-To run GoSPN in debug mode:
-
-```
-$ ./debug.sh
-```
-
-It is recommended that you redirect the standard output to some output
-file:
-
-```
-$ go run main.go | tee out.put
-```
-
 ### Updating GoSPN
 
 To update GoSPN, run:
@@ -402,14 +252,57 @@ Code documentation can be found at <https://godoc.org/github.com/RenatoGeh/gospn
 
 #### Documentation
 
-An analysis on our implementation can be found at `doc/analysis/`.
+An analysis on our implementation can be found at
+<https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf>.
 
 ### Datasets
 
 We use the following datasets:
 
+* Custom hand drawn numerical digits dataset
 * Olivetti Faces Dataset by AT&T Laboratories Cambridge
 * Caltech101: L. Fei-Fei, R. Fergus and P. Perona. *Learning generative visual models
   from few training examples: an incremental Bayesian approach tested on
   101 object categories.* IEEE. CVPR 2004, Workshop on Generative-Model
   Based Vision. 2004
+
+### Results
+
+In our [analysis'](https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf)
+experiments section we show some results from the three results
+enumerated above. We include some graphs and image completions here.
+More images completions can be found at
+[/results/olivetti_3bit/](https://github.com/RenatoGeh/gospn/tree/master/results/olivetti_3bit).
+
+#### Image classifications
+
+![Digits dataset correct
+classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/master/doc/analysis/imgs/digits_percs.png)
+
+![Caltech dataset correct
+classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/master/doc/analysis/imgs/caltech_percs.png)
+
+#### Image completions with prior face knowledge
+
+![Olivetti faces dataset C1 39
+completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/olivetti_3bit/r1/face_cmpl_39.png)
+
+![Olivetti faces dataset C1 9
+completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/olivetti_3bit/r1/face_cmpl_9.png)
+
+#### Image completions without prior face knowledge
+
+![Olivetti faces dataset C2 39
+completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/olivetti_3bit/r2/face_cmpl_39.png)
+
+![Olivetti faces dataset C2 9
+completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/olivetti_3bit/r2/face_cmpl_9.png)
+
+### Further work
+
+This is a TODO list:
+
+* Implement discriminative learning based on the paper *Discriminative
+  Learning of Sum-Product Networks* (R. Gens, P. Domingos) NIPS 2012
+* Implement language modelling SPN based on the paper *Language
+  Modelling with Sum-Product Networks* (Cheng *et al*) INTERSPEECH 2014
