@@ -118,41 +118,18 @@ Running `go run main.go -help` shows the help page.
    or OPTICS). For instance, `clusters=-1`.
 4. Choose the number of iterations `iterations`. For instance,
    `iterations=5`.
-5. Run `go run main.go -p=0.8 -rseed=-1 -clusters=-1 -iterations=5`.
+5. Set your dataset name and image width, height and max value
+   (`-dataset`, `-width`, `-height` and `-max`).
+6. Run GoSPN with `-mode=class`.
+7. Example: `go run main.go -p=0.8 -rseed=-1 -clusters=-1 -iterations=5
+   -dataset=caltech -width=150 -height=65 -max=256 -mode=class`.
 
 #### For step 3 to run an image completion job:
-
-1. Run `go run main.go -p=0`.
-
-It is recommended that you output `stdout` to some file, since GoSPN can
-be quite verbose in certain cases. Append a `| tee out.put` to generate
-a file `out.put` with all the information GoSPN prints to the screen
-whilst still printing `stdout`. For example:
-
-```
-  go run main.go -p=0 | tee out.put
-```
-
-#### Independence tests:
-
-GoSPN uses either G-Test or Chi-Square. To use G-Test, use the function
-
-```
-GTest(p, q int, data [][]int) float64
-```
-
-To use Chi-Square:
-
-```
-ChiSquareTest(p, q, int, data [][]int) float64
-```
-
-In `/utils/indep/indgraph.go`, search for either functions and
-replace with the desired function.
-
-To change the significance level on the independence tests, go to
-`/utils/indep/chisq.go` and `/utils/indep/gtest.go` and change
-the `sigval` variable.
+1. Set your dataset name and image width, height and max value
+   (`-dataset`, `-width`, `-height` and `-max`).
+2. Run GoSPN with `-mode=cmpl`.
+3. Example: `go run main.go -mode=cmpl -dataset=olivetti_3bit -width=56
+   -height=46 -max=8`.
 
 ### Dependencies
 
