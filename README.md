@@ -269,10 +269,12 @@ We use the following datasets:
 ### Results
 
 In our [analysis'](https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf)
-experiments section we show some results from the three results
+experiments section we show some results from the three datasets
 enumerated above. We include some graphs and image completions here.
 More images completions can be found at
 [/results/olivetti_3bit/](https://github.com/RenatoGeh/gospn/tree/master/results/olivetti_3bit).
+We also ran experiments on a modified Caltech-101 dataset due to memory
+constraints. Read the analysis document (Experiments section) for more information.
 
 #### Image classifications
 
