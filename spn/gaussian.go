@@ -1,4 +1,4 @@
-package sspn
+package spn
 
 /*
 #cgo LDFLAGS: -lgsl -lgslcblas

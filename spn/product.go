@@ -1,54 +1,21 @@
 package spn
 
-//import (
-//"fmt"
-//"github.com/RenatoGeh/gospn/utils"
-//)
-
-// Product represents an SPN product node.
+// Product represents a product node in an SPN.
 type Product struct {
-	// Children nodes.
-	ch []Node
-	// Parent node.
-	pa Node
-	// Scope of this node.
-	sc []int
+	Node
 }
 
-// NewProduct returns an empty Product node with given parent.
+// NewProduct returns a new Product node.
 func NewProduct() *Product {
-	p := &Product{}
-	p.pa, p.sc = nil, nil
-	return p
+	return &Product{}
 }
 
-// AddChild adds a new child to this product node.
-func (p *Product) AddChild(c Node) {
-	p.ch = append(p.ch, c)
-	c.SetParent(p)
-	p.sc = nil
-}
-
-// SetParent sets the parent node.
-func (p *Product) SetParent(pa Node) { p.pa = pa }
-
-// Ch returns the set of children nodes.
-func (p *Product) Ch() []Node { return p.ch }
-
-// Pa returns the parent node.
-func (p *Product) Pa() Node { return p.pa }
-
-// Type returns the type of this node: 'product'.
+// Type returns the type of this node.
 func (p *Product) Type() string { return "product" }
-
-// Weights returns nil, since product nodes have no weights.
-func (p *Product) Weights() []float64 { return nil }
 
 // Sc returns the scope of this node.
 func (p *Product) Sc() []int {
 	if p.sc == nil {
-		// We assume an SPN is, by the Gens-Domingos definition, decomposable (and thus consistent).
-		// Therefore, all children nodes must have disjoint scopes pairwise.
 		n := len(p.ch)
 		for i := 0; i < n; i++ {
 			chsc := p.ch[i].Sc()
@@ -62,65 +29,43 @@ func (p *Product) Sc() []int {
 }
 
 // Value returns the value of this SPN given a set of valuations.
-func (p *Product) Value(valuation VarSet) float64 {
+func (p *Product) Value(val VarSet) float64 {
 	n := len(p.ch)
 	ch := p.Ch()
-	v := 0.0
+	var v float64
 
 	for i := 0; i < n; i++ {
-		v += ch[i].Value(valuation)
+		v += ch[i].Value(val)
 	}
-	//for i := 0; i < n; i++ {
-	//vch := (p.ch[i]).Value(valuation)
-	//cv[i] = vch
-	//fmt.Printf("ch[%d] of type \"%s\" pa \"%s\": %f\n", i, p.ch[i].Type(), "product", vch)
-	//v *= vch
-	//}
 
-	//v := utils.LogProd(cv...)
-
-	//fmt.Printf("Value of product node: antiln(%f)=%f\n", v, utils.AntiLog(v))
 	return v
 }
 
 // Max returns the MAP state given a valuation.
-func (p *Product) Max(valuation VarSet) float64 {
+func (p *Product) Max(val VarSet) float64 {
 	n := len(p.ch)
-	v := 0.0
+	var v float64
 
 	for i := 0; i < n; i++ {
-		//v *= (p.ch[i]).Max(valuation)
-		v += (p.ch[i]).Max(valuation)
+		v += (p.ch[i]).Max(val)
 	}
 
 	return v
 }
 
 // ArgMax returns both the arguments and the value of the MAP state given a certain valuation.
-func (p *Product) ArgMax(valuation VarSet) (VarSet, float64) {
+func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 	argmax := make(VarSet)
 	n := len(p.ch)
-	v := 0.0
+	var v float64
 
-	// Only a product node may have leaves as children. We must iterate through all children and
-	// recurse through them. Since a product node's children must have disjoint scopes, each child
-	// has different variables to be considered. If child is a leaf, then return its corresponding
-	// MAP (trivial base case). Else we have a node with scope size greater than one and we must
-	// recurse once again.
 	for i := 0; i < n; i++ {
-		chargs, chmap := p.ch[i].ArgMax(valuation)
+		chargs, chmap := p.ch[i].ArgMax(val)
 		v += chmap
-		//pmap *= chmap
 		for k, val := range chargs {
 			argmax[k] = val
 		}
 	}
 
-	//fmt.Printf("Product: %f %v\n", utils.AntiLog(v), argmax)
 	return argmax, v
-}
-
-// Data for a product node is the number of children.
-func (p *Product) Data() (int, []float64) {
-	return len(p.ch), nil
 }

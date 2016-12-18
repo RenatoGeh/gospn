@@ -1,31 +1,82 @@
 package spn
 
-// Node represents a node in a DAG. There can only be three types of nodes: a univariate
-// distribution node, a sum node and a product node.
-type Node interface {
-	// Node value given a valuation.
-	Value(valuation VarSet) float64
-	// Returns the MAP state given a valuation.
-	Max(valuation VarSet) float64
-	// Returns the argmax of the MAP state and the max to avoid recomputation.
-	ArgMax(valuation VarSet) (VarSet, float64)
-	// Set of children.
-	Ch() []Node
-	// Parent node. If returns nil, then it is a root node.
-	Pa() Node
+// Node represents a node in an SPN.
+type Node struct {
+	// Parent nodes.
+	pa []SPN
+	// Children nodes.
+	ch []SPN
 	// Scope of this node.
-	Sc() []int
-	// Node type: 'leaf', 'sum' or 'product'.
-	Type() string
-	// Adds a child node to this node.
-	AddChild(c Node)
-	// Sets the parent node.
-	SetParent(pa Node)
-	// Get weights. Returns nil if no weights.
-	Weights() []float64
-	// Relevant data that depends on the node type.
-	Data() (int, []float64)
+	sc []int
 }
 
-// An SPN is the root node of the DAG.
-type SPN Node
+// An SPN is a node.
+type SPN interface {
+	// Value returns the value of this node given an instantiation.
+	Value(val VarSet) float64
+	// Max returns the MAP value of this node given an evidence.
+	Max(val VarSet) float64
+	// ArgMax returns the MAP value and state given an evidence.
+	ArgMax(val VarSet) (VarSet, float64)
+	// Ch returns the set of children of this node.
+	Ch() []SPN
+	// Pa returns the set of parents of this node.
+	Pa() []SPN
+	// Sc returns the scope of this node.
+	Sc() []int
+	// Type returns the type of this node.
+	Type() string
+	// AddChild adds a child to this node.
+	AddChild(c SPN)
+	// AddParent adds a parent to this node.
+	AddParent(p SPN)
+}
+
+// VarSet is a variable set specifying variables and their respective instantiations.
+type VarSet map[int]int
+
+// Value returns the value of this node given an instantiation. (virtual)
+func (n *Node) Value(val VarSet) float64 {
+	return -1
+}
+
+// Max returns the MAP value of this node given an evidence. (virtual)
+func (n *Node) Max(val VarSet) float64 {
+	return -1
+}
+
+// ArgMax returns the MAP value and state given an evidence. (virtual)
+func (n *Node) ArgMax(val VarSet) (VarSet, float64) {
+	return nil, -1
+}
+
+// Ch returns the set of children of this node.
+func (n *Node) Ch() []SPN {
+	return n.ch
+}
+
+// Pa returns the set of parents of this node.
+func (n *Node) Pa() []SPN {
+	return n.pa
+}
+
+// Sc returns the scope of this node.
+func (n *Node) Sc() []int {
+	return n.sc
+}
+
+// Type returns the type of this node.
+func (n *Node) Type() string {
+	return "node"
+}
+
+// AddChild adds a child to this node.
+func (n *Node) AddChild(c SPN) {
+	n.ch = append(n.ch, c)
+	c.AddParent(n)
+}
+
+// AddParent adds a parent to this node.
+func (n *Node) AddParent(p SPN) {
+	n.pa = append(n.pa, p)
+}

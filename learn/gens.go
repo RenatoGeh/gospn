@@ -38,7 +38,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 			counts[data[i][tv.Varid]]++
 		}
 
-		leaf := spn.NewCountingUnivDist(tv.Varid, counts)
+		leaf := spn.NewCountingMultinomial(tv.Varid, counts)
 		//sys.Println("Leaf created.")
 		return leaf
 	}
@@ -136,7 +136,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 				for i := 0; i < m; i++ {
 					counts[data[i][v.Varid]]++
 				}
-				leaf := spn.NewCountingUnivDist(v.Varid, counts)
+				leaf := spn.NewCountingMultinomial(v.Varid, counts)
 				prod.AddChild(leaf)
 			}
 			return prod
@@ -159,7 +159,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 			for i := 0; i < m; i++ {
 				counts[data[i][v.Varid]]++
 			}
-			leaf := spn.NewCountingUnivDist(v.Varid, counts)
+			leaf := spn.NewCountingMultinomial(v.Varid, counts)
 			prod.AddChild(leaf)
 		}
 		return prod
