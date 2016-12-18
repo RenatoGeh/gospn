@@ -61,8 +61,3 @@ func (n *Node) AddChild(c *Node) {
 	n.ch = append(n.ch, c)
 	c.pa = append(n.pa, n)
 }
-
-// Weights returns weights if sum product. Returns nil otherwise.
-func (n *Node) Weights() []float64 {
-	return nil
-}

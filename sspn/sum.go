@@ -11,6 +11,30 @@ type Sum struct {
 	w []float64
 }
 
+// NewSum creates a new Sum node.
+func NewSum() *Sum {
+	return &Sum{}
+}
+
+// AddWeight adds a new weight to the sum node.
+func (s *Sum) AddWeight(w float64) {
+	s.w = append(s.w, w)
+}
+
+// AddChildW adds a new child to this sum node with a weight w.
+func (s *Sum) AddChildW(c *Node, w float64) {
+	s.AddChild(c)
+	s.AddWeight(w)
+}
+
+// Sc returns the scope of this node.
+func (s *Sum) Sc() []int {
+	if s.sc == nil {
+		copy(s.sc, s.ch[0].Sc())
+	}
+	return s.sc
+}
+
 // Value returns the value of this node given an instantiation.
 func (s *Sum) Value(val VarSet) float64 {
 	n := len(s.ch)
@@ -65,9 +89,7 @@ func (s *Sum) ArgMax(val VarSet) (VarSet, float64) {
 }
 
 // Type returns the type of this node.
-func (s *Sum) Type() string {
-	return "sum"
-}
+func (s *Sum) Type() string { return "sum" }
 
 // Weights returns weights if sum product. Returns nil otherwise.
 func (s *Sum) Weights() []float64 {
