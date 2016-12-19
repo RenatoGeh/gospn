@@ -85,7 +85,8 @@ func (s *Sum) ArgMax(val VarSet) (VarSet, float64) {
 		}
 	}
 
-	return mch.ArgMax(val)
+	amax, mval := mch.ArgMax(val)
+	return amax, mval
 }
 
 // Type returns the type of this node.
