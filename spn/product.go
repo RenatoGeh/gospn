@@ -1,5 +1,9 @@
 package spn
 
+import (
+	"math"
+)
+
 // Product represents a product node in an SPN.
 type Product struct {
 	Node
@@ -37,6 +41,7 @@ func (p *Product) Value(val VarSet) float64 {
 	for i := 0; i < n; i++ {
 		v += ch[i].Value(val)
 	}
+	p.s = v
 
 	return v
 }
@@ -68,4 +73,24 @@ func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 	}
 
 	return argmax, v
+}
+
+// Derive recursively derives this node and its children based on the last inference value.
+func (p *Product) Derive() {
+	n := len(p.ch)
+
+	for i := 0; i < n; i++ {
+		ch := p.ch[i].(*Node)
+		s := 0.0
+		for j := 0; j < n; j++ {
+			if i != j {
+				s += (p.ch[i].(*Node)).s
+			}
+		}
+		ch.pnode += math.Log1p(math.Exp(p.pnode + s - ch.pnode))
+	}
+
+	for i := 0; i < n; i++ {
+		p.ch[i].Derive()
+	}
 }

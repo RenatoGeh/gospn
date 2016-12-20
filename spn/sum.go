@@ -9,6 +9,8 @@ import (
 type Sum struct {
 	Node
 	w []float64
+	// Store partial derivatives wrt weights.
+	pweights []float64
 }
 
 // NewSum creates a new Sum node.
@@ -19,6 +21,7 @@ func NewSum() *Sum {
 // AddWeight adds a new weight to the sum node.
 func (s *Sum) AddWeight(w float64) {
 	s.w = append(s.w, w)
+	s.pweights = append(s.pweights, 0)
 }
 
 // AddChildW adds a new child to this sum node with a weight w.
@@ -52,6 +55,7 @@ func (s *Sum) Value(val VarSet) float64 {
 	}
 
 	r = p + math.Log1p(r)
+	s.s = r
 
 	return r
 }
@@ -95,4 +99,37 @@ func (s *Sum) Type() string { return "sum" }
 // Weights returns weights if sum product. Returns nil otherwise.
 func (s *Sum) Weights() []float64 {
 	return s.w
+}
+
+// PWeights returns the partial derivatives wrt this node's weights.
+func (s *Sum) PWeights() []float64 {
+	return s.pweights
+}
+
+// Derive recursively derives this node and its children based on the last inference value.
+func (s *Sum) Derive() {
+	n := len(s.ch)
+
+	for i := 0; i < n; i++ {
+		ch := s.ch[i].(*Node)
+		ch.pnode += math.Log1p(math.Exp(math.Log(s.w[i]) + s.pnode - ch.pnode))
+	}
+
+	for i := 0; i < n; i++ {
+		ch := s.ch[i].(*Node)
+		s.pweights[i] = ch.s + s.pnode
+	}
+
+	for i := 0; i < n; i++ {
+		s.ch[i].Derive()
+	}
+}
+
+// GenUpdate generatively updates weights given an eta learning rate.
+func (s *Sum) GenUpdate(eta float64) {
+	n := len(s.ch)
+
+	for i := 0; i < n; i++ {
+		s.w[i] += eta + math.Exp(s.pweights[i])
+	}
 }

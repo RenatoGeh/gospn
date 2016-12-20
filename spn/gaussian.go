@@ -65,9 +65,10 @@ func (g *Gaussian) Type() string { return "leaf" }
 func (g *Gaussian) Value(val VarSet) float64 {
 	v, ok := val[g.varid]
 	if ok {
-		//fmt.Println("Yelloooo")
-		return math.Log(float64(C.gsl_ran_ugaussian_pdf(C.double((float64(v) - g.mean) / g.sd))))
+		g.s = math.Log(float64(C.gsl_ran_ugaussian_pdf(C.double((float64(v) - g.mean) / g.sd))))
+		return g.s
 	}
+	g.s = 0.0
 	return 0.0 // ln(1.0) = 0.0
 }
 
@@ -75,10 +76,7 @@ func (g *Gaussian) Value(val VarSet) float64 {
 func (g *Gaussian) Max(val VarSet) float64 {
 	v, ok := val[g.varid]
 	if ok {
-		//fmt.Printf("Preparing Gaussian with parameters z = (x-mu)/sigma = (%.3f - %.3f) / %.3f\n",
-		//float64(v), g.mean, g.sd)
 		z := math.Log(float64(C.gsl_ran_ugaussian_pdf(C.double((float64(v) - g.mean) / g.sd))))
-		//fmt.Printf("Max: Gaussian[%d] = %.5f\n", g.varid, z)
 		return z
 	}
 	return math.Log(GaussMax)
@@ -91,10 +89,7 @@ func (g *Gaussian) ArgMax(val VarSet) (VarSet, float64) {
 
 	if ok {
 		retval[g.varid] = v
-		//fmt.Printf("Preparing Gaussian with parameters z = (x-mu)/sigma = (%.3f - %.3f) / %.3f\n",
-		//float64(v), g.mean, g.sd)
 		z := math.Log(float64(C.gsl_ran_ugaussian_pdf(C.double((float64(v) - g.mean) / g.sd))))
-		//fmt.Printf("ArgMax: Gaussian[%d] = %.5f\n", g.varid, z)
 		return retval, z
 	}
 

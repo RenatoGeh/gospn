@@ -87,8 +87,10 @@ func (m *Multinomial) Type() string { return "leaf" }
 func (m *Multinomial) Value(val VarSet) float64 {
 	v, ok := val[m.varid]
 	if ok {
-		return math.Log(m.pr[v])
+		m.s = math.Log(m.pr[v])
+		return m.s
 	}
+	m.s = 0.0
 	return 0.0 // ln(1.0) = 0.0
 }
 

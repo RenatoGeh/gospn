@@ -8,6 +8,10 @@ type Node struct {
 	ch []SPN
 	// Scope of this node.
 	sc []int
+	// Store last soft inference values.
+	s float64
+	// Store partial derivatives wrt parent.
+	pnode float64
 }
 
 // An SPN is a node.
@@ -30,6 +34,16 @@ type SPN interface {
 	AddChild(c SPN)
 	// AddParent adds a parent to this node.
 	AddParent(p SPN)
+	// Stored returns the last stored soft inference value.
+	Stored() float64
+	// Derivative returns the partial derivative wrt its parent.
+	Derivative() float64
+	// Derive recursively derives this node and its children based on the last inference value.
+	Derive()
+	// Rootify signalizes this node is a root. The only change this does is set pnode=1.
+	Rootify()
+	// GenUpdate generatively updates weights given an eta learning rate.
+	GenUpdate(eta float64)
 }
 
 // VarSet is a variable set specifying variables and their respective instantiations.
@@ -79,4 +93,29 @@ func (n *Node) AddChild(c SPN) {
 // AddParent adds a parent to this node.
 func (n *Node) AddParent(p SPN) {
 	n.pa = append(n.pa, p)
+}
+
+// Stored returns the last stored soft inference value.
+func (n *Node) Stored() float64 {
+	return n.s
+}
+
+// Derivative returns the derivative of this node.
+func (n *Node) Derivative() float64 {
+	return n.pnode
+}
+
+// Derive recursively derives this node and its children based on the last inference value.
+func (n *Node) Derive() {}
+
+// Rootify signalizes this node is a root. The only change this does is set pnode=1.
+func (n *Node) Rootify() { n.pnode = 1 }
+
+// GenUpdate generatively updates weights given an eta learning rate.
+func (n *Node) GenUpdate(eta float64) {
+	m := len(n.ch)
+
+	for i := 0; i < m; i++ {
+		n.ch[i].GenUpdate(eta)
+	}
 }
