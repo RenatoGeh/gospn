@@ -44,6 +44,8 @@ type SPN interface {
 	Rootify()
 	// GenUpdate generatively updates weights given an eta learning rate.
 	GenUpdate(eta float64)
+	// DrvtAddr returns the address of the derivative for easier updating.
+	DrvtAddr() *float64
 }
 
 // VarSet is a variable set specifying variables and their respective instantiations.
@@ -119,3 +121,6 @@ func (n *Node) GenUpdate(eta float64) {
 		n.ch[i].GenUpdate(eta)
 	}
 }
+
+// DrvtAddr returns the address of the derivative for easier updating.
+func (n *Node) DrvtAddr() *float64 { return &n.pnode }

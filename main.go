@@ -195,6 +195,7 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 
 			fmt.Printf("P-%d: Training SPN with %d clusters against instance %d...\n", id, kclusters, id)
 			s := learn.Gens(lsc, train, kclusters, sys.Pval, sys.Eps, sys.Mp)
+			learn.Generative(s, train, 0.001)
 
 			for _, v := range io.Orientations {
 				fmt.Printf("P-%d: Drawing %s image completion for instance %d.\n", id, v, id)

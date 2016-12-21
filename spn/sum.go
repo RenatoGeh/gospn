@@ -111,13 +111,12 @@ func (s *Sum) Derive() {
 	n := len(s.ch)
 
 	for i := 0; i < n; i++ {
-		ch := s.ch[i].(*Node)
-		ch.pnode += math.Log1p(math.Exp(math.Log(s.w[i]) + s.pnode - ch.pnode))
+		da := s.ch[i].DrvtAddr()
+		*da += math.Log1p(math.Exp(math.Log(s.w[i]) + s.pnode - *da))
 	}
 
 	for i := 0; i < n; i++ {
-		ch := s.ch[i].(*Node)
-		s.pweights[i] = ch.s + s.pnode
+		s.pweights[i] = s.ch[i].Stored() + s.pnode
 	}
 
 	for i := 0; i < n; i++ {

@@ -80,14 +80,14 @@ func (p *Product) Derive() {
 	n := len(p.ch)
 
 	for i := 0; i < n; i++ {
-		ch := p.ch[i].(*Node)
+		da := p.ch[i].DrvtAddr()
 		s := 0.0
 		for j := 0; j < n; j++ {
 			if i != j {
-				s += (p.ch[i].(*Node)).s
+				s += p.ch[j].Stored()
 			}
 		}
-		ch.pnode += math.Log1p(math.Exp(p.pnode + s - ch.pnode))
+		*da += math.Log1p(math.Exp(p.pnode + s - *da))
 	}
 
 	for i := 0; i < n; i++ {
