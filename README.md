@@ -40,6 +40,16 @@ simpler, clearer way then how it is currently written in literature.
 A thorough analysis on our implementation can be found at
 (<https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf>).
 
+### Learning Algorithms Implemented
+
+- Gens-Domingos structural learning algorithm. *Learning the Structure
+  of Sum-Product Networks* - R. Gens and P. Domingos (ICML 2013).
+- Generative learning of Sum-Product Networks. *Sum-Product Networks: A
+  New Deep Architecture* - H. Poon and P. Domingos (UAI 2011).
+- Discriminative learning of Sum-Product Networks. *Discriminative
+  Learning of Sum-Product Networks* - R. Gens and P. Domingos (NIPS
+  2012). **WIP**
+
 ### Usage
 
 To run GoSPN, we must complete a few steps:

@@ -82,16 +82,25 @@ func NewEmptyMultinomial(varid, m int) *Multinomial {
 // Type returns the type of this node.
 func (m *Multinomial) Type() string { return "leaf" }
 
+// Bsoft is a common base for all soft inference methods.
+func (m *Multinomial) Bsoft(val VarSet, where *float64) float64 {
+	if *where > 0 {
+		return *where
+	}
+
+	v, ok := val[m.varid]
+	if ok {
+		*where = math.Log(m.pr[v])
+	} else {
+		*where = 0.0 // ln(1.0) = 0.0
+	}
+	return *where
+}
+
 // Value returns the probability of a certain valuation. That is Pr(X=val[varid]), where
 // Pr is a probability function over a Multinomial distribution.
 func (m *Multinomial) Value(val VarSet) float64 {
-	v, ok := val[m.varid]
-	if ok {
-		m.s = math.Log(m.pr[v])
-		return m.s
-	}
-	m.s = 0.0
-	return 0.0 // ln(1.0) = 0.0
+	return m.Bsoft(val, &m.s)
 }
 
 // Max returns the MAP state given a valuation.

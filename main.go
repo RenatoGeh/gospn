@@ -104,12 +104,12 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	fmt.Printf("  Test set size: %d\n", len(test))
 	fmt.Println("======================================")
 
-	reps := make([]map[int]int, nclass)
-	for i := 0; i < lines; i++ {
-		if reps[lbls[i]] == nil {
-			reps[lbls[i]] = test[i]
-		}
-	}
+	//reps := make([]map[int]int, nclass)
+	//for i := 0; i < lines; i++ {
+	//if reps[lbls[i]] == nil {
+	//reps[lbls[i]] = test[i]
+	//}
+	//}
 	/* for i := 0; i < nclass; i++ {*/
 	//for _, v := range io.Orientations {
 	//fmt.Printf("Drawing %s completion for digit %d.\n", v, i)
@@ -195,7 +195,7 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 
 			fmt.Printf("P-%d: Training SPN with %d clusters against instance %d...\n", id, kclusters, id)
 			s := learn.Gens(lsc, train, kclusters, sys.Pval, sys.Eps, sys.Mp)
-			learn.Generative(s, train, 0.001)
+			learn.Generative(s, []map[int]int{train[id]}, 0.001)
 
 			for _, v := range io.Orientations {
 				fmt.Printf("P-%d: Drawing %s image completion for instance %d.\n", id, v, id)

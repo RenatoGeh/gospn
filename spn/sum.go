@@ -38,13 +38,17 @@ func (s *Sum) Sc() []int {
 	return s.sc
 }
 
-// Value returns the value of this node given an instantiation.
-func (s *Sum) Value(val VarSet) float64 {
+// Bsoft is a common base for all soft inference methods.
+func (s *Sum) Bsoft(val VarSet, where *float64) float64 {
+	if *where > 0 {
+		return *where
+	}
+
 	n := len(s.ch)
 
 	vals := make([]float64, n)
 	for i := 0; i < n; i++ {
-		v, w := s.ch[i].Value(val), math.Log(s.w[i])
+		v, w := s.ch[i].Bsoft(val, where), math.Log(s.w[i])
 		vals[i] = v + w
 	}
 	sort.Float64s(vals)
@@ -55,9 +59,13 @@ func (s *Sum) Value(val VarSet) float64 {
 	}
 
 	r = p + math.Log1p(r)
-	s.s = r
-
+	*where = r
 	return r
+}
+
+// Value returns the value of this node given an instantiation.
+func (s *Sum) Value(val VarSet) float64 {
+	return s.Bsoft(val, &s.s)
 }
 
 // Max returns the MAP value of this node given an evidence.
@@ -127,8 +135,60 @@ func (s *Sum) Derive() {
 // GenUpdate generatively updates weights given an eta learning rate.
 func (s *Sum) GenUpdate(eta float64) {
 	n := len(s.ch)
+	t := 0.0
 
 	for i := 0; i < n; i++ {
 		s.w[i] += eta + math.Exp(s.pweights[i])
+		t += s.w[i]
+	}
+
+	// Normalize weights.
+	for i := 0; i < n; i++ {
+		s.w[i] /= t
+	}
+}
+
+// Normalize normalizes weights.
+func (s *Sum) Normalize() {
+	n, t := len(s.ch), 0.0
+	for i := 0; i < n; i++ {
+		t += s.w[i]
+	}
+	for i := 0; i < n; i++ {
+		s.w[i] /= t
+	}
+	for i := 0; i < n; i++ {
+		s.ch[i].Normalize()
+	}
+}
+
+// CondValue returns the value of this SPN queried on Y and conditioned on X.
+// Let S be this SPN. If S is the root node, then CondValue(Y, X) = S(Y|X). Else we store the value
+// of S(Y, X) in Y so that we don't need to recompute Union(Y, X) at every iteration.
+func (s *Sum) CondValue(Y VarSet, X VarSet) float64 {
+	if s.root {
+		for k, v := range X {
+			Y[k] = v
+		}
+	}
+	s.st = s.Bsoft(Y, &s.st)
+	s.sb = s.Bsoft(X, &s.sb)
+	s.scnd = s.st - s.sb
+
+	// Store values for each sub-SPN.
+	n := len(s.ch)
+	for i := 0; i < n; i++ {
+		s.ch[i].CondValue(Y, X)
+	}
+
+	return s.scnd
+}
+
+// DiscUpdate discriminatively updates weights given an eta learning rate.
+func (s *Sum) DiscUpdate(eta float64) {
+	n := len(s.ch)
+
+	for i := 0; i < n; i++ {
+		//s.w[i] += eta*(math.Exp(s.pweights[i] -
 	}
 }
