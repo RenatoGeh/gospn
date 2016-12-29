@@ -15,7 +15,7 @@ type Sum struct {
 
 // NewSum creates a new Sum node.
 func NewSum() *Sum {
-	return &Sum{}
+	return &Sum{Node: NewNode()}
 }
 
 // AddWeight adds a new weight to the sum node.
@@ -31,24 +31,28 @@ func (s *Sum) AddChildW(c SPN, w float64) {
 }
 
 // Sc returns the scope of this node.
-func (s *Sum) Sc() []int {
+func (s *Sum) Sc() map[int]int {
 	if s.sc == nil {
-		copy(s.sc, s.ch[0].Sc())
+		csc := s.ch[0].Sc()
+		for k := range csc {
+			s.sc[k] = k
+		}
 	}
 	return s.sc
 }
 
 // Bsoft is a common base for all soft inference methods.
-func (s *Sum) Bsoft(val VarSet, where *float64) float64 {
-	if *where > 0 {
-		return *where
+func (s *Sum) Bsoft(val VarSet, key string) float64 {
+	prev := s.Stored(key)
+	if prev > 0 {
+		return prev
 	}
 
 	n := len(s.ch)
 
 	vals := make([]float64, n)
 	for i := 0; i < n; i++ {
-		v, w := s.ch[i].Bsoft(val, where), math.Log(s.w[i])
+		v, w := s.ch[i].Bsoft(val, key), math.Log(s.w[i])
 		vals[i] = v + w
 	}
 	sort.Float64s(vals)
@@ -59,13 +63,13 @@ func (s *Sum) Bsoft(val VarSet, where *float64) float64 {
 	}
 
 	r = p + math.Log1p(r)
-	*where = r
+	s.Store(key, r)
 	return r
 }
 
 // Value returns the value of this node given an instantiation.
 func (s *Sum) Value(val VarSet) float64 {
-	return s.Bsoft(val, &s.s)
+	return s.Bsoft(val, "soft")
 }
 
 // Max returns the MAP value of this node given an evidence.
@@ -124,7 +128,7 @@ func (s *Sum) Derive() {
 	}
 
 	for i := 0; i < n; i++ {
-		s.pweights[i] = s.ch[i].Stored() + s.pnode
+		s.pweights[i] = s.ch[i].Stored("soft") + s.pnode
 	}
 
 	for i := 0; i < n; i++ {
@@ -162,33 +166,16 @@ func (s *Sum) Normalize() {
 	}
 }
 
-// CondValue returns the value of this SPN queried on Y and conditioned on X.
-// Let S be this SPN. If S is the root node, then CondValue(Y, X) = S(Y|X). Else we store the value
-// of S(Y, X) in Y so that we don't need to recompute Union(Y, X) at every iteration.
-func (s *Sum) CondValue(Y VarSet, X VarSet) float64 {
-	if s.root {
-		for k, v := range X {
-			Y[k] = v
-		}
-	}
-	s.st = s.Bsoft(Y, &s.st)
-	s.sb = s.Bsoft(X, &s.sb)
-	s.scnd = s.st - s.sb
-
-	// Store values for each sub-SPN.
-	n := len(s.ch)
-	for i := 0; i < n; i++ {
-		s.ch[i].CondValue(Y, X)
-	}
-
-	return s.scnd
-}
-
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (s *Sum) DiscUpdate(eta float64) {
-	n := len(s.ch)
+func (s *Sum) DiscUpdate(eta float64, T, X VarSet, root SPN) {
+	//n := len(s.ch)
 
-	for i := 0; i < n; i++ {
-		//s.w[i] += eta*(math.Exp(s.pweights[i] -
-	}
+	//root.RResetDP("disc_correct")
+	//root.RResetDP("disc_expected")
+	//correct := root.Bsoft(T, "disc_correct")
+	//expected := root.Bsoft(X, "disc_expected")
+
+	//for i := 0; i < n; i++ {
+	//s.w[i] += eta*(math.Exp(s.pweights[i] - correct) - math.Exp(s.pweights
+	//}
 }

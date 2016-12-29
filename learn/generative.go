@@ -17,9 +17,9 @@ func Generative(S spn.SPN, data []map[int]int, eta float64) spn.SPN {
 
 	// Set root's partial derivative to 1.
 	S.Rootify()
+	S.SetStore(false)
 	for math.Abs(conv) > 0.01 {
 		// Reset SPN's DP table.
-		S.ResetDP()
 		s := 0.0
 		for i := 0; i < n; i++ {
 			// Call soft inference to store values.

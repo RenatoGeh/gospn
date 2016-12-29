@@ -11,21 +11,20 @@ type Product struct {
 
 // NewProduct returns a new Product node.
 func NewProduct() *Product {
-	return &Product{}
+	return &Product{Node: NewNode()}
 }
 
 // Type returns the type of this node.
 func (p *Product) Type() string { return "product" }
 
 // Sc returns the scope of this node.
-func (p *Product) Sc() []int {
+func (p *Product) Sc() map[int]int {
 	if p.sc == nil {
 		n := len(p.ch)
 		for i := 0; i < n; i++ {
 			chsc := p.ch[i].Sc()
-			k := len(chsc)
-			for j := 0; j < k; j++ {
-				p.sc = append(p.sc, chsc[j])
+			for k := range chsc {
+				p.sc[k] = k
 			}
 		}
 	}
@@ -33,9 +32,10 @@ func (p *Product) Sc() []int {
 }
 
 // Bsoft is a common base for all soft inference methods.
-func (p *Product) Bsoft(val VarSet, where *float64) float64 {
-	if *where > 0 {
-		return *where
+func (p *Product) Bsoft(val VarSet, key string) float64 {
+	prev := p.Stored(key)
+	if prev > 0 {
+		return prev
 	}
 
 	n := len(p.ch)
@@ -43,16 +43,16 @@ func (p *Product) Bsoft(val VarSet, where *float64) float64 {
 	var v float64
 
 	for i := 0; i < n; i++ {
-		v += ch[i].Bsoft(val, where)
+		v += ch[i].Bsoft(val, key)
 	}
 
-	*where = v
+	p.Store(key, v)
 	return v
 }
 
 // Value returns the value of this SPN given a set of valuations.
 func (p *Product) Value(val VarSet) float64 {
-	return p.Bsoft(val, &p.s)
+	return p.Bsoft(val, "soft")
 }
 
 // Max returns the MAP state given a valuation.
@@ -93,7 +93,7 @@ func (p *Product) Derive() {
 		s := 0.0
 		for j := 0; j < n; j++ {
 			if i != j {
-				s += p.ch[j].Stored()
+				s += p.ch[j].Stored("soft")
 			}
 		}
 		*da += math.Log1p(math.Exp(p.pnode + s - *da))
@@ -102,26 +102,4 @@ func (p *Product) Derive() {
 	for i := 0; i < n; i++ {
 		p.ch[i].Derive()
 	}
-}
-
-// CondValue returns the value of this SPN queried on Y and conditioned on X.
-// Let S be this SPN. If S is the root node, then CondValue(Y, X) = S(Y|X). Else we store the value
-// of S(Y, X) in Y so that we don't need to recompute Union(Y, X) at every iteration.
-func (p *Product) CondValue(Y VarSet, X VarSet) float64 {
-	if p.root {
-		for k, v := range X {
-			Y[k] = v
-		}
-	}
-	p.st = p.Bsoft(Y, &p.st)
-	p.sb = p.Bsoft(X, &p.sb)
-	p.scnd = p.st - p.sb
-
-	// Store values for each sub-SPN.
-	n := len(p.ch)
-	for i := 0; i < n; i++ {
-		p.ch[i].CondValue(Y, X)
-	}
-
-	return p.scnd
 }

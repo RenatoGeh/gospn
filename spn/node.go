@@ -7,19 +7,15 @@ type Node struct {
 	// Children nodes.
 	ch []SPN
 	// Scope of this node.
-	sc []int
+	sc map[int]int
 	// Stores last soft inference values.
-	s float64
+	s map[string]float64
 	// Stores partial derivatives wrt parent.
 	pnode float64
-	// Stores the top part S(y,1,x) of the conditional value S(y,1|x) = S(y,1,x)/S(x).
-	st float64
-	// Stores the bottom part S(x) of the conditional value S(y,1|x) = S(y,1,x)/S(x).
-	sb float64
-	// Stores the conditional value S(y,1|x).
-	scnd float64
 	// Signals this node to be the root of the SPN.
 	root bool
+	// Whether to store in DP table or not.
+	stores bool
 }
 
 // An SPN is a node.
@@ -35,15 +31,19 @@ type SPN interface {
 	// Pa returns the set of parents of this node.
 	Pa() []SPN
 	// Sc returns the scope of this node.
-	Sc() []int
+	Sc() map[int]int
 	// Type returns the type of this node.
 	Type() string
 	// AddChild adds a child to this node.
 	AddChild(c SPN)
 	// AddParent adds a parent to this node.
 	AddParent(p SPN)
-	// Stored returns the last stored soft inference value.
-	Stored() float64
+	// Stored returns the stored soft inference value from the given key.
+	Stored(key string) float64
+	// Store stores an SPN evaluation for DP reasons.
+	Store(key string, val float64)
+	// SetStore sets whether the SPN should start storing evaluations on the DP table.
+	SetStore(s bool)
 	// Derivative returns the partial derivative wrt its parent.
 	Derivative() float64
 	// Derive recursively derives this node and its children based on the last inference value.
@@ -55,24 +55,29 @@ type SPN interface {
 	// DrvtAddr returns the address of the derivative for easier updating.
 	DrvtAddr() *float64
 	// Common base for all soft inference methods.
-	Bsoft(val VarSet, where *float64) float64
+	Bsoft(val VarSet, key string) float64
 	// Normalizes the SPN.
 	Normalize()
-	// CondValue returns the value of this SPN queried on Y and conditioned on X.
-	CondValue(Y VarSet, X VarSet) float64
-	// StoredTop returns the last top valuation S(X,Y) of S(Y|X).
-	StoredTop() float64
-	// StoredBottom returns the last bottom valuation S(X) of S(Y|X).
-	StoredBottom() float64
 	// DiscUpdate discriminatively updates weights given an eta learning rate.
-	DiscUpdate(eta float64)
-	// ResetDP resets all stored values. At the next inference call, the SPN will recompute
-	// everything.
-	ResetDP()
+	DiscUpdate(eta float64, T, X VarSet, root SPN)
+	// ResetDP resets a key on the DP table. If key is nil, resets everything.
+	ResetDP(key string)
+	// RResetDP recursively ResetDPs all children.
+	RResetDP(key string)
 }
 
 // VarSet is a variable set specifying variables and their respective instantiations.
 type VarSet map[int]int
+
+// NewNode creates a new node value.
+func NewNode(scope ...int) Node {
+	m := len(scope)
+	lsc := make(map[int]int)
+	for i := 0; i < m; i++ {
+		lsc[scope[i]] = scope[i]
+	}
+	return Node{sc: lsc, s: make(map[string]float64)}
+}
 
 // Value returns the value of this node given an instantiation. (virtual)
 func (n *Node) Value(val VarSet) float64 {
@@ -100,7 +105,7 @@ func (n *Node) Pa() []SPN {
 }
 
 // Sc returns the scope of this node.
-func (n *Node) Sc() []int {
+func (n *Node) Sc() map[int]int {
 	return n.sc
 }
 
@@ -120,9 +125,34 @@ func (n *Node) AddParent(p SPN) {
 	n.pa = append(n.pa, p)
 }
 
-// Stored returns the last stored soft inference value.
-func (n *Node) Stored() float64 {
-	return n.s
+// Stored returns the stored soft inference value from the given key.
+func (n *Node) Stored(key string) float64 {
+	if n.stores {
+		return n.s[key]
+	}
+	return -1
+}
+
+// Store stores an SPN evaluation for DP reasons.
+func (n *Node) Store(key string, val float64) {
+	if n.stores {
+		return
+	}
+
+	if key == "" {
+		key = "default"
+	}
+	n.s[key] = val
+}
+
+// SetStore sets whether the SPN should start storing evaluations on the DP table.
+func (n *Node) SetStore(s bool) {
+	n.stores = s
+	m := len(n.ch)
+
+	for i := 0; i < m; i++ {
+		n.ch[i].SetStore(s)
+	}
 }
 
 // Derivative returns the derivative of this node.
@@ -152,7 +182,7 @@ func (n *Node) GenUpdate(eta float64) {
 func (n *Node) DrvtAddr() *float64 { return &n.pnode }
 
 // Bsoft is a common base for all soft inference methods.
-func (n *Node) Bsoft(val VarSet, where *float64) float64 { return -1 }
+func (n *Node) Bsoft(val VarSet, key string) float64 { return -1 }
 
 // Normalize normalizes the SPN's weights.
 func (n *Node) Normalize() {
@@ -163,31 +193,32 @@ func (n *Node) Normalize() {
 	}
 }
 
-// CondValue returns the value of this SPN queried on Y and conditioned on X.
-// Let S be this SPN. If S is the root node, then CondValue(Y, X) = S(Y|X). Else we store the value
-// of S(Y, X) in Y so that we don't need to recompute Union(Y, X) at every iteration.
-func (n *Node) CondValue(Y VarSet, X VarSet) float64 { return -1 }
+// ResetDP resets a key on the DP table. If key is nil, resets everything.
+func (n *Node) ResetDP(key string) {
+	if key == "" {
+		for k := range n.s {
+			n.s[k] = -1
+		}
+	} else {
+		n.s[key] = -1
+	}
+}
 
-// StoredTop returns the last top valuation S(X,Y) of S(Y|X).
-func (n *Node) StoredTop() float64 { return n.st }
+// RResetDP recursively ResetDPs all children.
+func (n *Node) RResetDP(key string) {
+	m := len(n.ch)
 
-// StoredBottom returns the last bottom valuation S(X) of S(Y|X).
-func (n *Node) StoredBottom() float64 { return n.sb }
-
-// ResetDP resets all dynamic programming stored values. At the next inference call, the SPN will
-// recompute everything.
-func (n *Node) ResetDP() {
-	n.s = -1
-	n.st = -1
-	n.sb = -1
-	n.scnd = -1
+	n.ResetDP(key)
+	for i := 0; i < m; i++ {
+		n.ch[i].ResetDP(key)
+	}
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (n *Node) DiscUpdate(eta float64) {
+func (n *Node) DiscUpdate(eta float64, T, X VarSet, root SPN) {
 	m := len(n.ch)
 
 	for i := 0; i < m; i++ {
-		n.ch[i].DiscUpdate(eta)
+		n.ch[i].DiscUpdate(eta, T, X, root)
 	}
 }

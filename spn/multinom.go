@@ -36,7 +36,7 @@ func NewMultinomial(varid int, dist []float64) *Multinomial {
 		}
 	}
 
-	return &Multinomial{Node{sc: []int{varid}}, varid, dist, Mode{mi, m}}
+	return &Multinomial{NewNode(varid), varid, dist, Mode{mi, m}}
 }
 
 // NewCountingMultinomial constructs a new Multinomial from a count slice.
@@ -64,7 +64,7 @@ func NewCountingMultinomial(varid int, counts []int) *Multinomial {
 		}
 	}
 
-	return &Multinomial{Node{sc: []int{varid}}, varid, pr, Mode{mi, m}}
+	return &Multinomial{NewNode(varid), varid, pr, Mode{mi, m}}
 }
 
 // NewEmptyMultinomial constructs a new empty Multinomial for learning.  Argument m is the
@@ -76,31 +76,37 @@ func NewEmptyMultinomial(varid, m int) *Multinomial {
 		pr[i] = 1.0 / float64(m)
 	}
 
-	return &Multinomial{Node{sc: []int{varid}}, varid, pr, Mode{0, pr[0]}}
+	lsc := make(map[int]int)
+	lsc[varid] = varid
+	return &Multinomial{NewNode(varid), varid, pr, Mode{0, pr[0]}}
 }
 
 // Type returns the type of this node.
 func (m *Multinomial) Type() string { return "leaf" }
 
 // Bsoft is a common base for all soft inference methods.
-func (m *Multinomial) Bsoft(val VarSet, where *float64) float64 {
-	if *where > 0 {
-		return *where
+func (m *Multinomial) Bsoft(val VarSet, key string) float64 {
+	prev := m.Stored(key)
+	if prev > 0 {
+		return prev
 	}
 
 	v, ok := val[m.varid]
+	var l float64
 	if ok {
-		*where = math.Log(m.pr[v])
+		l = math.Log(m.pr[v])
 	} else {
-		*where = 0.0 // ln(1.0) = 0.0
+		l = 0.0 // ln(1.0) = 0.0
 	}
-	return *where
+	m.Store(key, l)
+
+	return l
 }
 
 // Value returns the probability of a certain valuation. That is Pr(X=val[varid]), where
 // Pr is a probability function over a Multinomial distribution.
-func (m *Multinomial) Value(val VarSet) float64 {
-	return m.Bsoft(val, &m.s)
+func (m *Multinomial) Value(val VarSet, key string) float64 {
+	return m.Bsoft(val, key)
 }
 
 // Max returns the MAP state given a valuation.
