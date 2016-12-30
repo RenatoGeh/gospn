@@ -149,8 +149,11 @@ efficiency in mind. Installing Go is easy. Pre-compiled packages are
 available for FreeBSD, Linux, Mac OS X and Windows for both 32 and
 64-bit processors. For more information see <https://golang.org/doc/install>.
 
-The dependencies below can be considered "optional", in that the user
-can avoid using using them if one wishes so.
+The dependencies below are **optional**. Except for GNU GSL, but there
+are ways around it. If you absolutely must avoid installing GNU GSL for
+whatever reason, contact me either through the [Issues](https://github.com/RenatoGeh/gospn/issues)
+page or through email (`my github username at gmail dot com`, or `renatolg
+at ime dot usp dot br`).
 
 #### GNU GSL Scientific Library (recommended)
 
