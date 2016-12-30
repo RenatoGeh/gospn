@@ -8,10 +8,8 @@ type Node struct {
 	ch []SPN
 	// Scope of this node.
 	sc map[int]int
-	// Stores last soft inference values.
+	// Stores inference values.
 	s map[string]float64
-	// Stores partial derivatives wrt parent.
-	pnode float64
 	// Signals this node to be the root of the SPN.
 	root bool
 	// Whether to store in DP table or not.
@@ -44,22 +42,21 @@ type SPN interface {
 	Store(key string, val float64)
 	// SetStore sets whether the SPN should start storing evaluations on the DP table.
 	SetStore(s bool)
-	// Derivative returns the partial derivative wrt its parent.
-	Derivative() float64
 	// Derive recursively derives this node and its children based on the last inference value.
-	Derive()
-	// Rootify signalizes this node is a root. The only change this does is set pnode=1.
-	Rootify()
+	// Stores derivative values under key.
+	Derive(wkey, nkey, ikey string)
+	// Rootify signalizes this node is a root.
+	Rootify(nkey string)
 	// GenUpdate generatively updates weights given an eta learning rate.
-	GenUpdate(eta float64)
-	// DrvtAddr returns the address of the derivative for easier updating.
-	DrvtAddr() *float64
+	GenUpdate(eta float64, wkey string)
+	// Storer returns DP table.
+	Storer() map[string]float64
 	// Common base for all soft inference methods.
 	Bsoft(val VarSet, key string) float64
 	// Normalizes the SPN.
 	Normalize()
 	// DiscUpdate discriminatively updates weights given an eta learning rate.
-	DiscUpdate(eta float64, T, X VarSet, root SPN)
+	DiscUpdate(eta float64)
 	// ResetDP resets a key on the DP table. If key is nil, resets everything.
 	ResetDP(key string)
 	// RResetDP recursively ResetDPs all children.
@@ -155,31 +152,26 @@ func (n *Node) SetStore(s bool) {
 	}
 }
 
-// Derivative returns the derivative of this node.
-func (n *Node) Derivative() float64 {
-	return n.pnode
-}
-
 // Derive recursively derives this node and its children based on the last inference value.
-func (n *Node) Derive() {}
+func (n *Node) Derive(wkey, nkey, ikey string) {}
 
-// Rootify signalizes this node is a root. The only change this does is set pnode=1.
-func (n *Node) Rootify() {
-	n.pnode = 1
+// Rootify signalizes this node is a root.
+func (n *Node) Rootify(nkey string) {
+	n.Store(nkey, 1)
 	n.root = true
 }
 
 // GenUpdate generatively updates weights given an eta learning rate.
-func (n *Node) GenUpdate(eta float64) {
+func (n *Node) GenUpdate(eta float64, wkey string) {
 	m := len(n.ch)
 
 	for i := 0; i < m; i++ {
-		n.ch[i].GenUpdate(eta)
+		n.ch[i].GenUpdate(eta, wkey)
 	}
 }
 
-// DrvtAddr returns the address of the derivative for easier updating.
-func (n *Node) DrvtAddr() *float64 { return &n.pnode }
+// Storer returns DP table.
+func (n *Node) Storer() map[string]float64 { return n.s }
 
 // Bsoft is a common base for all soft inference methods.
 func (n *Node) Bsoft(val VarSet, key string) float64 { return -1 }
@@ -215,10 +207,10 @@ func (n *Node) RResetDP(key string) {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (n *Node) DiscUpdate(eta float64, T, X VarSet, root SPN) {
+func (n *Node) DiscUpdate(eta float64) {
 	m := len(n.ch)
 
 	for i := 0; i < m; i++ {
-		n.ch[i].DiscUpdate(eta, T, X, root)
+		n.ch[i].DiscUpdate(eta)
 	}
 }

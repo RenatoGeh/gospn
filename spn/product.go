@@ -33,11 +33,6 @@ func (p *Product) Sc() map[int]int {
 
 // Bsoft is a common base for all soft inference methods.
 func (p *Product) Bsoft(val VarSet, key string) float64 {
-	prev := p.Stored(key)
-	if prev > 0 {
-		return prev
-	}
-
 	n := len(p.ch)
 	ch := p.Ch()
 	var v float64
@@ -85,21 +80,21 @@ func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 }
 
 // Derive recursively derives this node and its children based on the last inference value.
-func (p *Product) Derive() {
+func (p *Product) Derive(wkey, nkey, ikey string) {
 	n := len(p.ch)
 
 	for i := 0; i < n; i++ {
-		da := p.ch[i].DrvtAddr()
 		s := 0.0
 		for j := 0; j < n; j++ {
 			if i != j {
-				s += p.ch[j].Stored("soft")
+				s += p.ch[j].Stored(ikey)
 			}
 		}
-		*da += math.Log1p(math.Exp(p.pnode + s - *da))
+		st := p.ch[i].Storer()
+		st[nkey] += math.Log1p(math.Exp(p.Stored(nkey) + s - st[nkey]))
 	}
 
 	for i := 0; i < n; i++ {
-		p.ch[i].Derive()
+		p.ch[i].Derive(wkey, nkey, ikey)
 	}
 }

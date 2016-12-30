@@ -60,11 +60,6 @@ func (g *Gaussian) Type() string { return "leaf" }
 
 // Bsoft is a common base for all soft inference methods.
 func (g *Gaussian) Bsoft(val VarSet, key string) float64 {
-	prev := g.Stored(key)
-	if prev > 0 {
-		return prev
-	}
-
 	v, ok := val[g.varid]
 	var l float64
 	if ok {

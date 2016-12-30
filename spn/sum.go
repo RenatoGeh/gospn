@@ -10,18 +10,17 @@ type Sum struct {
 	Node
 	w []float64
 	// Store partial derivatives wrt weights.
-	pweights []float64
+	pweights map[string][]float64
 }
 
 // NewSum creates a new Sum node.
 func NewSum() *Sum {
-	return &Sum{Node: NewNode()}
+	return &Sum{Node: NewNode(), pweights: make(map[string][]float64)}
 }
 
 // AddWeight adds a new weight to the sum node.
 func (s *Sum) AddWeight(w float64) {
 	s.w = append(s.w, w)
-	s.pweights = append(s.pweights, 0)
 }
 
 // AddChildW adds a new child to this sum node with a weight w.
@@ -43,11 +42,6 @@ func (s *Sum) Sc() map[int]int {
 
 // Bsoft is a common base for all soft inference methods.
 func (s *Sum) Bsoft(val VarSet, key string) float64 {
-	prev := s.Stored(key)
-	if prev > 0 {
-		return prev
-	}
-
 	n := len(s.ch)
 
 	vals := make([]float64, n)
@@ -114,35 +108,38 @@ func (s *Sum) Weights() []float64 {
 }
 
 // PWeights returns the partial derivatives wrt this node's weights.
-func (s *Sum) PWeights() []float64 {
-	return s.pweights
+func (s *Sum) PWeights(key string) []float64 {
+	return s.pweights[key]
 }
 
 // Derive recursively derives this node and its children based on the last inference value.
-func (s *Sum) Derive() {
+func (s *Sum) Derive(wkey, nkey, ikey string) {
 	n := len(s.ch)
-
-	for i := 0; i < n; i++ {
-		da := s.ch[i].DrvtAddr()
-		*da += math.Log1p(math.Exp(math.Log(s.w[i]) + s.pnode - *da))
+	if s.pweights[wkey] == nil {
+		s.pweights[wkey] = make([]float64, n)
 	}
 
 	for i := 0; i < n; i++ {
-		s.pweights[i] = s.ch[i].Stored("soft") + s.pnode
+		st := s.ch[i].Storer()
+		st[nkey] += math.Log1p(math.Exp(math.Log(s.w[i]) + s.Stored(nkey) - st[nkey]))
 	}
 
 	for i := 0; i < n; i++ {
-		s.ch[i].Derive()
+		s.pweights[wkey][i] = s.ch[i].Stored(ikey) + s.Stored(nkey)
+	}
+
+	for i := 0; i < n; i++ {
+		s.ch[i].Derive(wkey, nkey, ikey)
 	}
 }
 
 // GenUpdate generatively updates weights given an eta learning rate.
-func (s *Sum) GenUpdate(eta float64) {
+func (s *Sum) GenUpdate(eta float64, wkey string) {
 	n := len(s.ch)
 	t := 0.0
 
 	for i := 0; i < n; i++ {
-		s.w[i] += eta + math.Exp(s.pweights[i])
+		s.w[i] += eta + math.Exp(s.pweights[wkey][i])
 		t += s.w[i]
 	}
 
@@ -167,7 +164,7 @@ func (s *Sum) Normalize() {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (s *Sum) DiscUpdate(eta float64, T, X VarSet, root SPN) {
+func (s *Sum) DiscUpdate(eta float64) {
 	//n := len(s.ch)
 
 	//root.RResetDP("disc_correct")

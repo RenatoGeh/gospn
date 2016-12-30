@@ -86,11 +86,6 @@ func (m *Multinomial) Type() string { return "leaf" }
 
 // Bsoft is a common base for all soft inference methods.
 func (m *Multinomial) Bsoft(val VarSet, key string) float64 {
-	prev := m.Stored(key)
-	if prev > 0 {
-		return prev
-	}
-
 	v, ok := val[m.varid]
 	var l float64
 	if ok {

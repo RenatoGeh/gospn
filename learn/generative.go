@@ -11,16 +11,15 @@ func Generative(S spn.SPN, data []map[int]int, eta float64) spn.SPN {
 	n := len(data)
 	conv := 1.0
 	last := 0.0
-	klast := 0.0
 
 	fmt.Println("Running generative learning.")
 
 	// Set root's partial derivative to 1.
-	S.Rootify()
-	S.SetStore(false)
+	S.Rootify("pnode")
+	S.SetStore(true)
 	for math.Abs(conv) > 0.01 {
-		// Reset SPN's DP table.
 		s := 0.0
+		klast := 0.0
 		for i := 0; i < n; i++ {
 			// Call soft inference to store values.
 			k := S.Value(data[i])
@@ -28,11 +27,12 @@ func Generative(S spn.SPN, data []map[int]int, eta float64) spn.SPN {
 			klast = k
 			fmt.Println("Computed and stored soft inference values.")
 			// Backpropagate through SPN.
-			S.Derive()
+			S.Derive("pweight", "pnode", "soft")
 			fmt.Println("Backpropagated through SPN computing derivatives.")
 			// Update weights.
-			S.GenUpdate(eta)
+			S.GenUpdate(eta, "pweight")
 			fmt.Printf("Weight Updated according to instance %d.\n", i)
+			S.RResetDP("soft")
 		}
 		d := s - last
 		last = s
