@@ -48,7 +48,7 @@ A thorough analysis on our implementation can be found at
   New Deep Architecture* - H. Poon and P. Domingos (UAI 2011).
 - Discriminative learning of Sum-Product Networks. *Discriminative
   Learning of Sum-Product Networks* - R. Gens and P. Domingos (NIPS
-  2012). **WIP**
+  2012).
 
 ### Usage
 
@@ -291,7 +291,5 @@ completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/ol
 
 This is a TODO list:
 
-* Implement discriminative learning based on the paper *Discriminative
-  Learning of Sum-Product Networks* (R. Gens, P. Domingos) NIPS 2012
 * Implement language modelling SPN based on the paper *Language
   Modelling with Sum-Product Networks* (Cheng *et al*) INTERSPEECH 2014

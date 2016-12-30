@@ -63,6 +63,13 @@ func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, 
 	lines, n := len(test), len(vars)
 	nclass := vars[n-1].Categories
 
+	//_X := make([]int, n-1)
+	//for i := 0; i < n-1; i++ {
+	//_X[i] = vars[i].Varid
+	//}
+	//learn.Discriminative(s, train, []int{vars[n-1].Varid}, _X, 0.001)
+	//_X = nil
+
 	//fmt.Println("Drawing the MPE state of each class instance:")
 	//evclass := make(spn.VarSet)
 	//for i := 0; i < nclass; i++ {

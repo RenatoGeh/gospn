@@ -56,7 +56,7 @@ type SPN interface {
 	// Normalizes the SPN.
 	Normalize()
 	// DiscUpdate discriminatively updates weights given an eta learning rate.
-	DiscUpdate(eta float64)
+	DiscUpdate(eta, correct, expected float64, wckey, wekey string)
 	// ResetDP resets a key on the DP table. If key is nil, resets everything.
 	ResetDP(key string)
 	// RResetDP recursively ResetDPs all children.
@@ -207,10 +207,10 @@ func (n *Node) RResetDP(key string) {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (n *Node) DiscUpdate(eta float64) {
+func (n *Node) DiscUpdate(eta, correct, expected float64, wckey, wekey string) {
 	m := len(n.ch)
 
 	for i := 0; i < m; i++ {
-		n.ch[i].DiscUpdate(eta)
+		n.ch[i].DiscUpdate(eta, correct, expected, wckey, wekey)
 	}
 }

@@ -164,15 +164,17 @@ func (s *Sum) Normalize() {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (s *Sum) DiscUpdate(eta float64) {
-	//n := len(s.ch)
+func (s *Sum) DiscUpdate(eta, correct, expected float64, wckey, wekey string) {
+	n := len(s.ch)
+	t := 0.0
 
-	//root.RResetDP("disc_correct")
-	//root.RResetDP("disc_expected")
-	//correct := root.Bsoft(T, "disc_correct")
-	//expected := root.Bsoft(X, "disc_expected")
+	for i := 0; i < n; i++ {
+		s.w[i] += eta * (math.Exp(s.pweights[wckey][i]-correct) -
+			math.Exp(s.pweights[wekey][i]-expected))
+		t += s.w[i]
+	}
 
-	//for i := 0; i < n; i++ {
-	//s.w[i] += eta*(math.Exp(s.pweights[i] - correct) - math.Exp(s.pweights
-	//}
+	for i := 0; i < n; i++ {
+		s.w[i] /= t
+	}
 }
