@@ -34,13 +34,13 @@ func Discriminative(S spn.SPN, data []map[int]int, Y []int, X []int, eta float64
 			}
 			// Stores correct/guess values.
 			fmt.Println("Storing correct/guess soft inference values...")
-			S.Bsoft(C, "correct")
+			S.Soft(C, "correct")
 			// Derive correct/guess nodes.
 			fmt.Println("Derivating correct/guess nodes...")
 			S.Derive("cpweight", "cpnode", "correct")
 			// Stores expected values.
 			fmt.Println("Storing expected soft inference values...")
-			S.Bsoft(E, "expected")
+			S.Soft(E, "expected")
 			// Derive expected nodes.
 			fmt.Println("Derivating expected nodes...")
 			S.Derive("epweight", "epnode", "expected")

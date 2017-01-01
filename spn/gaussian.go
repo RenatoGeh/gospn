@@ -58,8 +58,8 @@ func NewGaussian(varid int, counts []int) *Gaussian {
 // Type returns the type of this node.
 func (g *Gaussian) Type() string { return "leaf" }
 
-// Bsoft is a common base for all soft inference methods.
-func (g *Gaussian) Bsoft(val VarSet, key string) float64 {
+// Soft is a common base for all soft inference methods.
+func (g *Gaussian) Soft(val VarSet, key string) float64 {
 	v, ok := val[g.varid]
 	var l float64
 	if ok {
@@ -75,7 +75,7 @@ func (g *Gaussian) Bsoft(val VarSet, key string) float64 {
 // Value returns the probability of a certain valuation. That is Pr(X=val[varid]), where
 // Pr is a probability function over a gaussian distribution.
 func (g *Gaussian) Value(val VarSet) float64 {
-	return g.Bsoft(val, "soft")
+	return g.Soft(val, "soft")
 }
 
 // Max returns the MAP state given a valuation.

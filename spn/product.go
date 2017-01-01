@@ -31,14 +31,14 @@ func (p *Product) Sc() map[int]int {
 	return p.sc
 }
 
-// Bsoft is a common base for all soft inference methods.
-func (p *Product) Bsoft(val VarSet, key string) float64 {
+// Soft is a common base for all soft inference methods.
+func (p *Product) Soft(val VarSet, key string) float64 {
 	n := len(p.ch)
 	ch := p.Ch()
 	var v float64
 
 	for i := 0; i < n; i++ {
-		v += ch[i].Bsoft(val, key)
+		v += ch[i].Soft(val, key)
 	}
 
 	p.Store(key, v)
@@ -47,7 +47,7 @@ func (p *Product) Bsoft(val VarSet, key string) float64 {
 
 // Value returns the value of this SPN given a set of valuations.
 func (p *Product) Value(val VarSet) float64 {
-	return p.Bsoft(val, "soft")
+	return p.Soft(val, "soft")
 }
 
 // Max returns the MAP state given a valuation.

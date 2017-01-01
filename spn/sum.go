@@ -40,13 +40,13 @@ func (s *Sum) Sc() map[int]int {
 	return s.sc
 }
 
-// Bsoft is a common base for all soft inference methods.
-func (s *Sum) Bsoft(val VarSet, key string) float64 {
+// Soft is a common base for all soft inference methods.
+func (s *Sum) Soft(val VarSet, key string) float64 {
 	n := len(s.ch)
 
 	vals := make([]float64, n)
 	for i := 0; i < n; i++ {
-		v, w := s.ch[i].Bsoft(val, key), math.Log(s.w[i])
+		v, w := s.ch[i].Soft(val, key), math.Log(s.w[i])
 		vals[i] = v + w
 	}
 	sort.Float64s(vals)
@@ -63,7 +63,7 @@ func (s *Sum) Bsoft(val VarSet, key string) float64 {
 
 // Value returns the value of this node given an instantiation.
 func (s *Sum) Value(val VarSet) float64 {
-	return s.Bsoft(val, "soft")
+	return s.Soft(val, "soft")
 }
 
 // Max returns the MAP value of this node given an evidence.

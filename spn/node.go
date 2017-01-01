@@ -52,7 +52,7 @@ type SPN interface {
 	// Storer returns DP table.
 	Storer() map[string]float64
 	// Common base for all soft inference methods.
-	Bsoft(val VarSet, key string) float64
+	Soft(val VarSet, key string) float64
 	// Normalizes the SPN.
 	Normalize()
 	// DiscUpdate discriminatively updates weights given an eta learning rate.
@@ -173,8 +173,8 @@ func (n *Node) GenUpdate(eta float64, wkey string) {
 // Storer returns DP table.
 func (n *Node) Storer() map[string]float64 { return n.s }
 
-// Bsoft is a common base for all soft inference methods.
-func (n *Node) Bsoft(val VarSet, key string) float64 { return -1 }
+// Soft is a common base for all soft inference methods.
+func (n *Node) Soft(val VarSet, key string) float64 { return -1 }
 
 // Normalize normalizes the SPN's weights.
 func (n *Node) Normalize() {
