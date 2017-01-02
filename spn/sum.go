@@ -178,3 +178,15 @@ func (s *Sum) DiscUpdate(eta, correct, expected float64, wckey, wekey string) {
 		s.w[i] /= t
 	}
 }
+
+// ResetDP resets a key on the DP table. If key is nil, resets everything.
+func (s *Sum) ResetDP(key string) {
+	s.Node.ResetDP(key)
+	if key == "" {
+		for k := range s.pweights {
+			s.pweights[k] = nil
+		}
+	} else {
+		s.pweights[key] = nil
+	}
+}
