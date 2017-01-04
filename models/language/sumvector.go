@@ -15,12 +15,13 @@ type SumVector struct {
 	// Length of w
 	n int
 	// Store partial deriatives wrt weights.
-	pweights map[string][]float64
+	cpw []*float64
+	epw []*float64
 }
 
 // NewSumVector creates a new SumVector node.
-func NewSumVector(waddr []*float64) *SumVector {
-	return &SumVector{spn.NewNode(), waddr, len(waddr), make(map[string][]float64)}
+func NewSumVector(waddr []*float64, cpweight, epweight []*float64) *SumVector {
+	return &SumVector{spn.NewNode(), waddr, len(waddr), cpweight, epweight}
 }
 
 // Soft is a common base for all soft inference methods.
@@ -50,20 +51,43 @@ func (s *SumVector) Type() string { return "sum_vector" }
 // Derive recursively derives this node and its children based on the last inference value.
 func (s *SumVector) Derive(wkey, nkey, ikey string) {
 	ch := s.Ch()[0]
-	if s.pweights[wkey] == nil {
-		s.pweights[wkey] = make([]float64, s.n)
+	var pweight []*float64
+
+	if wkey == "correct" {
+		pweight = s.cpw
+	} else {
+		pweight = s.epw
 	}
 
+	*pweight[int(ch.Stored(ikey))] = s.Stored(nkey)
 }
 
-// ResetDP resets a key on the DP table. If key is nil, resets everything.
-func (s *SumVector) ResetDP(key string) {
-	s.Node.ResetDP(key)
-	if key == "" {
-		for k := range s.pweights {
-			s.pweights[k] = nil
-		}
-	} else {
-		s.pweights[key] = nil
+// GenUpdate generatively updates weights given an eta learning rate.
+func (s *SumVector) GenUpdate(eta float64, wkey string) {
+	k := int(s.Ch()[0].Stored("soft"))
+	*s.w[k] += eta + math.Exp(*s.epw[k])
+
+	// Normalize
+	t := 0.0
+	for i := 0; i < s.n; i++ {
+		t += *s.w[i]
+	}
+	for i := 0; i < s.n; i++ {
+		*s.w[i] /= t
+	}
+}
+
+// DiscUpdate discriminatively updates weights given an eta learning rate.
+func (s *SumVector) DiscUpdate(eta, correct, expected float64, wckey, wekey string) {
+	k := int(s.Ch()[0].Stored("soft"))
+	*s.w[k] += eta * (math.Exp(*s.cpw[k]-correct) - math.Exp(*s.epw[k]-expected))
+
+	// Normalize
+	t := 0.0
+	for i := 0; i < s.n; i++ {
+		t += *s.w[i]
+	}
+	for i := 0; i < s.n; i++ {
+		*s.w[i] /= t
 	}
 }
