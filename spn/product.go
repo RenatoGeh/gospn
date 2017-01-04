@@ -33,6 +33,11 @@ func (p *Product) Sc() map[int]int {
 
 // Soft is a common base for all soft inference methods.
 func (p *Product) Soft(val VarSet, key string) float64 {
+	_lv := p.s[key]
+	if _lv >= 0 {
+		return _lv
+	}
+
 	n := len(p.ch)
 	ch := p.Ch()
 	var v float64

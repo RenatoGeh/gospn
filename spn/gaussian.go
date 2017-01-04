@@ -60,6 +60,11 @@ func (g *Gaussian) Type() string { return "leaf" }
 
 // Soft is a common base for all soft inference methods.
 func (g *Gaussian) Soft(val VarSet, key string) float64 {
+	_lv := g.s[key]
+	if _lv >= 0 {
+		return _lv
+	}
+
 	v, ok := val[g.varid]
 	var l float64
 	if ok {

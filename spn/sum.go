@@ -42,6 +42,11 @@ func (s *Sum) Sc() map[int]int {
 
 // Soft is a common base for all soft inference methods.
 func (s *Sum) Soft(val VarSet, key string) float64 {
+	_lv := s.s[key]
+	if _lv >= 0 {
+		return _lv
+	}
+
 	n := len(s.ch)
 
 	vals := make([]float64, n)
