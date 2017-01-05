@@ -58,7 +58,7 @@ func (s *SumVector) Derive(wkey, nkey, ikey string) {
 	ch := s.Ch()[0]
 	var pweight []float64
 
-	if wkey == "correct" {
+	if wkey == "cpweight" {
 		pweight = s.cpw
 	} else {
 		pweight = s.epw

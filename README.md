@@ -49,6 +49,8 @@ A thorough analysis on our implementation can be found at
 - Discriminative learning of Sum-Product Networks. *Discriminative
   Learning of Sum-Product Networks* - R. Gens and P. Domingos (NIPS
   2012).
+- *Language Modelling with Sum-Product Networks* - Cheng *et al*
+  (INTERSPEECH 2014) **WIP**
 
 ### Usage
 
@@ -294,5 +296,4 @@ completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/ol
 
 This is a TODO list:
 
-* Implement language modelling SPN based on the paper *Language
-  Modelling with Sum-Product Networks* (Cheng *et al*) INTERSPEECH 2014
+* Implement language modelling SPN based on the paper 

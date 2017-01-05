@@ -1,7 +1,9 @@
 package language
 
 import (
+	"fmt"
 	"github.com/RenatoGeh/gospn/spn"
+	"math"
 	"math/rand"
 )
 
@@ -10,9 +12,64 @@ import (
 // 	Wei-Chen Cheng, Stanley Kok, Hoai Vu Pham, Hai Leong Chieu, Kian Ming A. Chai
 // 	INTERSPEECH 2014
 // We shall refer to this article via the codename LMSPN.
-// vfile is the vocabulary filename.
-func Language(vfile string) {
+// vfile is the vocabulary filename, D is the dimension of the feature vectors and N is number of
+// previous words to be set as evidence.
+func Language(vfile string, D, N int) {
+	fmt.Println("Parsing voc file...")
+	voc := Parse(vfile)
+	fmt.Println("Creating SPN structure...")
+	S := Structure(voc.Size(), D, N)
+	const eta = 0.1
 
+	conv := 1.0
+	last := 0.0
+
+	S.SetStore(true)
+	voc.Set(N)
+	combs := voc.Combinations()
+	fmt.Println("Learning...")
+	for math.Abs(conv) > 0.01 {
+		s := 0.0
+		klast := 0.0
+		for i := 0; i < combs; i++ {
+			S.RResetDP("")
+			S.Rootify("cpnode")
+			S.Rootify("epnode")
+			C, E := voc.Next(), make(spn.VarSet)
+			m := len(C)
+			for i := 1; i < m; i++ {
+				E[i] = C[i]
+			}
+			// Stores correct/guess values.
+			fmt.Println("Storing correct/guess soft inference values...")
+			S.Soft(C, "correct")
+			// Derive correct/guess nodes.
+			fmt.Println("Derivating correct/guess nodes...")
+			S.Derive("cpweight", "cpnode", "correct")
+			// Stores expected values.
+			fmt.Println("Storing expected soft inference values...")
+			S.Soft(E, "expected")
+			// Derive expected nodes.
+			fmt.Println("Derivating expected nodes...")
+			S.Derive("epweight", "epnode", "expected")
+			// Update weights.
+			fmt.Println("Updating weights...")
+			S.DiscUpdate(eta, S.Stored("correct"), S.Stored("expected"), "cpweight", "epweight")
+
+			fmt.Printf("Adding convergence diff for instance %d...\n", i)
+			k := S.Value(C)
+			s += k - klast
+			klast = k
+
+			C = nil
+			E = nil
+		}
+		d := s - last
+		last = s
+		conv = d
+		fmt.Printf("Discriminative Learning diff: %.5f\n", math.Abs(conv))
+		voc.Set(N)
+	}
 }
 
 // Structure returns the SPN structure as described in LMSPN.
@@ -46,7 +103,7 @@ func Structure(K, D, N int) spn.SPN {
 	// | ...  ...  ..   ... ...  |
 	// | H_N1 H_N2 H_N3 ... H_ND |
 	hmatrix := make([][]*SumVector, N)
-	for i := 0; i < D; i++ {
+	for i := 0; i < N; i++ {
 		hmatrix[i] = make([]*SumVector, D)
 	}
 

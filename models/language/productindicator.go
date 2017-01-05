@@ -27,7 +27,7 @@ func (p *ProductIndicator) Soft(val spn.VarSet, key string) float64 {
 
 	ch := p.Ch()[0]
 	var v float64
-	if val[0] == p.indicator {
+	if _y, ok := val[0]; _y == p.indicator || !ok {
 		v = ch.Soft(val, key)
 	} else {
 		v = 0

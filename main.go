@@ -8,11 +8,12 @@ import (
 	"runtime"
 	"sync"
 
-	io "github.com/RenatoGeh/gospn/io"
-	learn "github.com/RenatoGeh/gospn/learn"
-	spn "github.com/RenatoGeh/gospn/spn"
-	sys "github.com/RenatoGeh/gospn/sys"
-	utils "github.com/RenatoGeh/gospn/utils"
+	"github.com/RenatoGeh/gospn/io"
+	"github.com/RenatoGeh/gospn/learn"
+	"github.com/RenatoGeh/gospn/models/language"
+	"github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/sys"
+	"github.com/RenatoGeh/gospn/utils"
 	//profile "github.com/pkg/profile"
 )
 
@@ -292,6 +293,18 @@ func main() {
 
 	in, _ := filepath.Abs("data/" + dataset + "/compiled")
 	//out, _ := filepath.Abs("results/" + dataset + "/models")
+
+	if mode == "lang_data" {
+		fmt.Printf("Converting dataset %s...\n", dataset)
+		language.Compile("data/amazon/amazon.txt", "data/amazon/amazon.voc")
+		return
+	}
+
+	if mode == "lang" {
+		fmt.Printf("Language modelling with dataset %s\n", dataset)
+		language.Language("data/amazon/amazon.voc", 1000, 2)
+		return
+	}
 
 	if mode == "data" {
 		fmt.Printf("Converting dataset %s...\n", dataset)
