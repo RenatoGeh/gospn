@@ -42,7 +42,7 @@ func (s *Sum) Sc() map[int]int {
 
 // Soft is a common base for all soft inference methods.
 func (s *Sum) Soft(val VarSet, key string) float64 {
-	_lv := s.s[key]
+	_lv := s.Stored(key)
 	if _lv >= 0 {
 		return _lv
 	}
@@ -181,6 +181,10 @@ func (s *Sum) DiscUpdate(eta, correct, expected float64, wckey, wekey string) {
 
 	for i := 0; i < n; i++ {
 		s.w[i] /= t
+	}
+
+	for i := 0; i < n; i++ {
+		s.ch[i].DiscUpdate(eta, correct, expected, wckey, wekey)
 	}
 }
 

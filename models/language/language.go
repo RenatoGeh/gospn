@@ -17,8 +17,41 @@ import (
 func Language(vfile string, D, N int) {
 	fmt.Println("Parsing voc file...")
 	voc := Parse(vfile)
+	K := voc.Size()
 	fmt.Println("Creating SPN structure...")
-	S := Structure(voc.Size(), D, N)
+	S := Structure(K, D, N)
+	fmt.Println("Learning...")
+	Learn(S, voc, D, N)
+
+	pre := make(spn.VarSet)
+	fmt.Printf("Generated the following first %d words from vocabulary:\n ", N)
+	for i := 1; i <= N; i++ {
+		w, id := voc.Rand()
+		pre[i] = id
+		fmt.Printf(" %s", w)
+	}
+
+	const M = 100
+	fmt.Printf("\nInferring the next %d words...\n ", M)
+	for i := 0; i < M; i++ {
+		imax, max := -1, -1.0
+		for j := 0; j < K; j++ {
+			pre[0] = j
+			v := S.Value(pre)
+			if v > max {
+				max, imax = v, j
+			}
+		}
+		fmt.Printf(" %s", voc.Translate(imax))
+		for j := 2; j <= N; j++ {
+			pre[j] = pre[j-1]
+		}
+		pre[1] = imax
+	}
+}
+
+// Learn learns weights according to LMSPN.
+func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 	const eta = 0.1
 
 	conv := 1.0
@@ -27,7 +60,6 @@ func Language(vfile string, D, N int) {
 	S.SetStore(true)
 	voc.Set(N)
 	combs := voc.Combinations()
-	fmt.Println("Learning...")
 	for math.Abs(conv) > 0.01 {
 		s := 0.0
 		klast := 0.0
@@ -42,13 +74,13 @@ func Language(vfile string, D, N int) {
 			}
 			// Stores correct/guess values.
 			fmt.Println("Storing correct/guess soft inference values...")
-			S.Soft(C, "correct")
+			fmt.Printf("Correct = %f\n", S.Soft(C, "correct"))
 			// Derive correct/guess nodes.
 			fmt.Println("Derivating correct/guess nodes...")
 			S.Derive("cpweight", "cpnode", "correct")
 			// Stores expected values.
 			fmt.Println("Storing expected soft inference values...")
-			S.Soft(E, "expected")
+			fmt.Printf("Expected = %f\n", S.Soft(E, "expected"))
 			// Derive expected nodes.
 			fmt.Println("Derivating expected nodes...")
 			S.Derive("epweight", "epnode", "expected")
@@ -58,6 +90,7 @@ func Language(vfile string, D, N int) {
 
 			fmt.Printf("Adding convergence diff for instance %d...\n", i)
 			k := S.Value(C)
+			fmt.Printf("Diff component %d: %f\n", i, k)
 			s += k - klast
 			klast = k
 
@@ -70,6 +103,8 @@ func Language(vfile string, D, N int) {
 		fmt.Printf("Discriminative Learning diff: %.5f\n", math.Abs(conv))
 		voc.Set(N)
 	}
+
+	return S
 }
 
 // Structure returns the SPN structure as described in LMSPN.
@@ -96,6 +131,11 @@ func Structure(K, D, N int) spn.SPN {
 		wmatrix[i] = make([]float64, K)
 		cpmatrix[i] = make([]float64, K)
 		epmatrix[i] = make([]float64, K)
+		for j := 0; j < K; j++ {
+			wmatrix[i][j] = rand.Float64()
+			cpmatrix[i][j] = rand.Float64()
+			epmatrix[i][j] = rand.Float64()
+		}
 	}
 	// hmatrix is the H sum nodes matrix
 	// | H_11 H_12 H_13 ... H_1D |

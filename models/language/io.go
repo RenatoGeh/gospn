@@ -6,9 +6,11 @@ import (
 	"github.com/RenatoGeh/gospn/io"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/utils"
+	"math/rand"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 // T-rex: the king of regexers.
@@ -48,7 +50,7 @@ func Compile(tfile, vfile string) {
 
 		block = append(block, "")
 		for i := 0; i < nv; i++ {
-			str := v[i]
+			str := strings.ToLower(v[i])
 			id, ok := vocab[str]
 			if !ok {
 				vocab[str] = vc
@@ -123,14 +125,14 @@ func (v *Vocabulary) Combinations() int {
 	if v.m >= 0 {
 		return v.m
 	}
-	v.m = len(v.entries) - v.n
+	v.m = len(v.block) - v.n
 	return v.m
 }
 
 // Set sets the number of previous words used as evidence and resets the ptr.
 func (v *Vocabulary) Set(N int) {
 	v.n = N
-	v.ptr = N + 1
+	v.ptr = N
 }
 
 // Next returns the next spn.VarSet of N+1 words to be used for training.
@@ -142,6 +144,12 @@ func (v *Vocabulary) Next() spn.VarSet {
 	}
 	v.ptr++
 	return vs
+}
+
+// Rand returns a random word and its id amongst entries from this vocabulary.
+func (v *Vocabulary) Rand() (string, int) {
+	i := rand.Intn(len(v.entries))
+	return v.entries[i], i
 }
 
 // Parse reads a vocabulary file vfile and returns an in-memory representation of it (Vocabulary).

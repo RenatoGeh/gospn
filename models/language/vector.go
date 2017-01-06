@@ -14,7 +14,7 @@ type Vector struct {
 // NewVector creates a new vector that represents the index-th previous word.
 func NewVector(index int) *Vector {
 	// Leave Node with all fields set to default values.
-	return &Vector{i: index}
+	return &Vector{spn.NewNode(), index}
 }
 
 // Value returns the word index (which entry is set to 1).

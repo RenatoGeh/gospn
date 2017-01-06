@@ -302,7 +302,7 @@ func main() {
 
 	if mode == "lang" {
 		fmt.Printf("Language modelling with dataset %s\n", dataset)
-		language.Language("data/amazon/amazon.voc", 1000, 2)
+		language.Language("data/amazon/amazon.voc", 100, 3)
 		return
 	}
 

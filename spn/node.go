@@ -124,15 +124,16 @@ func (n *Node) AddParent(p SPN) {
 
 // Stored returns the stored soft inference value from the given key.
 func (n *Node) Stored(key string) float64 {
-	if n.stores {
-		return n.s[key]
+	val, ok := n.s[key]
+	if ok && n.stores {
+		return val
 	}
 	return -1
 }
 
 // Store stores an SPN evaluation for DP reasons.
 func (n *Node) Store(key string, val float64) {
-	if n.stores {
+	if !n.stores {
 		return
 	}
 

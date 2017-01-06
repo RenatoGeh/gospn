@@ -35,7 +35,7 @@ func (s *SumVector) Soft(val spn.VarSet, key string) float64 {
 	// Note to self: don't forget in this case we are using VarSet as a slice (and as such they are
 	// (not really) ordered by index).
 	ch := s.Ch()
-	v := math.Log(s.w[int(ch[0].Value(val))])
+	v := math.Log(s.w[int(ch[0].Soft(val, key))])
 	s.Store(key, v)
 	return v
 }
@@ -69,7 +69,7 @@ func (s *SumVector) Derive(wkey, nkey, ikey string) {
 
 // GenUpdate generatively updates weights given an eta learning rate.
 func (s *SumVector) GenUpdate(eta float64, wkey string) {
-	k := int(s.Ch()[0].Stored("soft"))
+	k := int(s.Ch()[0].Stored("correct"))
 	s.w[k] += eta + math.Exp(s.epw[k])
 
 	// Normalize
@@ -84,7 +84,7 @@ func (s *SumVector) GenUpdate(eta float64, wkey string) {
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
 func (s *SumVector) DiscUpdate(eta, correct, expected float64, wckey, wekey string) {
-	k := int(s.Ch()[0].Stored("soft"))
+	k := int(s.Ch()[0].Stored("correct"))
 	s.w[k] += eta * (math.Exp(s.cpw[k]-correct) - math.Exp(s.epw[k]-expected))
 
 	// Normalize

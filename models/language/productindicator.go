@@ -30,6 +30,7 @@ func (p *ProductIndicator) Soft(val spn.VarSet, key string) float64 {
 	if _y, ok := val[0]; _y == p.indicator || !ok {
 		v = ch.Soft(val, key)
 	} else {
+		ch.Soft(val, key)
 		v = 0
 	}
 
