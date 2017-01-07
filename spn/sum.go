@@ -1,6 +1,7 @@
 package spn
 
 import (
+	//"fmt"
 	"math"
 	"sort"
 )
@@ -11,11 +12,13 @@ type Sum struct {
 	w []float64
 	// Store partial derivatives wrt weights.
 	pweights map[string][]float64
+	// Auto-normalizes on weight updating.
+	norm bool
 }
 
 // NewSum creates a new Sum node.
 func NewSum() *Sum {
-	return &Sum{Node: NewNode(), pweights: make(map[string][]float64)}
+	return &Sum{Node: NewNode(), pweights: make(map[string][]float64), norm: true}
 }
 
 // AddWeight adds a new weight to the sum node.
@@ -40,10 +43,12 @@ func (s *Sum) Sc() map[int]int {
 	return s.sc
 }
 
+// AutoNormalize sets whether this sum node should auto normalize on weight update.
+func (s *Sum) AutoNormalize(norm bool) { s.norm = norm }
+
 // Soft is a common base for all soft inference methods.
 func (s *Sum) Soft(val VarSet, key string) float64 {
-	_lv := s.Stored(key)
-	if _lv >= 0 {
+	if _lv, ok := s.Stored(key); ok {
 		return _lv
 	}
 
@@ -53,6 +58,9 @@ func (s *Sum) Soft(val VarSet, key string) float64 {
 	for i := 0; i < n; i++ {
 		v, w := s.ch[i].Soft(val, key), math.Log(s.w[i])
 		vals[i] = v + w
+		//if s.root {
+		//fmt.Printf("Root v+w=%f+(log(%f)=%f)=%f\n", v, s.w[i], w, vals[i])
+		//}
 	}
 	sort.Float64s(vals)
 	p, r := vals[n-1], 0.0
@@ -62,6 +70,10 @@ func (s *Sum) Soft(val VarSet, key string) float64 {
 	}
 
 	r = p + math.Log1p(r)
+
+	//if key == "soft" {
+	//fmt.Printf("Sum %f\n", r)
+	//}
 	s.Store(key, r)
 	return r
 }
@@ -126,11 +138,14 @@ func (s *Sum) Derive(wkey, nkey, ikey string) {
 
 	for i := 0; i < n; i++ {
 		st := s.ch[i].Storer()
-		st[nkey] += math.Log1p(math.Exp(math.Log(s.w[i]) + s.Stored(nkey) - st[nkey]))
+		v, _ := s.Stored(nkey)
+		st[nkey] += math.Log1p(math.Exp(math.Log(s.w[i]) + v - st[nkey]))
 	}
 
 	for i := 0; i < n; i++ {
-		s.pweights[wkey][i] = s.ch[i].Stored(ikey) + s.Stored(nkey)
+		v, _ := s.Stored(nkey)
+		u, _ := s.ch[i].Stored(ikey)
+		s.pweights[wkey][i] = u + v
 	}
 
 	for i := 0; i < n; i++ {
@@ -169,22 +184,29 @@ func (s *Sum) Normalize() {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (s *Sum) DiscUpdate(eta, correct, expected float64, wckey, wekey string) {
+func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 	n := len(s.ch)
-	t := 0.0
+	t, min := 0.0, s.w[0]
 
+	correct, expected := ds.Correct(), ds.Expected()
 	for i := 0; i < n; i++ {
-		s.w[i] += eta * (math.Exp(s.pweights[wckey][i]-correct) -
-			math.Exp(s.pweights[wekey][i]-expected))
+		s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
 		t += s.w[i]
+		if s.w[i] < min {
+			min = s.w[i]
+		}
+	}
+
+	if s.norm {
+		min = math.Abs(min)
+		t += float64(n) * min
+		for i := 0; i < n; i++ {
+			s.w[i] = (s.w[i] + min) / t
+		}
 	}
 
 	for i := 0; i < n; i++ {
-		s.w[i] /= t
-	}
-
-	for i := 0; i < n; i++ {
-		s.ch[i].DiscUpdate(eta, correct, expected, wckey, wekey)
+		s.ch[i].DiscUpdate(eta, ds, wckey, wekey)
 	}
 }
 

@@ -1,6 +1,7 @@
 package language
 
 import (
+	//"fmt"
 	"github.com/RenatoGeh/gospn/spn"
 	"math"
 )
@@ -26,16 +27,24 @@ func NewSumVector(waddr, cpweight, epweight []float64) *SumVector {
 
 // Soft is a common base for all soft inference methods.
 func (s *SumVector) Soft(val spn.VarSet, key string) float64 {
-	_lv := s.Stored(key)
-	if _lv >= 0 {
+	if _lv, ok := s.Stored(key); ok {
 		return _lv
 	}
-
 	// By definition, a SumVector contains only one child: a Vector node.
 	// Note to self: don't forget in this case we are using VarSet as a slice (and as such they are
 	// (not really) ordered by index).
 	ch := s.Ch()
 	v := math.Log(s.w[int(ch[0].Soft(val, key))])
+
+	//if key == "soft" {
+	//fmt.Printf("SumVector weights (k=%d):\n", int(ch[0].Soft(val, key)))
+	//for i := 0; i < len(s.w); i++ {
+	//fmt.Printf("w[%d]=%f ", i, s.w[i])
+	//}
+
+	//fmt.Printf("SumVector %f\n", v)
+	//}
+
 	s.Store(key, v)
 	return v
 }
@@ -64,12 +73,15 @@ func (s *SumVector) Derive(wkey, nkey, ikey string) {
 		pweight = s.epw
 	}
 
-	pweight[int(ch.Stored(ikey))] = s.Stored(nkey)
+	v, _ := ch.Stored(ikey)
+	u, _ := s.Stored(nkey)
+	pweight[int(v)] = u
 }
 
 // GenUpdate generatively updates weights given an eta learning rate.
 func (s *SumVector) GenUpdate(eta float64, wkey string) {
-	k := int(s.Ch()[0].Stored("correct"))
+	v, _ := s.Ch()[0].Stored("correct")
+	k := int(v)
 	s.w[k] += eta + math.Exp(s.epw[k])
 
 	// Normalize
@@ -83,16 +95,24 @@ func (s *SumVector) GenUpdate(eta float64, wkey string) {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (s *SumVector) DiscUpdate(eta, correct, expected float64, wckey, wekey string) {
-	k := int(s.Ch()[0].Stored("correct"))
-	s.w[k] += eta * (math.Exp(s.cpw[k]-correct) - math.Exp(s.epw[k]-expected))
+func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string) {
+	v, _ := s.Ch()[0].Stored("correct")
+	k := int(v)
+	correct, expected := ds.Correct(), ds.Expected()
+	s.w[k] += eta * ((s.cpw[k] / correct) - (s.epw[k] / expected))
 
 	// Normalize
-	t := 0.0
-	for i := 0; i < s.n; i++ {
-		t += s.w[i]
-	}
-	for i := 0; i < s.n; i++ {
-		s.w[i] /= t
-	}
+	//min, n := s.w[0], len(s.w)
+	//t := 0.0
+	//for i := 0; i < n; i++ {
+	//t += s.w[i]
+	//if s.w[i] < min {
+	//min = s.w[i]
+	//}
+	//}
+	//min = math.Abs(min)
+	//t += float64(n) * min
+	//for i := 0; i < n; i++ {
+	//s.w[i] = (s.w[i] + min) / t
+	//}
 }

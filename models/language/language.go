@@ -32,12 +32,19 @@ func Language(vfile string, D, N int) {
 	}
 
 	const M = 100
+	S.SetStore(false)
+	S.RResetDP("")
 	fmt.Printf("\nInferring the next %d words...\n ", M)
 	for i := 0; i < M; i++ {
 		imax, max := -1, -1.0
 		for j := 0; j < K; j++ {
 			pre[0] = j
 			v := S.Value(pre)
+			//fmt.Printf("\nPr(X=%d|%d", j, pre[1])
+			//for l := 2; l < len(pre); l++ {
+			//fmt.Printf(",%d", pre[l])
+			//}
+			//fmt.Printf(")=%.10f", v)
 			if v > max {
 				max, imax = v, j
 			}
@@ -72,6 +79,7 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 			for i := 1; i < m; i++ {
 				E[i] = C[i]
 			}
+			ds := spn.NewDiscStorer(S, C, E)
 			// Stores correct/guess values.
 			fmt.Println("Storing correct/guess soft inference values...")
 			fmt.Printf("Correct = %f\n", S.Soft(C, "correct"))
@@ -86,9 +94,10 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 			S.Derive("epweight", "epnode", "expected")
 			// Update weights.
 			fmt.Println("Updating weights...")
-			S.DiscUpdate(eta, S.Stored("correct"), S.Stored("expected"), "cpweight", "epweight")
+			S.DiscUpdate(eta, ds, "cpweight", "epweight")
 
 			fmt.Printf("Adding convergence diff for instance %d...\n", i)
+			S.RResetDP("")
 			k := S.Value(C)
 			fmt.Printf("Diff component %d: %f\n", i, k)
 			s += k - klast
@@ -145,10 +154,7 @@ func Structure(K, D, N int) spn.SPN {
 	hmatrix := make([][]*SumVector, N)
 	for i := 0; i < N; i++ {
 		hmatrix[i] = make([]*SumVector, D)
-	}
-
-	// Create each H_ij node.
-	for i := 0; i < N; i++ {
+		// Create each H_ij node.
 		for j := 0; j < D; j++ {
 			hmatrix[i][j] = NewSumVector(wmatrix[i], cpmatrix[i], epmatrix[i])
 			// Connect sum node H_ij to vector node V_i.
@@ -169,6 +175,7 @@ func Structure(K, D, N int) spn.SPN {
 				M[i].AddChildW(hmatrix[p][q], rand.Float64())
 			}
 		}
+		M[i].AutoNormalize(false)
 	}
 
 	// G product nodes layer
@@ -189,6 +196,7 @@ func Structure(K, D, N int) spn.SPN {
 		// Add both M_i and G_i as children of B_i.
 		B[i].AddChildW(M[i], rand.Float64())
 		B[i].AddChildW(G[i], rand.Float64())
+		B[i].AutoNormalize(false)
 	}
 
 	// S product nodes layer
@@ -202,6 +210,7 @@ func Structure(K, D, N int) spn.SPN {
 
 	// Root node.
 	R := spn.NewSum()
+	R.AutoNormalize(true)
 	for i := 0; i < K; i++ {
 		// Add each S_i node to the root node.
 		R.AddChildW(S[i], rand.Float64())

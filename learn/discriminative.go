@@ -32,6 +32,7 @@ func Discriminative(S spn.SPN, data []map[int]int, Y []int, X []int, eta float64
 				C[X[j]] = _v
 				E[X[j]] = _v
 			}
+			ds := spn.NewDiscStorer(S, C, E)
 			// Stores correct/guess values.
 			fmt.Println("Storing correct/guess soft inference values...")
 			S.Soft(C, "correct")
@@ -46,7 +47,7 @@ func Discriminative(S spn.SPN, data []map[int]int, Y []int, X []int, eta float64
 			S.Derive("epweight", "epnode", "expected")
 			// Update weights.
 			fmt.Println("Updating weights...")
-			S.DiscUpdate(eta, S.Stored("correct"), S.Stored("expected"), "cpweight", "epweight")
+			S.DiscUpdate(eta, ds, "cpweight", "epweight")
 
 			fmt.Printf("Adding convergence diff for instance %d...\n", i)
 			k := S.Value(data[i])

@@ -1,5 +1,43 @@
 package spn
 
+// DiscStorer stores relevant information for DiscUpdate.
+type DiscStorer struct {
+	// The SPN's root.
+	s SPN
+	// The correct VarSet.
+	c VarSet
+	// The expected VarSet.
+	e VarSet
+	// Whether to store.
+	store bool
+}
+
+// NewDiscStorer creates a new DiscStorer.
+func NewDiscStorer(s SPN, c, e VarSet) *DiscStorer {
+	return &DiscStorer{s, c, e, true}
+}
+
+// Store sets DiscStorer to store previously computed values.
+func (ds *DiscStorer) Store(store bool) { ds.store = true }
+
+// Correct returns the value of the stored SPN given a correct valuation.
+func (ds *DiscStorer) Correct() float64 {
+	if v, ok := ds.s.Stored("soft"); ds.store && ok {
+		return v
+	}
+	ds.s.ResetDP("soft")
+	return ds.s.Value(ds.c)
+}
+
+// Expected returns the value of the stored SPN given an expected valuation.
+func (ds *DiscStorer) Expected() float64 {
+	if v, ok := ds.s.Stored("soft"); ds.store && ok {
+		return v
+	}
+	ds.s.ResetDP("soft")
+	return ds.s.Value(ds.e)
+}
+
 // Node represents a node in an SPN.
 type Node struct {
 	// Parent nodes.
@@ -37,7 +75,7 @@ type SPN interface {
 	// AddParent adds a parent to this node.
 	AddParent(p SPN)
 	// Stored returns the stored soft inference value from the given key.
-	Stored(key string) float64
+	Stored(key string) (float64, bool)
 	// Store stores an SPN evaluation for DP reasons.
 	Store(key string, val float64)
 	// SetStore sets whether the SPN should start storing evaluations on the DP table.
@@ -56,7 +94,7 @@ type SPN interface {
 	// Normalizes the SPN.
 	Normalize()
 	// DiscUpdate discriminatively updates weights given an eta learning rate.
-	DiscUpdate(eta, correct, expected float64, wckey, wekey string)
+	DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string)
 	// ResetDP resets a key on the DP table. If key is nil, resets everything.
 	ResetDP(key string)
 	// RResetDP recursively ResetDPs all children.
@@ -123,12 +161,11 @@ func (n *Node) AddParent(p SPN) {
 }
 
 // Stored returns the stored soft inference value from the given key.
-func (n *Node) Stored(key string) float64 {
-	val, ok := n.s[key]
-	if ok && n.stores {
-		return val
+func (n *Node) Stored(key string) (float64, bool) {
+	if val, ok := n.s[key]; ok && n.stores {
+		return val, true
 	}
-	return -1
+	return -1, false
 }
 
 // Store stores an SPN evaluation for DP reasons.
@@ -189,11 +226,9 @@ func (n *Node) Normalize() {
 // ResetDP resets a key on the DP table. If key is nil, resets everything.
 func (n *Node) ResetDP(key string) {
 	if key == "" {
-		for k := range n.s {
-			n.s[k] = -1
-		}
+		n.s = make(map[string]float64)
 	} else {
-		n.s[key] = -1
+		delete(n.s, key)
 	}
 }
 
@@ -208,10 +243,10 @@ func (n *Node) RResetDP(key string) {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (n *Node) DiscUpdate(eta, correct, expected float64, wckey, wekey string) {
+func (n *Node) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 	m := len(n.ch)
 
 	for i := 0; i < m; i++ {
-		n.ch[i].DiscUpdate(eta, correct, expected, wckey, wekey)
+		n.ch[i].DiscUpdate(eta, ds, wckey, wekey)
 	}
 }

@@ -20,8 +20,7 @@ func NewProductIndicator(ind int) *ProductIndicator {
 
 // Soft is a common base for all soft inference methods.
 func (p *ProductIndicator) Soft(val spn.VarSet, key string) float64 {
-	_lv := p.Stored(key)
-	if _lv >= 0 {
+	if _lv, ok := p.Stored(key); ok {
 		return _lv
 	}
 

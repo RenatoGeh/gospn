@@ -1,6 +1,7 @@
 package spn
 
 import (
+	//"fmt"
 	"math"
 )
 
@@ -33,8 +34,7 @@ func (p *Product) Sc() map[int]int {
 
 // Soft is a common base for all soft inference methods.
 func (p *Product) Soft(val VarSet, key string) float64 {
-	_lv := p.Stored(key)
-	if _lv >= 0 {
+	if _lv, ok := p.Stored(key); ok {
 		return _lv
 	}
 
@@ -45,6 +45,10 @@ func (p *Product) Soft(val VarSet, key string) float64 {
 	for i := 0; i < n; i++ {
 		v += ch[i].Soft(val, key)
 	}
+
+	//if key == "soft" {
+	//fmt.Printf("Product %f\n", v)
+	//}
 
 	p.Store(key, v)
 	return v
@@ -92,11 +96,13 @@ func (p *Product) Derive(wkey, nkey, ikey string) {
 		s := 0.0
 		for j := 0; j < n; j++ {
 			if i != j {
-				s += p.ch[j].Stored(ikey)
+				v, _ := p.ch[j].Stored(ikey)
+				s += v
 			}
 		}
 		st := p.ch[i].Storer()
-		st[nkey] += math.Log1p(math.Exp(p.Stored(nkey) + s - st[nkey]))
+		v, _ := p.Stored(nkey)
+		st[nkey] += math.Log1p(math.Exp(v + s - st[nkey]))
 	}
 
 	for i := 0; i < n; i++ {
