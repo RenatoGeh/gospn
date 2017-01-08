@@ -156,7 +156,7 @@ func Structure(K, D, N int) spn.SPN {
 		hmatrix[i] = make([]*SumVector, D)
 		// Create each H_ij node.
 		for j := 0; j < D; j++ {
-			hmatrix[i][j] = NewSumVector(wmatrix[i], cpmatrix[i], epmatrix[i])
+			hmatrix[i][j] = NewSumVector(wmatrix[j], cpmatrix[j], epmatrix[j])
 			// Connect sum node H_ij to vector node V_i.
 			hmatrix[i][j].AddChild(V[i])
 		}
@@ -175,16 +175,15 @@ func Structure(K, D, N int) spn.SPN {
 				M[i].AddChildW(hmatrix[p][q], rand.Float64())
 			}
 		}
-		M[i].AutoNormalize(false)
+		M[i].AutoNormalize(true)
 	}
 
 	// G product nodes layer
 
-	G := make([]*spn.Product, K)
+	G := make([]*SquareProduct, K)
 	for i := 0; i < K; i++ {
-		G[i] = spn.NewProduct()
-		// Add each M_i sum node twice as child to square it (simulating covariance).
-		G[i].AddChild(M[i])
+		G[i] = NewSquareProduct()
+		// Add each M_i sum node as child to square it (simulating covariance).
 		G[i].AddChild(M[i])
 	}
 
@@ -196,7 +195,7 @@ func Structure(K, D, N int) spn.SPN {
 		// Add both M_i and G_i as children of B_i.
 		B[i].AddChildW(M[i], rand.Float64())
 		B[i].AddChildW(G[i], rand.Float64())
-		B[i].AutoNormalize(false)
+		B[i].AutoNormalize(true)
 	}
 
 	// S product nodes layer

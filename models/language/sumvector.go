@@ -102,17 +102,17 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 	s.w[k] += eta * ((s.cpw[k] / correct) - (s.epw[k] / expected))
 
 	// Normalize
-	//min, n := s.w[0], len(s.w)
-	//t := 0.0
-	//for i := 0; i < n; i++ {
-	//t += s.w[i]
-	//if s.w[i] < min {
-	//min = s.w[i]
-	//}
-	//}
-	//min = math.Abs(min)
-	//t += float64(n) * min
-	//for i := 0; i < n; i++ {
-	//s.w[i] = (s.w[i] + min) / t
-	//}
+	min, n := s.w[0], len(s.w)
+	t := 0.0
+	for i := 0; i < n; i++ {
+		t += s.w[i]
+		if s.w[i] < min {
+			min = s.w[i]
+		}
+	}
+	min = math.Abs(min)
+	t += float64(n) * min
+	for i := 0; i < n; i++ {
+		s.w[i] = (s.w[i] + min) / t
+	}
 }
