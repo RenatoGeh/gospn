@@ -33,12 +33,12 @@ func Language(vfile string, D, N int) {
 
 	const M = 100
 	S.SetStore(false)
-	S.RResetDP("")
 	fmt.Printf("\nInferring the next %d words...\n ", M)
 	for i := 0; i < M; i++ {
 		imax, max := -1, -1.0
 		for j := 0; j < K; j++ {
 			pre[0] = j
+			S.RResetDP("")
 			v := S.Value(pre)
 			//fmt.Printf("\nPr(X=%d|%d", j, pre[1])
 			//for l := 2; l < len(pre); l++ {
@@ -67,7 +67,7 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 	S.SetStore(true)
 	voc.Set(N)
 	combs := voc.Combinations()
-	for math.Abs(conv) > 0.01 {
+	for _l := 0; _l < 1; _l++ {
 		s := 0.0
 		klast := 0.0
 		for i := 0; i < combs; i++ {
@@ -76,9 +76,12 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 			S.Rootify("epnode")
 			C, E := voc.Next(), make(spn.VarSet)
 			m := len(C)
+			fmt.Printf("Learning with words: %s", voc.Translate(C[0]))
 			for i := 1; i < m; i++ {
 				E[i] = C[i]
+				fmt.Printf(" %s", voc.Translate(C[i]))
 			}
+			fmt.Printf("\n")
 			ds := spn.NewDiscStorer(S, C, E)
 			// Stores correct/guess values.
 			fmt.Println("Storing correct/guess soft inference values...")
@@ -175,7 +178,7 @@ func Structure(K, D, N int) spn.SPN {
 				M[i].AddChildW(hmatrix[p][q], rand.Float64())
 			}
 		}
-		M[i].AutoNormalize(true)
+		//M[i].AutoNormalize(true)
 	}
 
 	// G product nodes layer
@@ -195,7 +198,7 @@ func Structure(K, D, N int) spn.SPN {
 		// Add both M_i and G_i as children of B_i.
 		B[i].AddChildW(M[i], rand.Float64())
 		B[i].AddChildW(G[i], rand.Float64())
-		B[i].AutoNormalize(true)
+		//B[i].AutoNormalize(true)
 	}
 
 	// S product nodes layer

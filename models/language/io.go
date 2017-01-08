@@ -41,25 +41,30 @@ func Compile(tfile, vfile string) {
 	// Read contents and store them into vocab and block.
 	in := bufio.NewScanner(text)
 	for in.Scan() {
+		//fmt.Printf("Text: \"%s\"\nMatches:\n", in.Text())
 		v := match.FindAllString(in.Text(), -1)
 		nv := len(v)
+
+		//for i := 0; i < nv; i++ {
+		//fmt.Printf(" <%s>", v[i])
+		//}
+		//fmt.Printf("\n")
 
 		if nv == 0 {
 			continue
 		}
-
 		block = append(block, "")
 		for i := 0; i < nv; i++ {
 			str := strings.ToLower(v[i])
-			id, ok := vocab[str]
+			_, ok := vocab[str]
 			if !ok {
 				vocab[str] = vc
 				vc++
-			} else {
-				block[cblock] = utils.StringConcat(block[cblock], strconv.Itoa(id))
-				block[cblock] = utils.StringConcat(block[cblock], " ")
-				nwords++
 			}
+			//fmt.Printf("%s -> %d\n", str, vocab[str])
+			block[cblock] = utils.StringConcat(block[cblock], strconv.Itoa(vocab[str]))
+			block[cblock] = utils.StringConcat(block[cblock], " ")
+			nwords++
 		}
 		cblock++
 	}
