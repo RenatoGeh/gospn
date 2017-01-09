@@ -3,6 +3,7 @@ package language
 import (
 	"github.com/RenatoGeh/gospn/spn"
 	//"math"
+	//"fmt"
 )
 
 // ProductIndicator is a product node that has two children: one is an internal node, and the other
@@ -43,12 +44,20 @@ func (p *ProductIndicator) Value(val spn.VarSet) float64 {
 	return p.Soft(val, "soft")
 }
 
-/*// Derive recursively derives this node and its children based on the last inference value.<]*/
-//func (p *ProductIndicator) Derive(wkey, nkey, ikey string) {
-//if v, _ := p.Stored(ikey); v != 0.0 {
-//p.Product.Derive(wkey, nkey, ikey)
-//}
-//}
+// Derive recursively derives this node and its children based on the last inference value.
+func (p *ProductIndicator) Derive(wkey, nkey, ikey string) {
+	ch := p.Ch()[0]
+
+	v, _ := p.Stored(ikey)
+	st := ch.Storer()
+	if v != 0.0 {
+		u, _ := p.Stored(nkey)
+		v = u
+	}
+	st[nkey] += v
+
+	ch.Derive(wkey, nkey, ikey)
+}
 
 //// DiscUpdate discriminatively updates weights given an eta learning rate.
 //func (p *ProductIndicator) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string) {

@@ -199,17 +199,8 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 
 	correct, expected := ds.Correct(), ds.Expected()
 	for i := 0; i < n; i++ {
-		var cc, ce float64
-		if correct == 0 {
-			cc = 0.0
-		} else {
-			cc = s.pweights[wckey][i] / correct
-		}
-		if expected == 0 {
-			ce = 0.0
-		} else {
-			ce = s.pweights[wekey][i] / expected
-		}
+		cc := s.pweights[wckey][i] / correct
+		ce := s.pweights[wekey][i] / expected
 		s.w[i] += eta * (cc - ce)
 		//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
 		t += s.w[i]
@@ -228,6 +219,16 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 
 	for i := 0; i < n; i++ {
 		s.ch[i].DiscUpdate(eta, ds, wckey, wekey)
+	}
+}
+
+// RResetDP recursively ResetDPs all children.
+func (s *Sum) RResetDP(key string) {
+	n := len(s.ch)
+
+	s.ResetDP(key)
+	for i := 0; i < n; i++ {
+		s.ch[i].RResetDP(key)
 	}
 }
 

@@ -40,7 +40,7 @@ func (p *Product) Soft(val VarSet, key string) float64 {
 
 	n := len(p.ch)
 	ch := p.Ch()
-	var v float64
+	v := 1.0
 
 	for i := 0; i < n; i++ {
 		v *= ch[i].Soft(val, key)
@@ -76,7 +76,7 @@ func (p *Product) Value(val VarSet) float64 {
 // Max returns the MAP state given a valuation.
 func (p *Product) Max(val VarSet) float64 {
 	n := len(p.ch)
-	var v float64
+	v := 1.0
 
 	for i := 0; i < n; i++ {
 		v *= (p.ch[i]).Max(val)
@@ -89,7 +89,7 @@ func (p *Product) Max(val VarSet) float64 {
 func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 	argmax := make(VarSet)
 	n := len(p.ch)
-	var v float64
+	v := 1.0
 
 	for i := 0; i < n; i++ {
 		chargs, chmap := p.ch[i].ArgMax(val)

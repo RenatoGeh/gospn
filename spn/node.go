@@ -25,7 +25,7 @@ func (ds *DiscStorer) Correct() float64 {
 	if v, ok := ds.s.Stored("soft"); ds.store && ok {
 		return v
 	}
-	ds.s.ResetDP("soft")
+	ds.s.RResetDP("soft")
 	return ds.s.Value(ds.c)
 }
 
@@ -34,7 +34,7 @@ func (ds *DiscStorer) Expected() float64 {
 	if v, ok := ds.s.Stored("soft"); ds.store && ok {
 		return v
 	}
-	ds.s.ResetDP("soft")
+	ds.s.RResetDP("soft")
 	return ds.s.Value(ds.e)
 }
 
@@ -249,7 +249,7 @@ func (n *Node) RResetDP(key string) {
 
 	n.ResetDP(key)
 	for i := 0; i < m; i++ {
-		n.ch[i].ResetDP(key)
+		n.ch[i].RResetDP(key)
 	}
 }
 

@@ -3,7 +3,7 @@ package language
 import (
 	//"fmt"
 	"github.com/RenatoGeh/gospn/spn"
-	//"math"
+	"math"
 )
 
 // SumVector represents the H layer of the structure described in LMSPN. A layer
@@ -35,6 +35,7 @@ func (s *SumVector) Soft(val spn.VarSet, key string) float64 {
 	// (not really) ordered by index).
 	ch := s.Ch()
 	v := s.w[int(ch[0].Soft(val, key))]
+	//fmt.Printf("SumVector: %.10f\n", v)
 
 	//if key == "soft" {
 	//fmt.Printf("SumVector weights (k=%d):\n", int(ch[0].Soft(val, key)))
@@ -75,7 +76,13 @@ func (s *SumVector) Derive(wkey, nkey, ikey string) {
 
 	v, _ := ch.Stored(ikey)
 	u, _ := s.Stored(nkey)
-	pweight[int(v)] = u
+	k, n := int(v), len(pweight)
+	pweight[k] = u
+	for i := 0; i < n; i++ {
+		if i != k {
+			pweight[i] = 0.0
+		}
+	}
 }
 
 // GenUpdate generatively updates weights given an eta learning rate.
@@ -99,31 +106,40 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 	v, _ := s.Ch()[0].Stored("correct")
 	k := int(v)
 	correct, expected := ds.Correct(), ds.Expected()
-	var cc, ce float64
-	if correct == 0 {
-		cc = 0.0
-	} else {
-		cc = s.cpw[k] / correct
-	}
-	if expected == 0 {
-		ce = 0.0
-	} else {
-		ce = s.epw[k] / expected
-	}
+	cc := s.cpw[k] / correct
+	ce := s.epw[k] / expected
+	//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
 	s.w[k] += eta * (cc - ce)
 
 	// Normalize
-	//min, n := s.w[0], len(s.w)
-	//t := 0.0
-	//for i := 0; i < n; i++ {
-	//t += s.w[i]
-	//if s.w[i] < min {
-	//min = s.w[i]
-	//}
-	//}
-	//min = math.Abs(min)
-	//t += float64(n) * min
-	//for i := 0; i < n; i++ {
-	//s.w[i] = (s.w[i] + min) / t
-	//}
+	min, n := s.w[0], len(s.w)
+	t := 0.0
+	for i := 0; i < n; i++ {
+		t += s.w[i]
+		if s.w[i] < min {
+			min = s.w[i]
+		}
+	}
+	min = math.Abs(min)
+	t += float64(n) * min
+	for i := 0; i < n; i++ {
+		s.w[i] = (s.w[i] + min) / t
+	}
+}
+
+// RResetDP recursively ResetDPs all children.
+func (s *SumVector) RResetDP(key string) {
+	s.Ch()[0].ResetDP(key)
+	s.ResetDP(key)
+}
+
+// ResetDP resets a key on the DP table. If key is nil, resets everything.
+func (s *SumVector) ResetDP(key string) {
+	s.Node.ResetDP(key)
+	if key == "" {
+		for k := range s.epw {
+			s.epw[k] = 0.0
+			s.cpw[k] = 0.0
+		}
+	}
 }

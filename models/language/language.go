@@ -67,7 +67,7 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 	S.SetStore(true)
 	voc.Set(N)
 	combs := voc.Combinations()
-	for math.Abs(conv) > 0.1 {
+	for math.Abs(conv) > 0.001 {
 		s := 0.0
 		klast := 0.0
 		for i := 0; i < combs; i++ {
@@ -178,7 +178,7 @@ func Structure(K, D, N int) spn.SPN {
 				M[i].AddChildW(hmatrix[p][q], rand.Float64())
 			}
 		}
-		//M[i].AutoNormalize(true)
+		M[i].AutoNormalize(true)
 	}
 
 	// G product nodes layer
@@ -198,7 +198,7 @@ func Structure(K, D, N int) spn.SPN {
 		// Add both M_i and G_i as children of B_i.
 		B[i].AddChildW(M[i], rand.Float64())
 		B[i].AddChildW(G[i], rand.Float64())
-		//B[i].AutoNormalize(true)
+		B[i].AutoNormalize(true)
 	}
 
 	// S product nodes layer
