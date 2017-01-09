@@ -3,7 +3,7 @@ package language
 import (
 	//"fmt"
 	"github.com/RenatoGeh/gospn/spn"
-	"math"
+	//"math"
 )
 
 // SumVector represents the H layer of the structure described in LMSPN. A layer
@@ -34,7 +34,7 @@ func (s *SumVector) Soft(val spn.VarSet, key string) float64 {
 	// Note to self: don't forget in this case we are using VarSet as a slice (and as such they are
 	// (not really) ordered by index).
 	ch := s.Ch()
-	v := math.Log(s.w[int(ch[0].Soft(val, key))])
+	v := s.w[int(ch[0].Soft(val, key))]
 
 	//if key == "soft" {
 	//fmt.Printf("SumVector weights (k=%d):\n", int(ch[0].Soft(val, key)))
@@ -82,7 +82,7 @@ func (s *SumVector) Derive(wkey, nkey, ikey string) {
 func (s *SumVector) GenUpdate(eta float64, wkey string) {
 	v, _ := s.Ch()[0].Stored("correct")
 	k := int(v)
-	s.w[k] += eta + math.Exp(s.epw[k])
+	s.w[k] += eta * s.epw[k]
 
 	// Normalize
 	t := 0.0
@@ -99,7 +99,18 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 	v, _ := s.Ch()[0].Stored("correct")
 	k := int(v)
 	correct, expected := ds.Correct(), ds.Expected()
-	s.w[k] += eta * ((s.cpw[k] / correct) - (s.epw[k] / expected))
+	var cc, ce float64
+	if correct == 0 {
+		cc = 0.0
+	} else {
+		cc = s.cpw[k] / correct
+	}
+	if expected == 0 {
+		ce = 0.0
+	} else {
+		ce = s.epw[k] / expected
+	}
+	s.w[k] += eta * (cc - ce)
 
 	// Normalize
 	//min, n := s.w[0], len(s.w)

@@ -1,8 +1,8 @@
 package spn
 
 import (
-	//"fmt"
-	"math"
+//"fmt"
+//"math"
 )
 
 // Product represents a product node in an SPN.
@@ -43,12 +43,26 @@ func (p *Product) Soft(val VarSet, key string) float64 {
 	var v float64
 
 	for i := 0; i < n; i++ {
-		v += ch[i].Soft(val, key)
+		v *= ch[i].Soft(val, key)
 	}
 
-	//if key == "soft" {
-	//fmt.Printf("Product %f\n", v)
-	//}
+	p.Store(key, v)
+	return v
+}
+
+// LSoft is Soft in logspace.
+func (p *Product) LSoft(val VarSet, key string) float64 {
+	if _lv, ok := p.Stored(key); ok {
+		return _lv
+	}
+
+	n := len(p.ch)
+	ch := p.Ch()
+	var v float64
+
+	for i := 0; i < n; i++ {
+		v += ch[i].LSoft(val, key)
+	}
 
 	p.Store(key, v)
 	return v
@@ -65,7 +79,7 @@ func (p *Product) Max(val VarSet) float64 {
 	var v float64
 
 	for i := 0; i < n; i++ {
-		v += (p.ch[i]).Max(val)
+		v *= (p.ch[i]).Max(val)
 	}
 
 	return v
@@ -79,7 +93,7 @@ func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 
 	for i := 0; i < n; i++ {
 		chargs, chmap := p.ch[i].ArgMax(val)
-		v += chmap
+		v *= chmap
 		for k, val := range chargs {
 			argmax[k] = val
 		}
@@ -93,16 +107,16 @@ func (p *Product) Derive(wkey, nkey, ikey string) {
 	n := len(p.ch)
 
 	for i := 0; i < n; i++ {
-		s := 0.0
+		s := 1.0
 		for j := 0; j < n; j++ {
 			if i != j {
 				v, _ := p.ch[j].Stored(ikey)
-				s += v
+				s *= v
 			}
 		}
 		st := p.ch[i].Storer()
 		v, _ := p.Stored(nkey)
-		st[nkey] += math.Log1p(math.Exp(v + s - st[nkey]))
+		st[nkey] += v * s
 	}
 
 	for i := 0; i < n; i++ {

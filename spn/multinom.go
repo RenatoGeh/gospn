@@ -94,6 +94,25 @@ func (m *Multinomial) Soft(val VarSet, key string) float64 {
 	v, ok := val[m.varid]
 	var l float64
 	if ok {
+		l = m.pr[v]
+	} else {
+		l = 1.0
+	}
+	m.Store(key, l)
+
+	return l
+}
+
+// LSoft is Soft in logspace.
+func (m *Multinomial) LSoft(val VarSet, key string) float64 {
+	_lv := m.s[key]
+	if _lv >= 0 {
+		return _lv
+	}
+
+	v, ok := val[m.varid]
+	var l float64
+	if ok {
 		l = math.Log(m.pr[v])
 	} else {
 		l = 0.0 // ln(1.0) = 0.0

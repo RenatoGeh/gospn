@@ -68,6 +68,25 @@ func (g *Gaussian) Soft(val VarSet, key string) float64 {
 	v, ok := val[g.varid]
 	var l float64
 	if ok {
+		l = float64(C.gsl_ran_ugaussian_pdf(C.double((float64(v) - g.mean) / g.sd)))
+	} else {
+		l = 1.0
+	}
+	g.Store(key, l)
+
+	return l
+}
+
+// LSoft is Soft in logspace.
+func (g *Gaussian) LSoft(val VarSet, key string) float64 {
+	_lv := g.s[key]
+	if _lv >= 0 {
+		return _lv
+	}
+
+	v, ok := val[g.varid]
+	var l float64
+	if ok {
 		l = math.Log(float64(C.gsl_ran_ugaussian_pdf(C.double((float64(v) - g.mean) / g.sd))))
 	} else {
 		l = 0.0 // ln(1.0) = 0.0

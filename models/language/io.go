@@ -63,7 +63,9 @@ func Compile(tfile, vfile string) {
 			}
 			//fmt.Printf("%s -> %d\n", str, vocab[str])
 			block[cblock] = utils.StringConcat(block[cblock], strconv.Itoa(vocab[str]))
-			block[cblock] = utils.StringConcat(block[cblock], " ")
+			if i < nv-1 {
+				block[cblock] = utils.StringConcat(block[cblock], " ")
+			}
 			nwords++
 		}
 		cblock++
@@ -145,7 +147,7 @@ func (v *Vocabulary) Next() spn.VarSet {
 	vs := make(spn.VarSet)
 	vs[0] = v.block[v.ptr]
 	for i := 1; i <= v.n; i++ {
-		vs[i] = v.block[v.ptr-i]
+		vs[v.n-i+1] = v.block[v.ptr-i]
 	}
 	v.ptr++
 	return vs
@@ -168,7 +170,7 @@ func Parse(vfile string) *Vocabulary {
 	defer voc.Close()
 
 	var n int
-	fmt.Fscanf(voc, "%d ", &n)
+	fmt.Fscanf(voc, "%d", &n)
 
 	entries := make([]string, n)
 	for i := 0; i < n; i++ {
@@ -179,12 +181,12 @@ func Parse(vfile string) *Vocabulary {
 	}
 
 	var m int
-	fmt.Fscanf(voc, "%d ", &m)
+	fmt.Fscanf(voc, "%d", &m)
 
 	l, block := 0, make([]int, m)
 	for i := 0; i < m; i++ {
 		var k int
-		fmt.Fscanf(voc, "%d ", &k)
+		fmt.Fscanf(voc, "%d", &k)
 		block[l] = k
 		l++
 	}

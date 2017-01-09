@@ -52,30 +52,17 @@ func (s *Sum) Soft(val VarSet, key string) float64 {
 		return _lv
 	}
 
-	n := len(s.ch)
-
-	vals := make([]float64, n)
+	v, n := 0.0, len(s.ch)
 	for i := 0; i < n; i++ {
-		v, w := s.ch[i].Soft(val, key), math.Log(s.w[i])
-		vals[i] = v + w
+		p := s.ch[i].Soft(val, key)
+		v += s.w[i] * p
 		//if s.root {
-		//fmt.Printf("Root v+w=%f+(log(%f)=%f)=%f\n", v, s.w[i], w, vals[i])
+		//fmt.Printf("Root %f * %f = %f\n", s.w[i], p, s.w[i]*p)
 		//}
 	}
-	sort.Float64s(vals)
-	p, r := vals[n-1], 0.0
 
-	for i := 0; i < n-1; i++ {
-		r += math.Exp(vals[i] - p)
-	}
-
-	r = p + math.Log1p(r)
-
-	//if key == "soft" {
-	//fmt.Printf("Sum %f\n", r)
-	//}
-	s.Store(key, r)
-	return r
+	s.Store(key, v)
+	return v
 }
 
 // Value returns the value of this node given an instantiation.
@@ -89,7 +76,7 @@ func (s *Sum) Max(val VarSet) float64 {
 	n := len(s.ch)
 
 	for i := 0; i < n; i++ {
-		cv := math.Log(s.w[i]) + s.ch[i].Max(val)
+		cv := s.w[i] * s.ch[i].Max(val)
 		if cv > max {
 			max = cv
 		}
@@ -106,7 +93,7 @@ func (s *Sum) ArgMax(val VarSet) (VarSet, float64) {
 	for i := 0; i < n; i++ {
 		ch := s.ch[i]
 		// Note to future self: use DP to avoid recomputations.
-		m := math.Log(s.w[i]) + ch.Max(val)
+		m := s.w[i] * ch.Max(val)
 		if m > max {
 			max, mch = m, ch
 		}
@@ -136,21 +123,43 @@ func (s *Sum) Derive(wkey, nkey, ikey string) {
 		s.pweights[wkey] = make([]float64, n)
 	}
 
+	v, _ := s.Stored(nkey)
 	for i := 0; i < n; i++ {
 		st := s.ch[i].Storer()
-		v, _ := s.Stored(nkey)
-		st[nkey] += math.Log1p(math.Exp(math.Log(s.w[i]) + v - st[nkey]))
-	}
-
-	for i := 0; i < n; i++ {
-		v, _ := s.Stored(nkey)
-		u, _ := s.ch[i].Stored(ikey)
-		s.pweights[wkey][i] = u + v
+		st[nkey] += s.w[i] * v
+		s.pweights[wkey][i] = st[ikey] * v
 	}
 
 	for i := 0; i < n; i++ {
 		s.ch[i].Derive(wkey, nkey, ikey)
 	}
+}
+
+// LSoft is Soft in logspace.
+func (s *Sum) LSoft(val VarSet, key string) float64 {
+	if _lv, ok := s.Stored(key); ok {
+		return _lv
+	}
+
+	n := len(s.ch)
+
+	vals := make([]float64, n)
+	for i := 0; i < n; i++ {
+		v, w := s.ch[i].LSoft(val, key), math.Log(s.w[i])
+		vals[i] = v + w
+	}
+
+	sort.Float64s(vals)
+	p, r := vals[n-1], 0.0
+
+	for i := 0; i < n-1; i++ {
+		r += math.Exp(vals[i] - p)
+	}
+
+	r = p + math.Log1p(r)
+
+	s.Store(key, r)
+	return r
 }
 
 // GenUpdate generatively updates weights given an eta learning rate.
@@ -159,7 +168,7 @@ func (s *Sum) GenUpdate(eta float64, wkey string) {
 	t := 0.0
 
 	for i := 0; i < n; i++ {
-		s.w[i] += eta + math.Exp(s.pweights[wkey][i])
+		s.w[i] += eta * s.pweights[wkey][i]
 		t += s.w[i]
 	}
 
@@ -190,7 +199,19 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 
 	correct, expected := ds.Correct(), ds.Expected()
 	for i := 0; i < n; i++ {
-		s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
+		var cc, ce float64
+		if correct == 0 {
+			cc = 0.0
+		} else {
+			cc = s.pweights[wckey][i] / correct
+		}
+		if expected == 0 {
+			ce = 0.0
+		} else {
+			ce = s.pweights[wekey][i] / expected
+		}
+		s.w[i] += eta * (cc - ce)
+		//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
 		t += s.w[i]
 		if s.w[i] < min {
 			min = s.w[i]
@@ -214,9 +235,7 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 func (s *Sum) ResetDP(key string) {
 	s.Node.ResetDP(key)
 	if key == "" {
-		for k := range s.pweights {
-			s.pweights[k] = nil
-		}
+		s.pweights = make(map[string][]float64)
 	} else {
 		s.pweights[key] = nil
 	}

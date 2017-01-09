@@ -38,6 +38,12 @@ func (ds *DiscStorer) Expected() float64 {
 	return ds.s.Value(ds.e)
 }
 
+// CorrectSet returns the correct VarSet.
+func (ds *DiscStorer) CorrectSet() VarSet { return ds.c }
+
+// ExpectedSet returns the expected VarSet.
+func (ds *DiscStorer) ExpectedSet() VarSet { return ds.e }
+
 // Node represents a node in an SPN.
 type Node struct {
 	// Parent nodes.
@@ -91,6 +97,8 @@ type SPN interface {
 	Storer() map[string]float64
 	// Common base for all soft inference methods.
 	Soft(val VarSet, key string) float64
+	// LSoft is Soft in logspace.
+	LSoft(val VarSet, key string) float64
 	// Normalizes the SPN.
 	Normalize()
 	// DiscUpdate discriminatively updates weights given an eta learning rate.
@@ -213,6 +221,9 @@ func (n *Node) Storer() map[string]float64 { return n.s }
 
 // Soft is a common base for all soft inference methods.
 func (n *Node) Soft(val VarSet, key string) float64 { return -1 }
+
+// LSoft is Soft in logspace.
+func (n *Node) LSoft(val VarSet, key string) float64 { return -1 }
 
 // Normalize normalizes the SPN's weights.
 func (n *Node) Normalize() {

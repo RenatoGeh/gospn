@@ -50,7 +50,7 @@ func Language(vfile string, D, N int) {
 			}
 		}
 		fmt.Printf(" %s", voc.Translate(imax))
-		for j := 2; j <= N; j++ {
+		for j := N; j >= 2; j-- {
 			pre[j] = pre[j-1]
 		}
 		pre[1] = imax
@@ -67,7 +67,7 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 	S.SetStore(true)
 	voc.Set(N)
 	combs := voc.Combinations()
-	for _l := 0; _l < 1; _l++ {
+	for math.Abs(conv) > 0.1 {
 		s := 0.0
 		klast := 0.0
 		for i := 0; i < combs; i++ {
