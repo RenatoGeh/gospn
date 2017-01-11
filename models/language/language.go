@@ -83,18 +83,19 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 			}
 			fmt.Printf("\n")
 			ds := spn.NewDiscStorer(S, C, E)
+			//ds.Store(false)
 			// Stores correct/guess values.
 			fmt.Println("Storing correct/guess soft inference values...")
 			fmt.Printf("Correct = %f\n", S.Soft(C, "correct"))
 			// Derive correct/guess nodes.
 			fmt.Println("Derivating correct/guess nodes...")
-			S.Derive("cpweight", "cpnode", "correct")
+			S.RootDerive("cpweight", "cpnode", "correct")
 			// Stores expected values.
 			fmt.Println("Storing expected soft inference values...")
 			fmt.Printf("Expected = %f\n", S.Soft(E, "expected"))
 			// Derive expected nodes.
 			fmt.Println("Derivating expected nodes...")
-			S.Derive("epweight", "epnode", "expected")
+			S.RootDerive("epweight", "epnode", "expected")
 			// Update weights.
 			fmt.Println("Updating weights...")
 			S.DiscUpdate(eta, ds, "cpweight", "epweight")

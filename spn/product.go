@@ -1,8 +1,9 @@
 package spn
 
 import (
-//"fmt"
-//"math"
+	//"fmt"
+	//"math"
+	"github.com/RenatoGeh/gospn/common"
 )
 
 // Product represents a product node in an SPN.
@@ -34,7 +35,7 @@ func (p *Product) Sc() map[int]int {
 
 // Soft is a common base for all soft inference methods.
 func (p *Product) Soft(val VarSet, key string) float64 {
-	if _lv, ok := p.Stored(key); ok {
+	if _lv, ok := p.Stored(key); ok && p.stores {
 		return _lv
 	}
 
@@ -102,7 +103,7 @@ func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 	return argmax, v
 }
 
-// Derive recursively derives this node and its children based on the last inference value.
+// Derive derives this node only.
 func (p *Product) Derive(wkey, nkey, ikey string) {
 	n := len(p.ch)
 
@@ -119,7 +120,28 @@ func (p *Product) Derive(wkey, nkey, ikey string) {
 		st[nkey] += v * s
 	}
 
-	for i := 0; i < n; i++ {
-		p.ch[i].Derive(wkey, nkey, ikey)
+	//for i := 0; i < n; i++ {
+	//p.ch[i].Derive(wkey, nkey, ikey)
+	//}
+}
+
+// RootDerive derives all nodes in a BFS fashion.
+func (p *Product) RootDerive(wkey, nkey, ikey string) {
+	q := common.Queue{}
+
+	q.Enqueue(p)
+
+	for !q.Empty() {
+		s := q.Dequeue().(SPN)
+		ch := s.Ch()
+
+		s.Derive(wkey, nkey, ikey)
+
+		if ch != nil {
+			n := len(ch)
+			for i := 0; i < n; i++ {
+				q.Enqueue(ch[i])
+			}
+		}
 	}
 }

@@ -22,7 +22,7 @@ func NewProductIndicator(ind int) *ProductIndicator {
 
 // Soft is a common base for all soft inference methods.
 func (p *ProductIndicator) Soft(val spn.VarSet, key string) float64 {
-	if _lv, ok := p.Stored(key); ok {
+	if _lv, ok := p.Stored(key); ok && p.Stores() {
 		return _lv
 	}
 
@@ -44,7 +44,7 @@ func (p *ProductIndicator) Value(val spn.VarSet) float64 {
 	return p.Soft(val, "soft")
 }
 
-// Derive recursively derives this node and its children based on the last inference value.
+// Derive derives this node only.
 func (p *ProductIndicator) Derive(wkey, nkey, ikey string) {
 	ch := p.Ch()[0]
 
@@ -56,7 +56,7 @@ func (p *ProductIndicator) Derive(wkey, nkey, ikey string) {
 	}
 	st[nkey] += v
 
-	ch.Derive(wkey, nkey, ikey)
+	//ch.Derive(wkey, nkey, ikey)
 }
 
 //// DiscUpdate discriminatively updates weights given an eta learning rate.

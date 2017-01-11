@@ -1,5 +1,10 @@
 package spn
 
+import (
+	//"fmt"
+	"github.com/RenatoGeh/gospn/common"
+)
+
 // DiscStorer stores relevant information for DiscUpdate.
 type DiscStorer struct {
 	// The SPN's root.
@@ -22,19 +27,19 @@ func (ds *DiscStorer) Store(store bool) { ds.store = true }
 
 // Correct returns the value of the stored SPN given a correct valuation.
 func (ds *DiscStorer) Correct() float64 {
-	if v, ok := ds.s.Stored("soft"); ds.store && ok {
+	if v, ok := ds.s.Stored("correct"); ds.store && ok {
 		return v
 	}
-	ds.s.RResetDP("soft")
+	ds.s.RResetDP("correct")
 	return ds.s.Value(ds.c)
 }
 
 // Expected returns the value of the stored SPN given an expected valuation.
 func (ds *DiscStorer) Expected() float64 {
-	if v, ok := ds.s.Stored("soft"); ds.store && ok {
+	if v, ok := ds.s.Stored("expected"); ds.store && ok {
 		return v
 	}
-	ds.s.RResetDP("soft")
+	ds.s.RResetDP("expected")
 	return ds.s.Value(ds.e)
 }
 
@@ -86,9 +91,12 @@ type SPN interface {
 	Store(key string, val float64)
 	// SetStore sets whether the SPN should start storing evaluations on the DP table.
 	SetStore(s bool)
-	// Derive recursively derives this node and its children based on the last inference value.
-	// Stores derivative values under key.
+	// Stores returns whether this node stores.
+	Stores() bool
+	// Derive derives this node only.
 	Derive(wkey, nkey, ikey string)
+	// RootDerive derives all nodes in a BFS fashion.
+	RootDerive(wkey, nkey, ikey string)
 	// Rootify signalizes this node is a root.
 	Rootify(nkey string)
 	// GenUpdate generatively updates weights given an eta learning rate.
@@ -261,3 +269,27 @@ func (n *Node) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 		n.ch[i].DiscUpdate(eta, ds, wckey, wekey)
 	}
 }
+
+// RootDerive derives all nodes in a BFS fashion.
+func (n *Node) RootDerive(wkey, nkey, ikey string) {
+	q := common.Queue{}
+
+	q.Enqueue(n)
+
+	for !q.Empty() {
+		s := q.Dequeue().(SPN)
+		ch := s.Ch()
+
+		s.Derive(wkey, nkey, ikey)
+
+		if ch != nil {
+			n := len(ch)
+			for i := 0; i < n; i++ {
+				q.Enqueue(ch[i])
+			}
+		}
+	}
+}
+
+// Stores returns whether this node stores.
+func (n *Node) Stores() bool { return n.stores }

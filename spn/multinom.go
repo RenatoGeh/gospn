@@ -86,8 +86,7 @@ func (m *Multinomial) Type() string { return "leaf" }
 
 // Soft is a common base for all soft inference methods.
 func (m *Multinomial) Soft(val VarSet, key string) float64 {
-	_lv := m.s[key]
-	if _lv >= 0 {
+	if _lv, ok := m.Stored(key); ok && m.stores {
 		return _lv
 	}
 

@@ -27,7 +27,7 @@ func NewSumVector(waddr, cpweight, epweight []float64) *SumVector {
 
 // Soft is a common base for all soft inference methods.
 func (s *SumVector) Soft(val spn.VarSet, key string) float64 {
-	if _lv, ok := s.Stored(key); ok {
+	if _lv, ok := s.Stored(key); ok && s.Stores() {
 		return _lv
 	}
 	// By definition, a SumVector contains only one child: a Vector node.
@@ -63,7 +63,7 @@ func (s *SumVector) Max(val spn.VarSet) float64 {
 // Type returns the type of this node.
 func (s *SumVector) Type() string { return "sum_vector" }
 
-// Derive recursively derives this node and its children based on the last inference value.
+// Derive derives this node only.
 func (s *SumVector) Derive(wkey, nkey, ikey string) {
 	ch := s.Ch()[0]
 	var pweight []float64
@@ -108,22 +108,27 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 	correct, expected := ds.Correct(), ds.Expected()
 	cc := s.cpw[k] / correct
 	ce := s.epw[k] / expected
+	//if s.w[k] < 0 || s.epw[k] >= expected {
 	//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
+	//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
+	//fmt.Printf("s.w[k]: %.10f\n", s.w[k])
+	//}
 	s.w[k] += eta * (cc - ce)
 
 	// Normalize
-	min, n := s.w[0], len(s.w)
-	t := 0.0
-	for i := 0; i < n; i++ {
-		t += s.w[i]
+	min := s.w[0]
+	for i := 1; i < s.n; i++ {
 		if s.w[i] < min {
 			min = s.w[i]
 		}
 	}
-	min = math.Abs(min)
-	t += float64(n) * min
-	for i := 0; i < n; i++ {
-		s.w[i] = (s.w[i] + min) / t
+	t := 0.0
+	for i := 0; i < s.n; i++ {
+		s.w[i] += math.Abs(min) + 10
+		t += s.w[i]
+	}
+	for i := 0; i < s.n; i++ {
+		s.w[i] /= t
 	}
 }
 

@@ -24,6 +24,14 @@ const (
 	Right CmplType = "RIGHT"
 )
 
+// BFSPair (Breadth-First Search Pair) is a tuple (SPN, string). See io/output:DrawGraph for more
+// information.
+type BFSPair struct {
+	Spn    spn.SPN
+	Pname  string
+	Weight float64
+}
+
 // Orientations contains all CmplType orientations.
 var Orientations = []CmplType{Top, Bottom, Left, Right}
 
@@ -63,10 +71,10 @@ func DrawGraphTools(filename string, s spn.SPN) {
 
 	// Else, BFS the SPN and write nodes to filename.
 	nvars, nsums, nprods := 0, 0, 0
-	queue := common.QueueBFSPair{}
-	queue.Enqueue(&common.BFSPair{Spn: s, Pname: "", Weight: -1.0})
+	queue := common.Queue{}
+	queue.Enqueue(&BFSPair{Spn: s, Pname: "", Weight: -1.0})
 	for !queue.Empty() {
-		currpair := queue.Dequeue()
+		currpair := queue.Dequeue().(*BFSPair)
 		curr, pname, pw := currpair.Spn, currpair.Pname, currpair.Weight
 		ch := curr.Ch()
 		nch := len(ch)
@@ -117,7 +125,7 @@ func DrawGraphTools(filename string, s spn.SPN) {
 				if w != nil {
 					tw = w[i]
 				}
-				queue.Enqueue(&common.BFSPair{Spn: c, Pname: name, Weight: tw})
+				queue.Enqueue(&BFSPair{Spn: c, Pname: name, Weight: tw})
 			}
 		}
 	}
@@ -154,10 +162,10 @@ func DrawGraph(filename string, s spn.SPN) {
 
 	// Else, BFS the SPN and write nodes to filename.
 	nvars, nsums, nprods := 0, 0, 0
-	queue := common.QueueBFSPair{}
-	queue.Enqueue(&common.BFSPair{Spn: s, Pname: "", Weight: -1.0})
+	queue := common.Queue{}
+	queue.Enqueue(&BFSPair{Spn: s, Pname: "", Weight: -1.0})
 	for !queue.Empty() {
-		currpair := queue.Dequeue()
+		currpair := queue.Dequeue().(*BFSPair)
 		curr, pname, pw := currpair.Spn, currpair.Pname, currpair.Weight
 		ch := curr.Ch()
 		nch := len(ch)
@@ -208,7 +216,7 @@ func DrawGraph(filename string, s spn.SPN) {
 				if w != nil {
 					tw = w[i]
 				}
-				queue.Enqueue(&common.BFSPair{Spn: c, Pname: name, Weight: tw})
+				queue.Enqueue(&BFSPair{Spn: c, Pname: name, Weight: tw})
 			}
 		}
 	}

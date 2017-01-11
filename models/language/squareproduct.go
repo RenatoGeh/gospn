@@ -17,7 +17,7 @@ func NewSquareProduct() *SquareProduct {
 
 // Soft is a common base for all soft inference methods.
 func (p *SquareProduct) Soft(val spn.VarSet, key string) float64 {
-	if _lv, ok := p.Stored(key); ok {
+	if _lv, ok := p.Stored(key); ok && p.Stores() {
 		return _lv
 	}
 
@@ -35,7 +35,7 @@ func (p *SquareProduct) Value(val spn.VarSet) float64 {
 	return p.Soft(val, "soft")
 }
 
-// Derive recursively derives this node and its children based on the last inference value.
+// Derive derives this node only.
 func (p *SquareProduct) Derive(wkey, nkey, ikey string) {
 	ch := p.Ch()[0]
 
@@ -44,5 +44,5 @@ func (p *SquareProduct) Derive(wkey, nkey, ikey string) {
 	u, _ := ch.Stored(ikey)
 	st[nkey] += 2 * (v * u)
 
-	ch.Derive(wkey, nkey, ikey)
+	//ch.Derive(wkey, nkey, ikey)
 }

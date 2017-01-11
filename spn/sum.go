@@ -2,6 +2,7 @@ package spn
 
 import (
 	//"fmt"
+	"github.com/RenatoGeh/gospn/common"
 	"math"
 	"sort"
 )
@@ -48,7 +49,7 @@ func (s *Sum) AutoNormalize(norm bool) { s.norm = norm }
 
 // Soft is a common base for all soft inference methods.
 func (s *Sum) Soft(val VarSet, key string) float64 {
-	if _lv, ok := s.Stored(key); ok {
+	if _lv, ok := s.Stored(key); ok && s.stores {
 		return _lv
 	}
 
@@ -116,7 +117,7 @@ func (s *Sum) PWeights(key string) []float64 {
 	return s.pweights[key]
 }
 
-// Derive recursively derives this node and its children based on the last inference value.
+// Derive derives this node only.
 func (s *Sum) Derive(wkey, nkey, ikey string) {
 	n := len(s.ch)
 	if s.pweights[wkey] == nil {
@@ -130,9 +131,9 @@ func (s *Sum) Derive(wkey, nkey, ikey string) {
 		s.pweights[wkey][i] = st[ikey] * v
 	}
 
-	for i := 0; i < n; i++ {
-		s.ch[i].Derive(wkey, nkey, ikey)
-	}
+	//for i := 0; i < n; i++ {
+	//s.ch[i].Derive(wkey, nkey, ikey)
+	//}
 }
 
 // LSoft is Soft in logspace.
@@ -195,7 +196,6 @@ func (s *Sum) Normalize() {
 // DiscUpdate discriminatively updates weights given an eta learning rate.
 func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 	n := len(s.ch)
-	t, min := 0.0, s.w[0]
 
 	correct, expected := ds.Correct(), ds.Expected()
 	for i := 0; i < n; i++ {
@@ -203,17 +203,22 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 		ce := s.pweights[wekey][i] / expected
 		s.w[i] += eta * (cc - ce)
 		//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
-		t += s.w[i]
-		if s.w[i] < min {
-			min = s.w[i]
-		}
 	}
 
 	if s.norm {
-		min = math.Abs(min)
-		t += float64(n) * min
+		min := s.w[0]
+		for i := 1; i < n; i++ {
+			if s.w[i] < min {
+				min = s.w[i]
+			}
+		}
+		t := 0.0
 		for i := 0; i < n; i++ {
-			s.w[i] = (s.w[i] + min) / t
+			s.w[i] += math.Abs(min) + 10
+			t += s.w[i]
+		}
+		for i := 0; i < n; i++ {
+			s.w[i] /= t
 		}
 	}
 
@@ -239,5 +244,26 @@ func (s *Sum) ResetDP(key string) {
 		s.pweights = make(map[string][]float64)
 	} else {
 		s.pweights[key] = nil
+	}
+}
+
+// RootDerive derives all nodes in a BFS fashion.
+func (s *Sum) RootDerive(wkey, nkey, ikey string) {
+	q := common.Queue{}
+
+	q.Enqueue(s)
+
+	for !q.Empty() {
+		s := q.Dequeue().(SPN)
+		ch := s.Ch()
+
+		s.Derive(wkey, nkey, ikey)
+
+		if ch != nil {
+			n := len(ch)
+			for i := 0; i < n; i++ {
+				q.Enqueue(ch[i])
+			}
+		}
 	}
 }
