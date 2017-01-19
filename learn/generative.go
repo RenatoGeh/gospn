@@ -7,7 +7,7 @@ import (
 )
 
 // Generative learning with learning rate eta.
-func Generative(S spn.SPN, data []map[int]int, eta float64) spn.SPN {
+func Generative(S spn.SPN, data []map[int]int, eta float64, mode spn.InfType) spn.SPN {
 	n := len(data)
 	conv := 1.0
 	last := 0.0
@@ -27,7 +27,7 @@ func Generative(S spn.SPN, data []map[int]int, eta float64) spn.SPN {
 			klast = k
 			fmt.Println("Computed and stored soft inference values.")
 			// Backpropagate through SPN.
-			S.Derive("pweight", "pnode", "soft")
+			S.RootDerive("pweight", "pnode", "soft", mode)
 			fmt.Println("Backpropagated through SPN computing derivatives.")
 			// Update weights.
 			S.GenUpdate(eta, "pweight")

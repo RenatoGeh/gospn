@@ -36,13 +36,16 @@ func (p *SquareProduct) Value(val spn.VarSet) float64 {
 }
 
 // Derive derives this node only.
-func (p *SquareProduct) Derive(wkey, nkey, ikey string) {
-	ch := p.Ch()[0]
+func (p *SquareProduct) Derive(wkey, nkey, ikey string, mode spn.InfType) int {
+	if mode == spn.SOFT {
+		ch := p.Ch()[0]
 
-	st := ch.Storer()
-	v, _ := p.Stored(nkey)
-	u, _ := ch.Stored(ikey)
-	st[nkey] += 2 * (v * u)
+		st := ch.Storer()
+		v, _ := p.Stored(nkey)
+		u, _ := ch.Stored(ikey)
+		st[nkey] += 2 * (v * u)
 
-	//ch.Derive(wkey, nkey, ikey)
+		//ch.Derive(wkey, nkey, ikey)
+	}
+	return -1
 }

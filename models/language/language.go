@@ -20,8 +20,8 @@ func Language(vfile string, D, N int) {
 	K := voc.Size()
 	fmt.Println("Creating SPN structure...")
 	S := Structure(K, D, N)
-	fmt.Println("Learning...")
-	Learn(S, voc, D, N)
+	//fmt.Println("Learning...")
+	Learn(S, voc, D, N, spn.HARD)
 
 	pre := make(spn.VarSet)
 	fmt.Printf("Generated the following first %d words from vocabulary:\n ", N)
@@ -40,11 +40,11 @@ func Language(vfile string, D, N int) {
 			pre[0] = j
 			S.RResetDP("")
 			v := S.Value(pre)
-			//fmt.Printf("\nPr(X=%d|%d", j, pre[1])
-			//for l := 2; l < len(pre); l++ {
-			//fmt.Printf(",%d", pre[l])
-			//}
-			//fmt.Printf(")=%.10f", v)
+			fmt.Printf("\nPr(X=%d|%d", j, pre[1])
+			for l := 2; l < len(pre); l++ {
+				fmt.Printf(",%d", pre[l])
+			}
+			fmt.Printf(")=%.10f", v)
 			if v > max {
 				max, imax = v, j
 			}
@@ -58,7 +58,7 @@ func Language(vfile string, D, N int) {
 }
 
 // Learn learns weights according to LMSPN.
-func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
+func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 	const eta = 0.1
 
 	conv := 1.0
@@ -67,7 +67,7 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 	S.SetStore(true)
 	voc.Set(N)
 	combs := voc.Combinations()
-	for math.Abs(conv) > 0.001 {
+	for _l := 0; _l < 1; _l++ {
 		s := 0.0
 		klast := 0.0
 		for i := 0; i < combs; i++ {
@@ -89,16 +89,16 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 			fmt.Printf("Correct = %f\n", S.Soft(C, "correct"))
 			// Derive correct/guess nodes.
 			fmt.Println("Derivating correct/guess nodes...")
-			S.RootDerive("cpweight", "cpnode", "correct")
+			S.RootDerive("cpweight", "cpnode", "correct", mode)
 			// Stores expected values.
 			fmt.Println("Storing expected soft inference values...")
 			fmt.Printf("Expected = %f\n", S.Soft(E, "expected"))
 			// Derive expected nodes.
 			fmt.Println("Derivating expected nodes...")
-			S.RootDerive("epweight", "epnode", "expected")
+			S.RootDerive("epweight", "epnode", "expected", mode)
 			// Update weights.
 			fmt.Println("Updating weights...")
-			S.DiscUpdate(eta, ds, "cpweight", "epweight")
+			S.DiscUpdate(eta, ds, "cpweight", "epweight", mode)
 
 			fmt.Printf("Adding convergence diff for instance %d...\n", i)
 			S.RResetDP("")
@@ -106,6 +106,23 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int) spn.SPN {
 			fmt.Printf("Diff component %d: %f\n", i, k)
 			s += k - klast
 			klast = k
+
+			if k == math.NaN() {
+				T := make(spn.VarSet)
+				T[1] = 1
+				T[2] = 2
+				T[3] = 3
+				for j := 0; j < voc.Size(); j++ {
+					T[0] = j
+					S.RResetDP("")
+					v := S.Value(T)
+					fmt.Printf("\nPr(X=%d|%d", j, T[1])
+					for l := 2; l < len(T); l++ {
+						fmt.Printf(",%d", T[l])
+					}
+					fmt.Printf(")=%.10f", v)
+				}
+			}
 
 			C = nil
 			E = nil
@@ -179,7 +196,7 @@ func Structure(K, D, N int) spn.SPN {
 				M[i].AddChildW(hmatrix[p][q], rand.Float64())
 			}
 		}
-		M[i].AutoNormalize(true)
+		//M[i].AutoNormalize(true)
 	}
 
 	// G product nodes layer
@@ -199,7 +216,7 @@ func Structure(K, D, N int) spn.SPN {
 		// Add both M_i and G_i as children of B_i.
 		B[i].AddChildW(M[i], rand.Float64())
 		B[i].AddChildW(G[i], rand.Float64())
-		B[i].AutoNormalize(true)
+		//B[i].AutoNormalize(true)
 	}
 
 	// S product nodes layer

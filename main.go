@@ -280,6 +280,8 @@ func main() {
 
 	flag.Parse()
 
+	rand.Seed(rseed)
+
 	if p == 0 || p < 0 || p == 1 {
 		fmt.Println("Argument p must be a float64 in range (0, 1).")
 		return

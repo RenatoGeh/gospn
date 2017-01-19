@@ -45,27 +45,33 @@ func (p *ProductIndicator) Value(val spn.VarSet) float64 {
 }
 
 // Derive derives this node only.
-func (p *ProductIndicator) Derive(wkey, nkey, ikey string) {
-	ch := p.Ch()[0]
+func (p *ProductIndicator) Derive(wkey, nkey, ikey string, mode spn.InfType) int {
+	if mode == spn.SOFT {
+		ch := p.Ch()[0]
 
-	v, _ := p.Stored(ikey)
-	st := ch.Storer()
-	if v != 0.0 {
-		u, _ := p.Stored(nkey)
-		v = u
+		v, _ := p.Stored(ikey)
+		//if v == 0.0 {
+		//return false
+		//}
+		st := ch.Storer()
+		if v != 0.0 {
+			u, _ := p.Stored(nkey)
+			v = u
+		}
+		st[nkey] += v
+
+		//ch.Derive(wkey, nkey, ikey)
 	}
-	st[nkey] += v
-
-	//ch.Derive(wkey, nkey, ikey)
+	return -1
 }
 
-//// DiscUpdate discriminatively updates weights given an eta learning rate.
-//func (p *ProductIndicator) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string) {
-//if v := ds.CorrectSet()[0]; v == p.indicator {
-//ch := p.Ch()
-//m := len(ch)
-//for i := 0; i < m; i++ {
-//ch[i].DiscUpdate(eta, ds, wckey, wekey)
-//}
-//}
-/*}*/
+// DiscUpdate discriminatively updates weights given an eta learning rate.
+func (p *ProductIndicator) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string, mode spn.InfType) {
+	//if v := ds.CorrectSet()[0]; v == p.indicator {
+	ch := p.Ch()
+	m := len(ch)
+	for i := 0; i < m; i++ {
+		ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
+	}
+	//}
+}

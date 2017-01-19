@@ -104,43 +104,51 @@ func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 }
 
 // Derive derives this node only.
-func (p *Product) Derive(wkey, nkey, ikey string) {
+func (p *Product) Derive(wkey, nkey, ikey string, mode InfType) int {
 	n := len(p.ch)
 
-	for i := 0; i < n; i++ {
-		s := 1.0
-		for j := 0; j < n; j++ {
-			if i != j {
-				v, _ := p.ch[j].Stored(ikey)
-				s *= v
-			}
-		}
-		st := p.ch[i].Storer()
+	if mode == SOFT {
 		v, _ := p.Stored(nkey)
-		st[nkey] += v * s
+		for i := 0; i < n; i++ {
+			s := 1.0
+			for j := 0; j < n; j++ {
+				if i != j {
+					v, _ := p.ch[j].Stored(ikey)
+					s *= v
+				}
+			}
+			st := p.ch[i].Storer()
+			st[nkey] += v * s
+		}
+
+		//for i := 0; i < n; i++ {
+		//p.ch[i].Derive(wkey, nkey, ikey)
+		//}
 	}
 
-	//for i := 0; i < n; i++ {
-	//p.ch[i].Derive(wkey, nkey, ikey)
-	//}
+	return -1
 }
 
 // RootDerive derives all nodes in a BFS fashion.
-func (p *Product) RootDerive(wkey, nkey, ikey string) {
+func (p *Product) RootDerive(wkey, nkey, ikey string, mode InfType) {
 	q := common.Queue{}
 
 	q.Enqueue(p)
 
 	for !q.Empty() {
-		s := q.Dequeue().(SPN)
-		ch := s.Ch()
+		t := q.Dequeue().(SPN)
+		ch := t.Ch()
 
-		s.Derive(wkey, nkey, ikey)
+		r := t.Derive(wkey, nkey, ikey, mode)
 
-		if ch != nil {
-			n := len(ch)
-			for i := 0; i < n; i++ {
-				q.Enqueue(ch[i])
+		if ch != nil && r != 0 {
+			if r < 0 {
+				n := len(ch)
+				for i := 0; i < n; i++ {
+					q.Enqueue(ch[i])
+				}
+			} else {
+				q.Enqueue(ch[r])
 			}
 		}
 	}

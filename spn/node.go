@@ -1,8 +1,8 @@
 package spn
 
 import (
-	//"fmt"
-	"github.com/RenatoGeh/gospn/common"
+//"fmt"
+//"github.com/RenatoGeh/gospn/common"
 )
 
 // DiscStorer stores relevant information for DiscUpdate.
@@ -23,7 +23,7 @@ func NewDiscStorer(s SPN, c, e VarSet) *DiscStorer {
 }
 
 // Store sets DiscStorer to store previously computed values.
-func (ds *DiscStorer) Store(store bool) { ds.store = true }
+func (ds *DiscStorer) Store(store bool) { ds.store = store }
 
 // Correct returns the value of the stored SPN given a correct valuation.
 func (ds *DiscStorer) Correct() float64 {
@@ -31,7 +31,7 @@ func (ds *DiscStorer) Correct() float64 {
 		return v
 	}
 	ds.s.RResetDP("correct")
-	return ds.s.Value(ds.c)
+	return ds.s.Soft(ds.c, "correct")
 }
 
 // Expected returns the value of the stored SPN given an expected valuation.
@@ -40,7 +40,7 @@ func (ds *DiscStorer) Expected() float64 {
 		return v
 	}
 	ds.s.RResetDP("expected")
-	return ds.s.Value(ds.e)
+	return ds.s.Soft(ds.e, "expected")
 }
 
 // CorrectSet returns the correct VarSet.
@@ -48,6 +48,16 @@ func (ds *DiscStorer) CorrectSet() VarSet { return ds.c }
 
 // ExpectedSet returns the expected VarSet.
 func (ds *DiscStorer) ExpectedSet() VarSet { return ds.e }
+
+// InfType is Inference Type (soft or hard).
+type InfType int
+
+const (
+	// SOFT is soft inference
+	SOFT InfType = iota
+	// HARD is hard inference
+	HARD
+)
 
 // Node represents a node in an SPN.
 type Node struct {
@@ -94,9 +104,9 @@ type SPN interface {
 	// Stores returns whether this node stores.
 	Stores() bool
 	// Derive derives this node only.
-	Derive(wkey, nkey, ikey string)
+	Derive(wkey, nkey, ikey string, mode InfType) int
 	// RootDerive derives all nodes in a BFS fashion.
-	RootDerive(wkey, nkey, ikey string)
+	RootDerive(wkey, nkey, ikey string, mode InfType)
 	// Rootify signalizes this node is a root.
 	Rootify(nkey string)
 	// GenUpdate generatively updates weights given an eta learning rate.
@@ -110,7 +120,7 @@ type SPN interface {
 	// Normalizes the SPN.
 	Normalize()
 	// DiscUpdate discriminatively updates weights given an eta learning rate.
-	DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string)
+	DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode InfType)
 	// ResetDP resets a key on the DP table. If key is nil, resets everything.
 	ResetDP(key string)
 	// RResetDP recursively ResetDPs all children.
@@ -207,7 +217,8 @@ func (n *Node) SetStore(s bool) {
 }
 
 // Derive recursively derives this node and its children based on the last inference value.
-func (n *Node) Derive(wkey, nkey, ikey string) {}
+// Return 0 to stop BFS. Return -1 to BFS through all children. Return i>0 to BFS through child i.
+func (n *Node) Derive(wkey, nkey, ikey string, mode InfType) int { return -1 }
 
 // Rootify signalizes this node is a root.
 func (n *Node) Rootify(nkey string) {
@@ -262,34 +273,16 @@ func (n *Node) RResetDP(key string) {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (n *Node) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
+func (n *Node) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode InfType) {
 	m := len(n.ch)
 
 	for i := 0; i < m; i++ {
-		n.ch[i].DiscUpdate(eta, ds, wckey, wekey)
+		n.ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
 	}
 }
 
 // RootDerive derives all nodes in a BFS fashion.
-func (n *Node) RootDerive(wkey, nkey, ikey string) {
-	q := common.Queue{}
-
-	q.Enqueue(n)
-
-	for !q.Empty() {
-		s := q.Dequeue().(SPN)
-		ch := s.Ch()
-
-		s.Derive(wkey, nkey, ikey)
-
-		if ch != nil {
-			n := len(ch)
-			for i := 0; i < n; i++ {
-				q.Enqueue(ch[i])
-			}
-		}
-	}
-}
+func (n *Node) RootDerive(wkey, nkey, ikey string, mode InfType) {}
 
 // Stores returns whether this node stores.
 func (n *Node) Stores() bool { return n.stores }

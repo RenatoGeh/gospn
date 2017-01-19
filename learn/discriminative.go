@@ -7,7 +7,7 @@ import (
 )
 
 // Discriminative learning with learning rate eta.
-func Discriminative(S spn.SPN, data []map[int]int, Y []int, X []int, eta float64) spn.SPN {
+func Discriminative(S spn.SPN, data []map[int]int, Y []int, X []int, eta float64, mode spn.InfType) spn.SPN {
 	n := len(data)
 	conv := 1.0
 	last := 0.0
@@ -38,16 +38,16 @@ func Discriminative(S spn.SPN, data []map[int]int, Y []int, X []int, eta float64
 			S.Soft(C, "correct")
 			// Derive correct/guess nodes.
 			fmt.Println("Derivating correct/guess nodes...")
-			S.Derive("cpweight", "cpnode", "correct")
+			S.RootDerive("cpweight", "cpnode", "correct", mode)
 			// Stores expected values.
 			fmt.Println("Storing expected soft inference values...")
 			S.Soft(E, "expected")
 			// Derive expected nodes.
 			fmt.Println("Derivating expected nodes...")
-			S.Derive("epweight", "epnode", "expected")
+			S.RootDerive("epweight", "epnode", "expected", mode)
 			// Update weights.
 			fmt.Println("Updating weights...")
-			S.DiscUpdate(eta, ds, "cpweight", "epweight")
+			S.DiscUpdate(eta, ds, "cpweight", "epweight", mode)
 
 			fmt.Printf("Adding convergence diff for instance %d...\n", i)
 			k := S.Value(data[i])

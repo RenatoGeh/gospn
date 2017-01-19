@@ -3,7 +3,7 @@ package language
 import (
 	//"fmt"
 	"github.com/RenatoGeh/gospn/spn"
-	"math"
+	//"math"
 )
 
 // SumVector represents the H layer of the structure described in LMSPN. A layer
@@ -38,7 +38,7 @@ func (s *SumVector) Soft(val spn.VarSet, key string) float64 {
 	//fmt.Printf("SumVector: %.10f\n", v)
 
 	//if key == "soft" {
-	//fmt.Printf("SumVector weights (k=%d):\n", int(ch[0].Soft(val, key)))
+	//fmt.Printf("SumVector (%p) weights (k=%d):\n", s, int(ch[0].Soft(val, key)))
 	//for i := 0; i < len(s.w); i++ {
 	//fmt.Printf("w[%d]=%f ", i, s.w[i])
 	//}
@@ -64,7 +64,7 @@ func (s *SumVector) Max(val spn.VarSet) float64 {
 func (s *SumVector) Type() string { return "sum_vector" }
 
 // Derive derives this node only.
-func (s *SumVector) Derive(wkey, nkey, ikey string) {
+func (s *SumVector) Derive(wkey, nkey, ikey string, mode spn.InfType) int {
 	ch := s.Ch()[0]
 	var pweight []float64
 
@@ -74,15 +74,22 @@ func (s *SumVector) Derive(wkey, nkey, ikey string) {
 		pweight = s.epw
 	}
 
-	v, _ := ch.Stored(ikey)
-	u, _ := s.Stored(nkey)
-	k, n := int(v), len(pweight)
-	pweight[k] = u
-	for i := 0; i < n; i++ {
-		if i != k {
-			pweight[i] = 0.0
+	if mode == spn.SOFT {
+		v, _ := ch.Stored(ikey)
+		u, _ := s.Stored(nkey)
+		k, n := int(v), len(pweight)
+		pweight[k] = u
+		for i := 0; i < n; i++ {
+			if i != k {
+				pweight[i] = 0.0
+			}
 		}
+	} else {
+		v, _ := ch.Stored(ikey)
+		pweight[int(v)]++
 	}
+
+	return 0
 }
 
 // GenUpdate generatively updates weights given an eta learning rate.
@@ -102,33 +109,40 @@ func (s *SumVector) GenUpdate(eta float64, wkey string) {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string) {
-	v, _ := s.Ch()[0].Stored("correct")
-	k := int(v)
-	correct, expected := ds.Correct(), ds.Expected()
-	cc := s.cpw[k] / correct
-	ce := s.epw[k] / expected
-	//if s.w[k] < 0 || s.epw[k] >= expected {
-	//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
-	//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
-	//fmt.Printf("s.w[k]: %.10f\n", s.w[k])
-	//}
-	s.w[k] += eta * (cc - ce)
+func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string, mode spn.InfType) {
+	if mode == spn.SOFT {
+		v, _ := s.Ch()[0].Stored("correct")
+		k := int(v)
+		correct, expected := ds.Correct(), ds.Expected()
+		cc := s.cpw[k] / correct
+		ce := s.epw[k] / expected
+		//if s.w[k] < 0 || s.epw[k] >= expected {
+		//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
+		//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
+		//fmt.Printf("s.w[k]: %.10f\n", s.w[k])
+		//}
+		s.w[k] += eta * (cc - ce)
 
-	// Normalize
-	min := s.w[0]
-	for i := 1; i < s.n; i++ {
-		if s.w[i] < min {
-			min = s.w[i]
-		}
+		// Normalize
+		//min := s.w[0]
+		//for i := 1; i < s.n; i++ {
+		//if s.w[i] < min {
+		//min = s.w[i]
+		//}
+		//}
+		//t := 0.0
+		//for i := 0; i < s.n; i++ {
+		//s.w[i] += math.Abs(min) + 10
+		//t += s.w[i]
+		//}
+		//for i := 0; i < s.n; i++ {
+		//s.w[i] /= t
+		//}
+		return
 	}
-	t := 0.0
-	for i := 0; i < s.n; i++ {
-		s.w[i] += math.Abs(min) + 10
-		t += s.w[i]
-	}
-	for i := 0; i < s.n; i++ {
-		s.w[i] /= t
+	n := len(s.w)
+	for i := 0; i < n; i++ {
+		s.w[i] += eta * (s.cpw[i] - s.epw[i]) / s.w[i]
 	}
 }
 
@@ -142,9 +156,10 @@ func (s *SumVector) RResetDP(key string) {
 func (s *SumVector) ResetDP(key string) {
 	s.Node.ResetDP(key)
 	if key == "" {
-		for k := range s.epw {
-			s.epw[k] = 0.0
-			s.cpw[k] = 0.0
+		n := len(s.epw)
+		for i := 0; i < n; i++ {
+			s.epw[i] = 0.0
+			s.cpw[i] = 0.0
 		}
 	}
 }

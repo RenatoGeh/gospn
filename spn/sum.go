@@ -118,22 +118,37 @@ func (s *Sum) PWeights(key string) []float64 {
 }
 
 // Derive derives this node only.
-func (s *Sum) Derive(wkey, nkey, ikey string) {
+func (s *Sum) Derive(wkey, nkey, ikey string, mode InfType) int {
 	n := len(s.ch)
 	if s.pweights[wkey] == nil {
 		s.pweights[wkey] = make([]float64, n)
 	}
 
-	v, _ := s.Stored(nkey)
-	for i := 0; i < n; i++ {
-		st := s.ch[i].Storer()
-		st[nkey] += s.w[i] * v
-		s.pweights[wkey][i] = st[ikey] * v
+	if mode == SOFT {
+		v, _ := s.Stored(nkey)
+		for i := 0; i < n; i++ {
+			st := s.ch[i].Storer()
+			st[nkey] += s.w[i] * v
+			s.pweights[wkey][i] = st[ikey] * v
+		}
+
+		//for i := 0; i < n; i++ {
+		//s.ch[i].Derive(wkey, nkey, ikey)
+		//}
+
+		return -1
 	}
 
-	//for i := 0; i < n; i++ {
-	//s.ch[i].Derive(wkey, nkey, ikey)
-	//}
+	max, imax := math.Inf(-1), -1
+	for i := 0; i < n; i++ {
+		v, _ := s.ch[i].Stored(ikey)
+		if v > max {
+			max, imax = v, i
+		}
+	}
+	s.pweights[wkey][imax]++
+
+	return imax
 }
 
 // LSoft is Soft in logspace.
@@ -194,15 +209,34 @@ func (s *Sum) Normalize() {
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
+func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode InfType) {
 	n := len(s.ch)
 
-	correct, expected := ds.Correct(), ds.Expected()
-	for i := 0; i < n; i++ {
-		cc := s.pweights[wckey][i] / correct
-		ce := s.pweights[wekey][i] / expected
-		s.w[i] += eta * (cc - ce)
-		//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
+	if mode == SOFT {
+		correct, expected := ds.Correct(), ds.Expected()
+		for i := 0; i < n; i++ {
+			cc := s.pweights[wckey][i] / correct
+			ce := s.pweights[wekey][i] / expected
+			s.w[i] += eta * (cc - ce)
+			//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
+		}
+	} else {
+		if s.pweights[wckey] == nil {
+			s.pweights[wckey] = make([]float64, n)
+		}
+		if s.pweights[wekey] == nil {
+			s.pweights[wekey] = make([]float64, n)
+		}
+		for i := 0; i < n; i++ {
+			//fmt.Printf("[%d-%d]: (%s)->%v, (%s)->%v\n", i, n, wckey, s.pweights[wckey], wekey, s.pweights[wekey])
+			c, e := s.pweights[wckey][i], s.pweights[wekey][i]
+			if s.w[i] > 0 {
+				s.w[i] += (eta * (c - e) / s.w[i])
+			}
+			if c > 0 || e > 0 {
+				s.ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
+			}
+		}
 	}
 
 	if s.norm {
@@ -222,8 +256,10 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string) {
 		}
 	}
 
-	for i := 0; i < n; i++ {
-		s.ch[i].DiscUpdate(eta, ds, wckey, wekey)
+	if mode == SOFT {
+		for i := 0; i < n; i++ {
+			s.ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
+		}
 	}
 }
 
@@ -248,21 +284,25 @@ func (s *Sum) ResetDP(key string) {
 }
 
 // RootDerive derives all nodes in a BFS fashion.
-func (s *Sum) RootDerive(wkey, nkey, ikey string) {
+func (s *Sum) RootDerive(wkey, nkey, ikey string, mode InfType) {
 	q := common.Queue{}
 
 	q.Enqueue(s)
 
 	for !q.Empty() {
-		s := q.Dequeue().(SPN)
-		ch := s.Ch()
+		t := q.Dequeue().(SPN)
+		ch := t.Ch()
 
-		s.Derive(wkey, nkey, ikey)
+		r := t.Derive(wkey, nkey, ikey, mode)
 
-		if ch != nil {
-			n := len(ch)
-			for i := 0; i < n; i++ {
-				q.Enqueue(ch[i])
+		if ch != nil && r != 0 {
+			if r < 0 {
+				n := len(ch)
+				for i := 0; i < n; i++ {
+					q.Enqueue(ch[i])
+				}
+			} else {
+				q.Enqueue(ch[r])
 			}
 		}
 	}
