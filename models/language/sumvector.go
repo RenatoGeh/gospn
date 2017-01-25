@@ -3,7 +3,7 @@ package language
 import (
 	//"fmt"
 	"github.com/RenatoGeh/gospn/spn"
-	//"math"
+	"math"
 )
 
 // SumVector represents the H layer of the structure described in LMSPN. A layer
@@ -21,8 +21,9 @@ type SumVector struct {
 }
 
 // NewSumVector creates a new SumVector node.
-func NewSumVector(waddr, cpweight, epweight []float64) *SumVector {
-	return &SumVector{spn.NewNode(), waddr, len(waddr), cpweight, epweight}
+func NewSumVector(waddr []float64) *SumVector {
+	n := len(waddr)
+	return &SumVector{spn.NewNode(), waddr, n, make([]float64, n), make([]float64, n)}
 }
 
 // Soft is a common base for all soft inference methods.
@@ -114,8 +115,8 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 		v, _ := s.Ch()[0].Stored("correct")
 		k := int(v)
 		correct, expected := ds.Correct(), ds.Expected()
-		cc := s.cpw[k] / correct
-		ce := s.epw[k] / expected
+		cc := s.cpw[k] / (correct + 0.01)
+		ce := s.epw[k] / (expected + 0.01)
 		//if s.w[k] < 0 || s.epw[k] >= expected {
 		//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
 		//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
@@ -124,25 +125,41 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 		s.w[k] += eta * (cc - ce)
 
 		// Normalize
-		//min := s.w[0]
-		//for i := 1; i < s.n; i++ {
-		//if s.w[i] < min {
-		//min = s.w[i]
-		//}
-		//}
-		//t := 0.0
-		//for i := 0; i < s.n; i++ {
-		//s.w[i] += math.Abs(min) + 10
-		//t += s.w[i]
-		//}
-		//for i := 0; i < s.n; i++ {
-		//s.w[i] /= t
-		//}
+		min := s.w[0]
+		for i := 1; i < s.n; i++ {
+			if s.w[i] < min {
+				min = s.w[i]
+			}
+		}
+		t := 0.0
+		for i := 0; i < s.n; i++ {
+			s.w[i] += math.Abs(min) + 10
+			t += s.w[i]
+		}
+		for i := 0; i < s.n; i++ {
+			s.w[i] /= t
+		}
 		return
 	}
 	n := len(s.w)
 	for i := 0; i < n; i++ {
-		s.w[i] += eta * (s.cpw[i] - s.epw[i]) / s.w[i]
+		s.w[i] += eta * (s.cpw[i] - s.epw[i]) / (s.w[i] + 0.01)
+	}
+
+	// Normalize
+	min := s.w[0]
+	for i := 1; i < s.n; i++ {
+		if s.w[i] < min {
+			min = s.w[i]
+		}
+	}
+	t := 0.0
+	for i := 0; i < s.n; i++ {
+		s.w[i] += math.Abs(min) + 10
+		t += s.w[i]
+	}
+	for i := 0; i < s.n; i++ {
+		s.w[i] /= t
 	}
 }
 

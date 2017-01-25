@@ -21,7 +21,7 @@ func Language(vfile string, D, N int) {
 	fmt.Println("Creating SPN structure...")
 	S := Structure(K, D, N)
 	//fmt.Println("Learning...")
-	Learn(S, voc, D, N, spn.HARD)
+	Learn(S, voc, D, N, spn.SOFT)
 
 	pre := make(spn.VarSet)
 	fmt.Printf("Generated the following first %d words from vocabulary:\n ", N)
@@ -67,7 +67,7 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 	S.SetStore(true)
 	voc.Set(N)
 	combs := voc.Combinations()
-	for _l := 0; _l < 1; _l++ {
+	for _l := 0; _l < 2; _l++ {
 		s := 0.0
 		klast := 0.0
 		for i := 0; i < combs; i++ {
@@ -156,15 +156,11 @@ func Structure(K, D, N int) spn.SPN {
 	// | ...  ...  ..   ... ...  |
 	// | w_D1 w_D2 w_D3 ... w_DK |
 	// cpmatrix and epmatrix are wmatrix's respective derivative slices
-	wmatrix, cpmatrix, epmatrix := make([][]float64, D), make([][]float64, D), make([][]float64, D)
+	wmatrix := make([][]float64, D)
 	for i := 0; i < D; i++ {
 		wmatrix[i] = make([]float64, K)
-		cpmatrix[i] = make([]float64, K)
-		epmatrix[i] = make([]float64, K)
 		for j := 0; j < K; j++ {
 			wmatrix[i][j] = rand.Float64()
-			cpmatrix[i][j] = rand.Float64()
-			epmatrix[i][j] = rand.Float64()
 		}
 	}
 	// hmatrix is the H sum nodes matrix
@@ -177,7 +173,7 @@ func Structure(K, D, N int) spn.SPN {
 		hmatrix[i] = make([]*SumVector, D)
 		// Create each H_ij node.
 		for j := 0; j < D; j++ {
-			hmatrix[i][j] = NewSumVector(wmatrix[j], cpmatrix[j], epmatrix[j])
+			hmatrix[i][j] = NewSumVector(wmatrix[j])
 			// Connect sum node H_ij to vector node V_i.
 			hmatrix[i][j].AddChild(V[i])
 		}

@@ -215,8 +215,8 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 	if mode == SOFT {
 		correct, expected := ds.Correct(), ds.Expected()
 		for i := 0; i < n; i++ {
-			cc := s.pweights[wckey][i] / correct
-			ce := s.pweights[wekey][i] / expected
+			cc := s.pweights[wckey][i] / (correct + 0.01)
+			ce := s.pweights[wekey][i] / (expected + 0.01)
 			s.w[i] += eta * (cc - ce)
 			//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
 		}
@@ -230,9 +230,7 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 		for i := 0; i < n; i++ {
 			//fmt.Printf("[%d-%d]: (%s)->%v, (%s)->%v\n", i, n, wckey, s.pweights[wckey], wekey, s.pweights[wekey])
 			c, e := s.pweights[wckey][i], s.pweights[wekey][i]
-			if s.w[i] > 0 {
-				s.w[i] += (eta * (c - e) / s.w[i])
-			}
+			s.w[i] += eta * (c - e) / (s.w[i] + 0.01)
 			if c > 0 || e > 0 {
 				s.ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
 			}

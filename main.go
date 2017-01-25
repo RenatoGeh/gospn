@@ -298,13 +298,13 @@ func main() {
 
 	if mode == "lang_data" {
 		fmt.Printf("Converting dataset %s...\n", dataset)
-		language.Compile("data/amazon/amazon.txt", "data/amazon/amazon.voc")
+		language.Compile("data/"+dataset+"/"+dataset+".txt", "data/"+dataset+"/"+dataset+".voc")
 		return
 	}
 
 	if mode == "lang" {
 		fmt.Printf("Language modelling with dataset %s\n", dataset)
-		language.Language("data/amazon/amazon.voc", 50, 3)
+		language.Language("data/"+dataset+"/"+dataset+".txt", 50, 3)
 		return
 	}
 
