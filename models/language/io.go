@@ -266,3 +266,100 @@ func Write(filename string, S spn.SPN, K, D, N int) {
 		fmt.Fprintf(out, "\n")
 	}
 }
+
+// Read reads an SPN from a .mdl file according to LMSPN.
+func Read(filename string) (int, int, int, spn.SPN) {
+	in, err := os.Open(io.GetPath(filename))
+
+	if err != nil {
+		fmt.Printf("Could not open file [%s].\n", filename)
+		panic(err)
+	}
+	defer in.Close()
+
+	var K, D, N int
+	fmt.Fscanf(in, "%d %d %d", &K, &D, &N)
+
+	// Root node and S_i product nodes.
+	R := spn.NewSum()
+	R.AutoNormalize(true)
+
+	S := make([]*ProductIndicator, K)
+	for i := 0; i < K; i++ {
+		S[i] = NewProductIndicator(i)
+	}
+
+	for i := 0; i < K; i++ {
+		var w float64
+		fmt.Fscanf(in, "%f", &w)
+		R.AddChildW(S[i], w)
+	}
+
+	// B layer.
+	B := make([]*spn.Sum, K)
+	for i := 0; i < K; i++ {
+		B[i] = spn.NewSum()
+		B[i].AutoNormalize(true)
+	}
+
+	for i := 0; i < K; i++ {
+		S[i].AddChild(B[i])
+	}
+
+	// Adding M_i and G_i to B_i node.
+	M, G := make([]*spn.Sum, K), make([]*SquareProduct, K)
+	for i := 0; i < K; i++ {
+		G[i] = NewSquareProduct()
+		M[i] = spn.NewSum()
+		var w1, w2 float64
+		fmt.Fscanf(in, "%f %f", &w1, &w2)
+		B[i].AddChildW(M[i], w1)
+		B[i].AddChildW(G[i], w2)
+		M[i].AutoNormalize(true)
+	}
+
+	// Add only weights for M_i sum node, since we depend on the H layer weights.
+	T := N * D
+	for i := 0; i < K; i++ {
+		for j := 0; j < T; j++ {
+			var w float64
+			fmt.Fscanf(in, "%f", &w)
+			M[i].AddWeight(w)
+		}
+	}
+
+	// Get weights for H layer nodes.
+	wmatrix := make([][]float64, D)
+	for i := 0; i < D; i++ {
+		wmatrix[i] = make([]float64, K)
+		for j := 0; j < K; j++ {
+			fmt.Fscanf(in, "%f", &wmatrix[i][j])
+		}
+	}
+
+	V := make([]*Vector, N)
+	for i := 0; i < N; i++ {
+		V[i] = NewVector(i + 1)
+	}
+
+	// Create H nodes and add Vectors.
+	H := make([][]*SumVector, N)
+	for i := 0; i < N; i++ {
+		H[i] = make([]*SumVector, D)
+		for j := 0; j < D; j++ {
+			H[i][j] = NewSumVector(wmatrix[j])
+			H[i][j].AddChild(V[i])
+		}
+	}
+
+	// Finally add the H nodes as children of the M layer.
+	for i := 0; i < K; i++ {
+		for j := 0; j < N; j++ {
+			for l := 0; l < D; l++ {
+				M[i].AddChild(H[j][l])
+			}
+		}
+	}
+
+	return K, D, N, R
+}
