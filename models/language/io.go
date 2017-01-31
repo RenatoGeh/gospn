@@ -3,6 +3,7 @@ package language
 import (
 	"bufio"
 	"fmt"
+	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/io"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/utils"
@@ -14,8 +15,9 @@ import (
 )
 
 // T-rex: the king of regexers.
-const rex = "(\\w+|[\\.]+|[\\,\\!\\@\\#\\$\\%\\^\\&\\*\\(\\)\\;\\\\\\/\\|\\<\\>\\\"\\'\\:\\`" +
-	"\\=\\-\\?\\+\\{\\}\\[\\]])"
+//const rex = "(\\w+|[\\.]+|[\\,\\!\\@\\#\\$\\%\\^\\&\\*\\(\\)\\;\\\\\\/\\|\\<\\>\\\"\\'\\:\\`" +
+//"\\=\\-\\?\\+\\{\\}\\[\\]])"
+const rex = "(\\w+)"
 
 // Compile takes a plain text filename tfile and compiles it into a vocabulary file vfile. We
 // treat punctuation as words and letters with accent marks as different characters (é != e). A
@@ -192,4 +194,75 @@ func Parse(vfile string) *Vocabulary {
 	}
 
 	return NewVocabulary(entries, block)
+}
+
+// Write writes an SPN according to LMSPN to a .mdl file.
+func Write(filename string, S spn.SPN, K, D, N int) {
+	out, err := os.Open(io.GetPath(filename))
+
+	if err != nil {
+		fmt.Printf("Error. Could not open file [%s].\n", filename)
+		panic(err)
+	}
+	defer out.Close()
+
+	fmt.Fprintf(out, "%d %d %d", K, D, N)
+
+	// Root node and S_i product nodes.
+	q := common.Queue{}
+	ch := S.Ch()
+	root := S.(*spn.Sum)
+	w := root.Weights()
+	for i := 0; i < K; i++ {
+		fmt.Fprintf(out, "%.15f ", w[i])
+		q.Enqueue(ch[i])
+	}
+	fmt.Fprintf(out, "\n")
+
+	// Discarting S_i nodes and retrieving B_i sum nodes.
+	for i := 0; i < K; i++ {
+		s := q.Dequeue().(spn.SPN)
+		b := s.Ch()[0].(*spn.Sum)
+		w, ch = b.Weights(), b.Ch()
+		m := len(w)
+		for j := 0; j < m; j++ {
+			fmt.Fprintf(out, "%.15f ", w[j])
+			q.Enqueue(ch[j])
+		}
+		fmt.Fprintf(out, "\n")
+	}
+
+	// Discarting G_i product nodes and retrieving M_i sum nodes.
+	for i := 0; i < K; i++ {
+		c1, c2 := q.Dequeue().(spn.SPN), q.Dequeue().(spn.SPN)
+		var m *spn.Sum
+		if c1.Type() == "sum" {
+			m = c1.(*spn.Sum)
+		} else if c2.Type() == "sum" {
+			m = c2.(*spn.Sum)
+		} else {
+			fmt.Printf("This should never happen. HALP\n")
+		}
+		w, ch = m.Weights(), m.Ch()
+		l := len(w)
+		for j := 0; j < l; j++ {
+			fmt.Fprintf(out, "%.15f ", w[j])
+			q.Enqueue(ch[j])
+		}
+		fmt.Fprintf(out, "\n")
+	}
+
+	// H_i layer.
+	for i := 0; i < N; i++ {
+		for j := 0; j < D; j++ {
+			h := q.Dequeue().(*SumVector)
+			w := h.w
+			m := h.n
+			for l := 0; l < m; l++ {
+				fmt.Fprintf(out, "%.15f ", w[l])
+			}
+			fmt.Fprintf(out, "\n")
+		}
+		fmt.Fprintf(out, "\n")
+	}
 }
