@@ -15,6 +15,8 @@ type Sum struct {
 	pweights map[string][]float64
 	// Auto-normalizes on weight updating.
 	norm bool
+	// L2 regularization weight penalty.
+	l float64
 }
 
 // NewSum creates a new Sum node.
@@ -194,15 +196,34 @@ func (s *Sum) GenUpdate(eta float64, wkey string) {
 	}
 }
 
-// Normalize normalizes weights.
+// NormalizeThis normalizes only this node's weights.
+func (s *Sum) NormalizeThis() {
+	n := len(s.w)
+	min := s.w[0]
+	var norm float64
+	for i := 1; i < n; i++ {
+		if s.w[i] < min {
+			min = s.w[i]
+		}
+	}
+	if min < 0 {
+		for i := 0; i < n; i++ {
+			s.w[i] += 2 * math.Abs(min)
+		}
+	}
+	for i := 0; i < n; i++ {
+		norm += s.w[i]
+	}
+	for i := 0; i < n; i++ {
+		s.w[i] = s.w[i] / norm
+	}
+}
+
+// Normalize normalizes the SPN's weights.
 func (s *Sum) Normalize() {
-	n, t := len(s.ch), 0.0
-	for i := 0; i < n; i++ {
-		t += s.w[i]
-	}
-	for i := 0; i < n; i++ {
-		s.w[i] /= t
-	}
+	s.NormalizeThis()
+	n := len(s.ch)
+
 	for i := 0; i < n; i++ {
 		s.ch[i].Normalize()
 	}
@@ -217,7 +238,7 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 		for i := 0; i < n; i++ {
 			cc := s.pweights[wckey][i] / (correct + 0.01)
 			ce := s.pweights[wekey][i] / (expected + 0.01)
-			s.w[i] += eta * (cc - ce)
+			s.w[i] += eta * (cc - ce - 2*s.l*s.w[i])
 			//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
 		}
 	} else {
@@ -230,7 +251,7 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 		for i := 0; i < n; i++ {
 			//fmt.Printf("[%d-%d]: (%s)->%v, (%s)->%v\n", i, n, wckey, s.pweights[wckey], wekey, s.pweights[wekey])
 			c, e := s.pweights[wckey][i], s.pweights[wekey][i]
-			s.w[i] += eta * (c - e) / (s.w[i] + 0.01)
+			s.w[i] += eta * ((c-e)/(s.w[i]+0.01) - 2*s.l*s.w[i])
 			if c > 0 || e > 0 {
 				s.ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
 			}
@@ -238,20 +259,7 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 	}
 
 	if s.norm {
-		min := s.w[0]
-		for i := 1; i < n; i++ {
-			if s.w[i] < min {
-				min = s.w[i]
-			}
-		}
-		t := 0.0
-		for i := 0; i < n; i++ {
-			s.w[i] += math.Abs(min) + 10
-			t += s.w[i]
-		}
-		for i := 0; i < n; i++ {
-			s.w[i] /= t
-		}
+		s.NormalizeThis()
 	}
 
 	if mode == SOFT {
@@ -303,5 +311,17 @@ func (s *Sum) RootDerive(wkey, nkey, ikey string, mode InfType) {
 				q.Enqueue(ch[r])
 			}
 		}
+	}
+}
+
+// L2 regularization weight penalty.
+func (s *Sum) L2() float64 { return s.l }
+
+// SetL2 changes the L2 regularization weight penalty throughout all SPN.
+func (s *Sum) SetL2(l float64) {
+	n := len(s.ch)
+	s.l = l
+	for i := 0; i < n; i++ {
+		s.ch[i].SetL2(l)
 	}
 }

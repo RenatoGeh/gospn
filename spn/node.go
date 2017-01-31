@@ -125,6 +125,10 @@ type SPN interface {
 	ResetDP(key string)
 	// RResetDP recursively ResetDPs all children.
 	RResetDP(key string)
+	// L2 regularization weight penalty.
+	L2() float64
+	// SetL2 changes the L2 regularization weight penalty throughout all SPN.
+	SetL2(float64)
 }
 
 // VarSet is a variable set specifying variables and their respective instantiations.
@@ -286,3 +290,14 @@ func (n *Node) RootDerive(wkey, nkey, ikey string, mode InfType) {}
 
 // Stores returns whether this node stores.
 func (n *Node) Stores() bool { return n.stores }
+
+// L2 regularization weight penalty.
+func (n *Node) L2() float64 { return 0 }
+
+// SetL2 changes the L2 regularization weight penalty throughout all SPN.
+func (n *Node) SetL2(l float64) {
+	m := len(n.ch)
+	for i := 0; i < m; i++ {
+		n.ch[i].SetL2(l)
+	}
+}

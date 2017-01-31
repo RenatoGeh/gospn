@@ -25,11 +25,14 @@ func Language(vfile string, D, N int) {
 
 	pre := make(spn.VarSet)
 	fmt.Printf("Generated the following first %d words from vocabulary:\n ", N)
-	for i := 1; i <= N; i++ {
-		w, id := voc.Rand()
-		pre[i] = id
-		fmt.Printf(" %s", w)
-	}
+	//for i := 1; i <= N; i++ {
+	//w, id := voc.Rand()
+	//pre[i] = id
+	//fmt.Printf(" %s", w)
+	//}
+	pre[1] = 0
+	pre[2] = 1
+	pre[3] = 2
 
 	const M = 100
 	S.SetStore(false)
@@ -59,13 +62,15 @@ func Language(vfile string, D, N int) {
 
 // Learn learns weights according to LMSPN.
 func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
-	const eta = 0.1
+	const eta = 0.01
 
 	conv := 1.0
 	last := 0.0
 
 	S.SetStore(true)
 	voc.Set(N)
+	S.Normalize()
+	S.SetL2(0.0001)
 	combs := voc.Combinations()
 	for _l := 0; _l < 2; _l++ {
 		s := 0.0
@@ -107,22 +112,20 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 			s += k - klast
 			klast = k
 
-			if k == math.NaN() {
-				T := make(spn.VarSet)
-				T[1] = 1
-				T[2] = 2
-				T[3] = 3
-				for j := 0; j < voc.Size(); j++ {
-					T[0] = j
-					S.RResetDP("")
-					v := S.Value(T)
-					fmt.Printf("\nPr(X=%d|%d", j, T[1])
-					for l := 2; l < len(T); l++ {
-						fmt.Printf(",%d", T[l])
-					}
-					fmt.Printf(")=%.10f", v)
-				}
-			}
+			//T := make(spn.VarSet)
+			//T[1] = 1
+			//T[2] = 2
+			//T[3] = 3
+			//for j := 0; j < voc.Size(); j++ {
+			//T[0] = j
+			//S.RResetDP("")
+			//v := S.Value(T)
+			//fmt.Printf("\nPr(X=%d|%d", j, T[1])
+			//for l := 2; l < len(T); l++ {
+			//fmt.Printf(",%d", T[l])
+			//}
+			//fmt.Printf(")=%.10f", v)
+			//}
 
 			C = nil
 			E = nil
@@ -192,7 +195,7 @@ func Structure(K, D, N int) spn.SPN {
 				M[i].AddChildW(hmatrix[p][q], rand.Float64())
 			}
 		}
-		//M[i].AutoNormalize(true)
+		M[i].AutoNormalize(true)
 	}
 
 	// G product nodes layer
@@ -212,7 +215,7 @@ func Structure(K, D, N int) spn.SPN {
 		// Add both M_i and G_i as children of B_i.
 		B[i].AddChildW(M[i], rand.Float64())
 		B[i].AddChildW(G[i], rand.Float64())
-		//B[i].AutoNormalize(true)
+		B[i].AutoNormalize(true)
 	}
 
 	// S product nodes layer

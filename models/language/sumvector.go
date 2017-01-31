@@ -18,12 +18,14 @@ type SumVector struct {
 	// Store partial deriatives wrt weights.
 	cpw []float64
 	epw []float64
+	// L2 regularization weight penalty.
+	l float64
 }
 
 // NewSumVector creates a new SumVector node.
 func NewSumVector(waddr []float64) *SumVector {
 	n := len(waddr)
-	return &SumVector{spn.NewNode(), waddr, n, make([]float64, n), make([]float64, n)}
+	return &SumVector{spn.NewNode(), waddr, n, make([]float64, n), make([]float64, n), 0}
 }
 
 // Soft is a common base for all soft inference methods.
@@ -63,6 +65,34 @@ func (s *SumVector) Max(val spn.VarSet) float64 {
 
 // Type returns the type of this node.
 func (s *SumVector) Type() string { return "sum_vector" }
+
+// NormalizeThis normalizes only this node's weights.
+func (s *SumVector) NormalizeThis() {
+	n := len(s.w)
+	min := s.w[0]
+	var norm float64
+	for i := 1; i < n; i++ {
+		if s.w[i] < min {
+			min = s.w[i]
+		}
+	}
+	if min < 0 {
+		for i := 0; i < n; i++ {
+			s.w[i] += 2 * math.Abs(min)
+		}
+	}
+	for i := 0; i < n; i++ {
+		norm += s.w[i]
+	}
+	for i := 0; i < n; i++ {
+		s.w[i] = s.w[i] / norm
+	}
+}
+
+// Normalize normalizes the SPN's weights.
+func (s *SumVector) Normalize() {
+	s.NormalizeThis()
+}
 
 // Derive derives this node only.
 func (s *SumVector) Derive(wkey, nkey, ikey string, mode spn.InfType) int {
@@ -111,56 +141,32 @@ func (s *SumVector) GenUpdate(eta float64, wkey string) {
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
 func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string, mode spn.InfType) {
+	n := s.n
 	if mode == spn.SOFT {
-		v, _ := s.Ch()[0].Stored("correct")
-		k := int(v)
-		correct, expected := ds.Correct(), ds.Expected()
-		cc := s.cpw[k] / (correct + 0.01)
-		ce := s.epw[k] / (expected + 0.01)
-		//if s.w[k] < 0 || s.epw[k] >= expected {
-		//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
-		//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
-		//fmt.Printf("s.w[k]: %.10f\n", s.w[k])
-		//}
-		s.w[k] += eta * (cc - ce)
+		//v, _ := s.Ch()[0].Stored("correct")
+		//k := int(v)
+		for i := 0; i < n; i++ {
+			correct, expected := ds.Correct(), ds.Expected()
+			cc := s.cpw[i] / (correct + 0.01)
+			ce := s.epw[i] / (expected + 0.01)
+			//if s.w[k] < 0 || s.epw[k] >= expected {
+			//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
+			//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
+			//fmt.Printf("s.w[k]: %.10f\n", s.w[k])
+			//}
+			s.w[i] += eta * (cc - ce - 2*s.l*s.w[i])
+		}
 
 		// Normalize
-		min := s.w[0]
-		for i := 1; i < s.n; i++ {
-			if s.w[i] < min {
-				min = s.w[i]
-			}
-		}
-		t := 0.0
-		for i := 0; i < s.n; i++ {
-			s.w[i] += math.Abs(min) + 10
-			t += s.w[i]
-		}
-		for i := 0; i < s.n; i++ {
-			s.w[i] /= t
-		}
+		s.Normalize()
 		return
 	}
-	n := len(s.w)
 	for i := 0; i < n; i++ {
-		s.w[i] += eta * (s.cpw[i] - s.epw[i]) / (s.w[i] + 0.01)
+		s.w[i] += eta * ((s.cpw[i]-s.epw[i])/(s.w[i]+0.01) - 2*s.l*s.w[i])
 	}
 
 	// Normalize
-	min := s.w[0]
-	for i := 1; i < s.n; i++ {
-		if s.w[i] < min {
-			min = s.w[i]
-		}
-	}
-	t := 0.0
-	for i := 0; i < s.n; i++ {
-		s.w[i] += math.Abs(min) + 10
-		t += s.w[i]
-	}
-	for i := 0; i < s.n; i++ {
-		s.w[i] /= t
-	}
+	s.Normalize()
 }
 
 // RResetDP recursively ResetDPs all children.
@@ -178,5 +184,18 @@ func (s *SumVector) ResetDP(key string) {
 			s.epw[i] = 0.0
 			s.cpw[i] = 0.0
 		}
+	}
+}
+
+// L2 regularization weight penalty.
+func (s *SumVector) L2() float64 { return s.l }
+
+// SetL2 changes the L2 regularization weight penalty throughout all SPN.
+func (s *SumVector) SetL2(l float64) {
+	ch := s.Ch()
+	n := len(ch)
+	s.l = l
+	for i := 0; i < n; i++ {
+		ch[i].SetL2(l)
 	}
 }
