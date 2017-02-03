@@ -40,19 +40,26 @@ simpler, clearer way then how it is currently written in literature.
 A thorough analysis on our implementation can be found at
 (<https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf>).
 
+### Branches
+
+- `stable` contains a stable version of GoSPN. It should yield the same
+  results as documented on (<https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf>).
+- `master` contains the development version of GoSPN.
+
 ### Usage
 
-To run GoSPN, we must complete a few steps:
+Let's first define the variable `$GOSPN` as the path
+`$GOPATH/src/github.com/RenatoGeh/gospn`. To run GoSPN, we must complete a few steps:
 
 1. Prepare the dataset:
   - Let `ds` be your dataset's name.
-  - Create a new directory `/data/ds`, where root is the root of the
+  - Create a new directory `$GOPATH/data/ds`, where root is the root of the
     GoSPN package.
-  - Each subdirectory inside `/data/ds` represents a different class.
+  - Each subdirectory inside `$GOPATH/data/ds` represents a different class.
   - For example: if we have three classes, `dog`, `cat` and `mouse`,
-    then we might have three subdirectories inside `/data/ds` named
+    then we might have three subdirectories inside `$GOPATH/data/ds` named
     `dog`, `cat` and `mouse`.
-  - Copy your class instances into `/data/ds/classname`.
+  - Copy your class instances into `$GOPATH/data/ds/classname`.
 2. Compile the dataset into a `.data` file:
   - If the dataset is an image, take note of the dimensions and max
     value pixels take.
@@ -60,10 +67,9 @@ To run GoSPN, we must complete a few steps:
     the max value.
   - Compile the data with `go run main.go -mode=data -width=w -height=h
     -max=m -dataset=ds`
-  - This will generate a `.data` file inside `/data/ds/all/`. By default
+  - This will generate a `.data` file inside `$GOPATH/data/ds/all/`. By default
     it is named `all.data`.
 3. Run a job by running GoSPN with the following syntax.
-
 
 ```
 Usage:
@@ -108,6 +114,9 @@ Arguments:
 ```
 
 Running `go run main.go -help` shows the help page.
+
+Example datasets are available at `$GOSPN/data` as credited on section
+<https://github.com/RenatoGeh/gospn#datasets>.
 
 #### For step 3 to run a classification job:
 
@@ -198,10 +207,10 @@ This should install GoSPN to your $GOPATH directory. Compiling the code
 is easy. First go to the GoSPN source dir.
 
 ```
-$ cd $GOPATH/github.com/RenatoGeh/gospn/
+$ cd $GOPATH/src/github.com/RenatoGeh/gospn/
 ```
 
-To compile and run:
+We'll call `$GOPATH/src/github.com/RenatoGeh/gospn/` as `$GOSPN`. To compile and run:
 
 ```
 $ go run main.go <args>
@@ -285,3 +294,4 @@ This is a TODO list:
   Learning of Sum-Product Networks* (R. Gens, P. Domingos) NIPS 2012
 * Implement language modelling SPN based on the paper *Language
   Modelling with Sum-Product Networks* (Cheng *et al*) INTERSPEECH 2014
+* Add support for `.arff` and `.csv` dataset file formats.
