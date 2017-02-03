@@ -2,7 +2,6 @@ package spn
 
 import (
 	"math"
-	"sort"
 )
 
 // Sum represents a sum node in an SPN.
@@ -40,15 +39,21 @@ func (s *Sum) Value(val VarSet) float64 {
 	n := len(s.ch)
 
 	vals := make([]float64, n)
+	max, imax := math.Inf(-1), -1
 	for i := 0; i < n; i++ {
 		v, w := s.ch[i].Value(val), math.Log(s.w[i])
 		vals[i] = v + w
+		if vals[i] > max {
+			max, imax = vals[i], i
+		}
 	}
-	sort.Float64s(vals)
-	p, r := vals[n-1], 0.0
 
-	for i := 0; i < n-1; i++ {
-		r += math.Exp(vals[i] - p)
+	p, r := max, 0.0
+
+	for i := 0; i < n; i++ {
+		if i != imax {
+			r += math.Exp(vals[i] - p)
+		}
 	}
 
 	r = p + math.Log1p(r)
@@ -85,8 +90,8 @@ func (s *Sum) ArgMax(val VarSet) (VarSet, float64) {
 		}
 	}
 
-	amax, mval := mch.ArgMax(val)
-	return amax, mval
+	amax, _ := mch.ArgMax(val)
+	return amax, max
 }
 
 // Type returns the type of this node.
