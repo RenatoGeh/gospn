@@ -3,7 +3,7 @@ package language
 import (
 	"fmt"
 	"github.com/RenatoGeh/gospn/spn"
-	"math"
+	//"math"
 	"math/rand"
 )
 
@@ -23,16 +23,19 @@ func Language(vfile string, D, N int) {
 	//fmt.Println("Learning...")
 	Learn(S, voc, D, N, spn.SOFT)
 
+	//fmt.Println("Writing to file...")
+	//Write("lmspn.mdl", S, K, D, N)
+
 	pre := make(spn.VarSet)
 	fmt.Printf("Generated the following first %d words from vocabulary:\n ", N)
-	//for i := 1; i <= N; i++ {
-	//w, id := voc.Rand()
-	//pre[i] = id
-	//fmt.Printf(" %s", w)
-	//}
-	pre[1] = 0
-	pre[2] = 1
-	pre[3] = 2
+	for i := 1; i <= N; i++ {
+		w, id := voc.Rand()
+		pre[i] = id
+		fmt.Printf(" %s", w)
+	}
+	//pre[1] = 0
+	//pre[2] = 1
+	//pre[3] = 2
 
 	const M = 100
 	S.SetStore(false)
@@ -62,23 +65,32 @@ func Language(vfile string, D, N int) {
 
 // Learn learns weights according to LMSPN.
 func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
-	const eta = 0.01
+	const eta = 0.001
 
-	conv := 1.0
-	last := 0.0
+	const (
+		ckey     = "correct"
+		ekey     = "expected"
+		pcnode   = "cpnode"
+		penode   = "epnode"
+		pcweight = "cpweight"
+		peweight = "epweight"
+	)
+
+	//conv := 1.0
+	//last := 0.0
 
 	S.SetStore(true)
 	voc.Set(N)
-	S.Normalize()
-	S.SetL2(0.0001)
+	//S.Normalize()
+	//S.SetL2(0.00001)
 	combs := voc.Combinations()
 	for _l := 0; _l < 2; _l++ {
-		s := 0.0
-		klast := 0.0
+		//s := 0.0
+		//klast := 0.0
 		for i := 0; i < combs; i++ {
 			S.RResetDP("")
-			S.Rootify("cpnode")
-			S.Rootify("epnode")
+			S.Rootify(pcnode)
+			S.Rootify(penode)
 			C, E := voc.Next(), make(spn.VarSet)
 			m := len(C)
 			fmt.Printf("Learning with words: %s", voc.Translate(C[0]))
@@ -87,30 +99,30 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 				fmt.Printf(" %s", voc.Translate(C[i]))
 			}
 			fmt.Printf("\n")
-			ds := spn.NewDiscStorer(S, C, E)
-			//ds.Store(false)
+			ds := spn.NewDiscStorer(S, C, E, ckey, ekey)
+			ds.Store(false)
 			// Stores correct/guess values.
 			fmt.Println("Storing correct/guess soft inference values...")
-			fmt.Printf("Correct = %f\n", S.Soft(C, "correct"))
+			fmt.Printf("Correct = %f\n", S.Soft(C, ckey))
 			// Derive correct/guess nodes.
 			fmt.Println("Derivating correct/guess nodes...")
-			S.RootDerive("cpweight", "cpnode", "correct", mode)
+			S.RootDerive(pcweight, pcnode, ckey, mode)
 			// Stores expected values.
 			fmt.Println("Storing expected soft inference values...")
-			fmt.Printf("Expected = %f\n", S.Soft(E, "expected"))
+			fmt.Printf("Expected = %f\n", S.Soft(E, ekey))
 			// Derive expected nodes.
 			fmt.Println("Derivating expected nodes...")
-			S.RootDerive("epweight", "epnode", "expected", mode)
+			S.RootDerive(peweight, penode, ekey, mode)
 			// Update weights.
 			fmt.Println("Updating weights...")
-			S.DiscUpdate(eta, ds, "cpweight", "epweight", mode)
+			S.DiscUpdate(eta, ds, pcweight, peweight, mode)
 
 			fmt.Printf("Adding convergence diff for instance %d...\n", i)
 			S.RResetDP("")
 			k := S.Value(C)
 			fmt.Printf("Diff component %d: %f\n", i, k)
-			s += k - klast
-			klast = k
+			//s += k - klast
+			//klast = k
 
 			//T := make(spn.VarSet)
 			//T[1] = 1
@@ -130,10 +142,10 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 			C = nil
 			E = nil
 		}
-		d := s - last
-		last = s
-		conv = d
-		fmt.Printf("Discriminative Learning diff: %.5f\n", math.Abs(conv))
+		//d := s - last
+		//last = s
+		//conv = d
+		//fmt.Printf("Discriminative Learning diff: %.5f\n", math.Abs(conv))
 		voc.Set(N)
 	}
 
@@ -195,7 +207,7 @@ func Structure(K, D, N int) spn.SPN {
 				M[i].AddChildW(hmatrix[p][q], rand.Float64())
 			}
 		}
-		M[i].AutoNormalize(true)
+		//M[i].AutoNormalize(true)
 	}
 
 	// G product nodes layer
@@ -215,7 +227,7 @@ func Structure(K, D, N int) spn.SPN {
 		// Add both M_i and G_i as children of B_i.
 		B[i].AddChildW(M[i], rand.Float64())
 		B[i].AddChildW(G[i], rand.Float64())
-		B[i].AutoNormalize(true)
+		//B[i].AutoNormalize(true)
 	}
 
 	// S product nodes layer

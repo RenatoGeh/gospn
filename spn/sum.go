@@ -102,8 +102,8 @@ func (s *Sum) ArgMax(val VarSet) (VarSet, float64) {
 		}
 	}
 
-	amax, mval := mch.ArgMax(val)
-	return amax, mval
+	amax, _ := mch.ArgMax(val)
+	return amax, max
 }
 
 // Type returns the type of this node.
@@ -200,17 +200,18 @@ func (s *Sum) GenUpdate(eta float64, wkey string) {
 func (s *Sum) NormalizeThis() {
 	n := len(s.w)
 	min := s.w[0]
-	var norm float64
 	for i := 1; i < n; i++ {
 		if s.w[i] < min {
 			min = s.w[i]
 		}
 	}
 	if min < 0 {
+		min = math.Abs(min)
 		for i := 0; i < n; i++ {
-			s.w[i] += 2 * math.Abs(min)
+			s.w[i] += min
 		}
 	}
+	var norm float64
 	for i := 0; i < n; i++ {
 		norm += s.w[i]
 	}
@@ -236,9 +237,15 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 	if mode == SOFT {
 		correct, expected := ds.Correct(), ds.Expected()
 		for i := 0; i < n; i++ {
-			cc := s.pweights[wckey][i] / (correct + 0.01)
-			ce := s.pweights[wekey][i] / (expected + 0.01)
-			s.w[i] += eta * (cc - ce - 2*s.l*s.w[i])
+			cc := s.pweights[wckey][i] / (correct + 0.000001)
+			ce := s.pweights[wekey][i] / (expected + 0.000001)
+			//cpn, _ := s.Stored("cpnode")
+			//epn, _ := s.Stored("epnode")
+			//fmt.Printf("Sum -> cpnode = %.10f, epnode = %.10f\n", cpn, epn)
+			//fmt.Printf("Sum -> cc = %.10f / (%.10f + 0.000001) = %.10f\n", s.pweights[wckey][i], correct, cc)
+			//fmt.Printf("Sum -> ce = %.10f / (%.10f + 0.000001) = %.10f\n", s.pweights[wekey][i], expected, ce)
+			//fmt.Printf("Sum -> w: %f += (cc: %.10f - ce: %.10f = %.10f)\n", s.w[i], cc, ce, cc-ce)
+			s.w[i] += eta * (cc - ce /*- 2*s.l*s.w[i]*/)
 			//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
 		}
 	} else {
@@ -285,7 +292,7 @@ func (s *Sum) ResetDP(key string) {
 	if key == "" {
 		s.pweights = make(map[string][]float64)
 	} else {
-		s.pweights[key] = nil
+		delete(s.pweights, key)
 	}
 }
 

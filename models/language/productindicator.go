@@ -31,7 +31,6 @@ func (p *ProductIndicator) Soft(val spn.VarSet, key string) float64 {
 	if _y, ok := val[0]; _y == p.indicator || !ok {
 		v = ch.Soft(val, key)
 	} else {
-		ch.Soft(val, key)
 		v = 0.0
 	}
 
@@ -50,9 +49,9 @@ func (p *ProductIndicator) Derive(wkey, nkey, ikey string, mode spn.InfType) int
 		ch := p.Ch()[0]
 
 		v, _ := p.Stored(ikey)
-		//if v == 0.0 {
-		//return 0
-		//}
+		if v == 0.0 {
+			return 0
+		}
 		st := ch.Storer()
 		if v != 0.0 {
 			u, _ := p.Stored(nkey)
@@ -66,12 +65,12 @@ func (p *ProductIndicator) Derive(wkey, nkey, ikey string, mode spn.InfType) int
 }
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
-//func (p *ProductIndicator) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string, mode spn.InfType) {
-//if v := ds.CorrectSet()[0]; v == p.indicator {
-//ch := p.Ch()
-//m := len(ch)
-//for i := 0; i < m; i++ {
-//ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
-//}
-//}
-//}
+func (p *ProductIndicator) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string, mode spn.InfType) {
+	if v := ds.CorrectSet()[0]; v == p.indicator {
+		ch := p.Ch()
+		m := len(ch)
+		for i := 0; i < m; i++ {
+			ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
+		}
+	}
+}

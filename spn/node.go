@@ -15,11 +15,15 @@ type DiscStorer struct {
 	e VarSet
 	// Whether to store.
 	store bool
+	// Correct key.
+	ckey string
+	// Expected key.
+	ekey string
 }
 
 // NewDiscStorer creates a new DiscStorer.
-func NewDiscStorer(s SPN, c, e VarSet) *DiscStorer {
-	return &DiscStorer{s, c, e, true}
+func NewDiscStorer(s SPN, c, e VarSet, ckey, ekey string) *DiscStorer {
+	return &DiscStorer{s, c, e, true, ckey, ekey}
 }
 
 // Store sets DiscStorer to store previously computed values.
@@ -27,20 +31,36 @@ func (ds *DiscStorer) Store(store bool) { ds.store = store }
 
 // Correct returns the value of the stored SPN given a correct valuation.
 func (ds *DiscStorer) Correct() float64 {
-	if v, ok := ds.s.Stored("correct"); ds.store && ok {
+	if v, ok := ds.s.Stored(ds.ckey); ds.store && ok {
 		return v
 	}
-	ds.s.RResetDP("correct")
-	return ds.s.Soft(ds.c, "correct")
+	//ds.s.RResetDP(ds.ckey)
+	l := ds.s.Stores()
+	if l {
+		ds.s.SetStore(false)
+	}
+	val := ds.s.Soft(ds.c, ds.ckey)
+	if l {
+		ds.s.SetStore(l)
+	}
+	return val
 }
 
 // Expected returns the value of the stored SPN given an expected valuation.
 func (ds *DiscStorer) Expected() float64 {
-	if v, ok := ds.s.Stored("expected"); ds.store && ok {
+	if v, ok := ds.s.Stored(ds.ekey); ds.store && ok {
 		return v
 	}
-	ds.s.RResetDP("expected")
-	return ds.s.Soft(ds.e, "expected")
+	//ds.s.RResetDP(ds.ekey)
+	l := ds.s.Stores()
+	if l {
+		ds.s.SetStore(false)
+	}
+	val := ds.s.Soft(ds.e, ds.ekey)
+	if l {
+		ds.s.SetStore(l)
+	}
+	return val
 }
 
 // CorrectSet returns the correct VarSet.
@@ -195,7 +215,7 @@ func (n *Node) Stored(key string) (float64, bool) {
 	if val, ok := n.s[key]; ok && n.stores {
 		return val, true
 	}
-	return -1, false
+	return 0, false
 }
 
 // Store stores an SPN evaluation for DP reasons.

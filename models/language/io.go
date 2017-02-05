@@ -198,7 +198,7 @@ func Parse(vfile string) *Vocabulary {
 
 // Write writes an SPN according to LMSPN to a .mdl file.
 func Write(filename string, S spn.SPN, K, D, N int) {
-	out, err := os.Open(io.GetPath(filename))
+	out, err := os.Create(io.GetPath(filename))
 
 	if err != nil {
 		fmt.Printf("Error. Could not open file [%s].\n", filename)
@@ -206,9 +206,10 @@ func Write(filename string, S spn.SPN, K, D, N int) {
 	}
 	defer out.Close()
 
-	fmt.Fprintf(out, "%d %d %d", K, D, N)
+	fmt.Fprintf(out, "%d %d %d\n", K, D, N)
 
 	// Root node and S_i product nodes.
+	fmt.Fprintf(out, "# Weights going from root node to S layer.\n")
 	q := common.Queue{}
 	ch := S.Ch()
 	root := S.(*spn.Sum)
@@ -220,6 +221,7 @@ func Write(filename string, S spn.SPN, K, D, N int) {
 	fmt.Fprintf(out, "\n")
 
 	// Discarting S_i nodes and retrieving B_i sum nodes.
+	fmt.Fprintf(out, "# Weights going from B layer to G and M layers.\n")
 	for i := 0; i < K; i++ {
 		s := q.Dequeue().(spn.SPN)
 		b := s.Ch()[0].(*spn.Sum)
@@ -233,6 +235,7 @@ func Write(filename string, S spn.SPN, K, D, N int) {
 	}
 
 	// Discarting G_i product nodes and retrieving M_i sum nodes.
+	fmt.Fprintf(out, "# Weights going from M layer to H layer.\n")
 	for i := 0; i < K; i++ {
 		c1, c2 := q.Dequeue().(spn.SPN), q.Dequeue().(spn.SPN)
 		var m *spn.Sum
@@ -251,6 +254,7 @@ func Write(filename string, S spn.SPN, K, D, N int) {
 		}
 		fmt.Fprintf(out, "\n")
 	}
+	fmt.Fprintf(out, "\n# Weights going from H layer to feature vectors.\n")
 
 	// H_i layer.
 	for i := 0; i < N; i++ {
