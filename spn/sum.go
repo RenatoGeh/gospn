@@ -235,7 +235,10 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 	n := len(s.ch)
 
 	if mode == SOFT {
+		ds.ResetSPN("")
 		correct, expected := ds.Correct(), ds.Expected()
+		ds.DeriveExpected(s)
+		ds.DeriveCorrect(s)
 		for i := 0; i < n; i++ {
 			cc := s.pweights[wckey][i] / (correct + 0.000001)
 			ce := s.pweights[wekey][i] / (expected + 0.000001)

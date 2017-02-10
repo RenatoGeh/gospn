@@ -1,8 +1,18 @@
 package spn
 
 import (
-//"fmt"
-//"github.com/RenatoGeh/gospn/common"
+	//"fmt"
+	"github.com/RenatoGeh/gospn/common"
+)
+
+// InfType is Inference Type (soft or hard).
+type InfType int
+
+const (
+	// SOFT is soft inference
+	SOFT InfType = iota
+	// HARD is hard inference
+	HARD
 )
 
 // DiscStorer stores relevant information for DiscUpdate.
@@ -19,11 +29,22 @@ type DiscStorer struct {
 	ckey string
 	// Expected key.
 	ekey string
+	// Partial derivative for correct label key.
+	pcnode string
+	// Partial derivative for expected label key.
+	penode string
+	// Partial weight derivative for correct label key.
+	pcweight string
+	// Partial weight derivative for expected label key.
+	peweight string
+	// Inference type.
+	mode InfType
 }
 
 // NewDiscStorer creates a new DiscStorer.
-func NewDiscStorer(s SPN, c, e VarSet, ckey, ekey string) *DiscStorer {
-	return &DiscStorer{s, c, e, true, ckey, ekey}
+func NewDiscStorer(s SPN, c, e VarSet, ckey, ekey, pcnode, penode, pcweight, peweight string,
+	mode InfType) *DiscStorer {
+	return &DiscStorer{s, c, e, true, ckey, ekey, pcnode, penode, pcweight, peweight, mode}
 }
 
 // Store sets DiscStorer to store previously computed values.
@@ -34,15 +55,8 @@ func (ds *DiscStorer) Correct() float64 {
 	if v, ok := ds.s.Stored(ds.ckey); ds.store && ok {
 		return v
 	}
-	//ds.s.RResetDP(ds.ckey)
-	l := ds.s.Stores()
-	if l {
-		ds.s.SetStore(false)
-	}
+	ds.s.RResetDP(ds.ckey)
 	val := ds.s.Soft(ds.c, ds.ckey)
-	if l {
-		ds.s.SetStore(l)
-	}
 	return val
 }
 
@@ -51,16 +65,73 @@ func (ds *DiscStorer) Expected() float64 {
 	if v, ok := ds.s.Stored(ds.ekey); ds.store && ok {
 		return v
 	}
-	//ds.s.RResetDP(ds.ekey)
-	l := ds.s.Stores()
-	if l {
-		ds.s.SetStore(false)
-	}
+	ds.s.RResetDP(ds.ekey)
 	val := ds.s.Soft(ds.e, ds.ekey)
-	if l {
-		ds.s.SetStore(l)
-	}
 	return val
+}
+
+// DeriveCorrect returns the derivative of the correct VarSet.
+func (ds *DiscStorer) DeriveCorrect(bound SPN) {
+	if ds.store {
+		return
+	}
+	q := common.Queue{}
+
+	q.Enqueue(ds.s)
+
+	for !q.Empty() {
+		t := q.Dequeue().(SPN)
+		ch := t.Ch()
+
+		r := t.Derive(ds.pcweight, ds.pcnode, ds.ckey, ds.mode)
+
+		if t == bound {
+			return
+		}
+
+		if ch != nil && r != 0 {
+			if r < 0 {
+				n := len(ch)
+				for i := 0; i < n; i++ {
+					q.Enqueue(ch[i])
+				}
+			} else {
+				q.Enqueue(ch[r])
+			}
+		}
+	}
+}
+
+// DeriveExpected returns the derivative of the correct VarSet.
+func (ds *DiscStorer) DeriveExpected(bound SPN) {
+	if ds.store {
+		return
+	}
+	q := common.Queue{}
+
+	q.Enqueue(ds.s)
+
+	for !q.Empty() {
+		t := q.Dequeue().(SPN)
+		ch := t.Ch()
+
+		r := t.Derive(ds.peweight, ds.penode, ds.ekey, ds.mode)
+
+		if t == bound {
+			return
+		}
+
+		if ch != nil && r != 0 {
+			if r < 0 {
+				n := len(ch)
+				for i := 0; i < n; i++ {
+					q.Enqueue(ch[i])
+				}
+			} else {
+				q.Enqueue(ch[r])
+			}
+		}
+	}
 }
 
 // CorrectSet returns the correct VarSet.
@@ -69,15 +140,8 @@ func (ds *DiscStorer) CorrectSet() VarSet { return ds.c }
 // ExpectedSet returns the expected VarSet.
 func (ds *DiscStorer) ExpectedSet() VarSet { return ds.e }
 
-// InfType is Inference Type (soft or hard).
-type InfType int
-
-const (
-	// SOFT is soft inference
-	SOFT InfType = iota
-	// HARD is hard inference
-	HARD
-)
+// ResetSPN resets the SPN.
+func (ds *DiscStorer) ResetSPN(key string) { ds.s.RResetDP(key) }
 
 // Node represents a node in an SPN.
 type Node struct {

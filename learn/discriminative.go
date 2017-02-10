@@ -32,7 +32,7 @@ func Discriminative(S spn.SPN, data []map[int]int, Y []int, X []int, eta float64
 				C[X[j]] = _v
 				E[X[j]] = _v
 			}
-			ds := spn.NewDiscStorer(S, C, E, "correct", "expected")
+			ds := spn.NewDiscStorer(S, C, E, "correct", "expected", "cpnode", "epnode", "cpweight", "epweight", mode)
 			// Stores correct/guess values.
 			fmt.Println("Storing correct/guess soft inference values...")
 			S.Soft(C, "correct")

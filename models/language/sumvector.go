@@ -145,7 +145,10 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 	n := s.n
 	if mode == spn.SOFT {
 		//for i := 0; i < n; i++ {
+		ds.ResetSPN("")
 		correct, expected := ds.Correct(), ds.Expected()
+		ds.DeriveExpected(s)
+		ds.DeriveCorrect(s)
 		v, _ := s.Ch()[0].Stored("correct")
 		k := int(v)
 		cc := s.cpw[k] / (correct + 0.000001)

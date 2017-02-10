@@ -94,26 +94,26 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 			C, E := voc.Next(), make(spn.VarSet)
 			m := len(C)
 			fmt.Printf("Learning with words: %s", voc.Translate(C[0]))
-			for i := 1; i < m; i++ {
-				E[i] = C[i]
-				fmt.Printf(" %s", voc.Translate(C[i]))
+			for j := 1; j < m; j++ {
+				E[j] = C[j]
+				fmt.Printf(" %s", voc.Translate(C[j]))
 			}
 			fmt.Printf("\n")
-			ds := spn.NewDiscStorer(S, C, E, ckey, ekey)
+			ds := spn.NewDiscStorer(S, C, E, ckey, ekey, pcnode, penode, pcweight, peweight, mode)
 			ds.Store(false)
-			// Stores correct/guess values.
-			fmt.Println("Storing correct/guess soft inference values...")
-			fmt.Printf("Correct = %f\n", S.Soft(C, ckey))
-			// Derive correct/guess nodes.
-			fmt.Println("Derivating correct/guess nodes...")
-			S.RootDerive(pcweight, pcnode, ckey, mode)
-			// Stores expected values.
-			fmt.Println("Storing expected soft inference values...")
-			fmt.Printf("Expected = %f\n", S.Soft(E, ekey))
-			// Derive expected nodes.
-			fmt.Println("Derivating expected nodes...")
-			S.RootDerive(peweight, penode, ekey, mode)
-			// Update weights.
+			/*// Stores correct/guess values.*/
+			//fmt.Println("Storing correct/guess soft inference values...")
+			//fmt.Printf("Correct = %f\n", S.Soft(C, ckey))
+			//// Derive correct/guess nodes.
+			//fmt.Println("Derivating correct/guess nodes...")
+			//S.RootDerive(pcweight, pcnode, ckey, mode)
+			//// Stores expected values.
+			//fmt.Println("Storing expected soft inference values...")
+			//fmt.Printf("Expected = %f\n", S.Soft(E, ekey))
+			//// Derive expected nodes.
+			//fmt.Println("Derivating expected nodes...")
+			//S.RootDerive(peweight, penode, ekey, mode)
+			//// Update weights.
 			fmt.Println("Updating weights...")
 			S.DiscUpdate(eta, ds, pcweight, peweight, mode)
 
