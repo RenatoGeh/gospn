@@ -235,10 +235,10 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 	n := len(s.ch)
 
 	if mode == SOFT {
-		ds.ResetSPN("")
+		//ds.ResetSPN("")
 		correct, expected := ds.Correct(), ds.Expected()
-		ds.DeriveExpected(s)
-		ds.DeriveCorrect(s)
+		//ds.DeriveExpected(s)
+		//ds.DeriveCorrect(s)
 		for i := 0; i < n; i++ {
 			cc := s.pweights[wckey][i] / (correct + 0.000001)
 			ce := s.pweights[wekey][i] / (expected + 0.000001)
@@ -248,10 +248,13 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 			//fmt.Printf("Sum -> cc = %.10f / (%.10f + 0.000001) = %.10f\n", s.pweights[wckey][i], correct, cc)
 			//fmt.Printf("Sum -> ce = %.10f / (%.10f + 0.000001) = %.10f\n", s.pweights[wekey][i], expected, ce)
 			//fmt.Printf("Sum -> w: %f += (cc: %.10f - ce: %.10f = %.10f)\n", s.w[i], cc, ce, cc-ce)
-			s.w[i] += eta * (cc - ce /*- 2*s.l*s.w[i]*/)
+			s.w[i] += eta * (cc - ce - 2*s.l*s.w[i])
 			//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
 		}
 	} else {
+		ds.ResetSPN("")
+		ds.DeriveExpected(s)
+		ds.DeriveCorrect(s)
 		if s.pweights[wckey] == nil {
 			s.pweights[wckey] = make([]float64, n)
 		}

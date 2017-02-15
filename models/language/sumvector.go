@@ -144,33 +144,36 @@ func (s *SumVector) GenUpdate(eta float64, wkey string) {
 func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string, mode spn.InfType) {
 	n := s.n
 	if mode == spn.SOFT {
-		//for i := 0; i < n; i++ {
-		ds.ResetSPN("")
-		correct, expected := ds.Correct(), ds.Expected()
-		ds.DeriveExpected(s)
-		ds.DeriveCorrect(s)
-		v, _ := s.Ch()[0].Stored("correct")
-		k := int(v)
-		cc := s.cpw[k] / (correct + 0.000001)
-		ce := s.epw[k] / (expected + 0.000001)
-		//if s.w[k] < 0 || s.epw[k] >= expected {
-		//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
-		//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
-		//fmt.Printf("s.w[k]: %.10f\n", s.w[k])
-		//}
-		//cpn, _ := s.Stored("cpnode")
-		//epn, _ := s.Stored("epnode")
-		//fmt.Printf("SumVector -> cpnode = %.10f, epnode = %.10f\n", cpn, epn)
-		//fmt.Printf("SumVector -> cc = %.10f / (%.10f + 0.000001) = %.10f\n", s.cpw[k], correct, cc)
-		//fmt.Printf("SumVector -> ce = %.10f / (%.10f + 0.000001) = %.10f\n", s.epw[k], expected, ce)
-		//fmt.Printf("SumVector -> w: %f += (cc: %.10f - ce: %.10f = %.10f)\n", s.w[k], cc, ce, cc-ce)
-		s.w[k] += eta * (cc - ce /*- 2*s.l*s.w[i]*/)
-		//}
+		for i := 0; i < n; i++ {
+			//ds.ResetSPN("")
+			correct, expected := ds.Correct(), ds.Expected()
+			//ds.DeriveExpected(s)
+			//ds.DeriveCorrect(s)
+			//v, _ := s.Ch()[0].Stored("correct")
+			//k := int(v)
+			cc := s.cpw[i] / (correct + 0.000001)
+			ce := s.epw[i] / (expected + 0.000001)
+			//if s.w[k] < 0 || s.epw[k] >= expected {
+			//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
+			//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
+			//fmt.Printf("s.w[k]: %.10f\n", s.w[k])
+			//}
+			//cpn, _ := s.Stored("cpnode")
+			//epn, _ := s.Stored("epnode")
+			//fmt.Printf("SumVector -> cpnode = %.10f, epnode = %.10f\n", cpn, epn)
+			//fmt.Printf("SumVector -> cc = %.10f / (%.10f + 0.000001) = %.10f\n", s.cpw[k], correct, cc)
+			//fmt.Printf("SumVector -> ce = %.10f / (%.10f + 0.000001) = %.10f\n", s.epw[k], expected, ce)
+			//fmt.Printf("SumVector -> w: %f += (cc: %.10f - ce: %.10f = %.10f)\n", s.w[k], cc, ce, cc-ce)
+			s.w[i] += eta * (cc - ce - 2*s.l*s.w[i])
+		}
 
 		// Normalize
 		//s.NormalizeThis()
 		return
 	}
+	//ds.ResetSPN("")
+	//ds.DeriveExpected(s)
+	//ds.DeriveCorrect(s)
 	for i := 0; i < n; i++ {
 		s.w[i] += eta * ((s.cpw[i]-s.epw[i])/(s.w[i]+0.01) - 2*s.l*s.w[i])
 	}
@@ -189,9 +192,12 @@ func (s *SumVector) RResetDP(key string) {
 func (s *SumVector) ResetDP(key string) {
 	s.Node.ResetDP(key)
 	if key == "" {
-		n := len(s.epw)
-		for i := 0; i < n; i++ {
+		// Compiler will optimize to memclr (as of gc 1.5+).
+		for i := range s.epw {
 			s.epw[i] = 0.0
+		}
+		// Compiler will optimize to memclr (as of gc 1.5+).
+		for i := range s.epw {
 			s.cpw[i] = 0.0
 		}
 	}

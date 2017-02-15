@@ -24,7 +24,7 @@ func (v *Vector) Value(val spn.VarSet) float64 { return v.Soft(val, "soft") }
 func (v *Vector) Max(val spn.VarSet) float64 { return float64(val[v.i]) }
 
 // Type returns the type of this node ("vector").
-func (v *Vector) Type() string { return "vector" }
+func (v *Vector) Type() string { return "leaf" }
 
 // Soft is a common base for all soft inference methods.
 func (v *Vector) Soft(val spn.VarSet, key string) float64 {

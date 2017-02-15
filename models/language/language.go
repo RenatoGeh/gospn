@@ -20,10 +20,11 @@ func Language(vfile string, D, N int) {
 	K := voc.Size()
 	fmt.Println("Creating SPN structure...")
 	S := Structure(K, D, N)
+	DrawGraphTools("lmspn.py", S)
 	//fmt.Println("Learning...")
 	Learn(S, voc, D, N, spn.SOFT)
 
-	//fmt.Println("Writing to file...")
+	fmt.Println("Writing to file...")
 	//Write("lmspn.mdl", S, K, D, N)
 
 	pre := make(spn.VarSet)
@@ -65,7 +66,7 @@ func Language(vfile string, D, N int) {
 
 // Learn learns weights according to LMSPN.
 func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
-	const eta = 0.001
+	const eta = 0.1
 
 	const (
 		ckey     = "correct"
@@ -82,9 +83,9 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 	S.SetStore(true)
 	voc.Set(N)
 	//S.Normalize()
-	//S.SetL2(0.00001)
+	S.SetL2(0.00001)
 	combs := voc.Combinations()
-	for _l := 0; _l < 2; _l++ {
+	for _l := 0; _l < 1; _l++ {
 		//s := 0.0
 		//klast := 0.0
 		for i := 0; i < combs; i++ {
@@ -100,20 +101,20 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 			}
 			fmt.Printf("\n")
 			ds := spn.NewDiscStorer(S, C, E, ckey, ekey, pcnode, penode, pcweight, peweight, mode)
-			ds.Store(false)
-			/*// Stores correct/guess values.*/
-			//fmt.Println("Storing correct/guess soft inference values...")
-			//fmt.Printf("Correct = %f\n", S.Soft(C, ckey))
-			//// Derive correct/guess nodes.
-			//fmt.Println("Derivating correct/guess nodes...")
-			//S.RootDerive(pcweight, pcnode, ckey, mode)
-			//// Stores expected values.
-			//fmt.Println("Storing expected soft inference values...")
-			//fmt.Printf("Expected = %f\n", S.Soft(E, ekey))
-			//// Derive expected nodes.
-			//fmt.Println("Derivating expected nodes...")
-			//S.RootDerive(peweight, penode, ekey, mode)
-			//// Update weights.
+			//ds.Store(false)
+			// Stores correct/guess values.
+			fmt.Println("Storing correct/guess soft inference values...")
+			fmt.Printf("Correct = %f\n", S.Soft(C, ckey))
+			// Derive correct/guess nodes.
+			fmt.Println("Derivating correct/guess nodes...")
+			S.RootDerive(pcweight, pcnode, ckey, mode)
+			// Stores expected values.
+			fmt.Println("Storing expected soft inference values...")
+			fmt.Printf("Expected = %f\n", S.Soft(E, ekey))
+			// Derive expected nodes.
+			fmt.Println("Derivating expected nodes...")
+			S.RootDerive(peweight, penode, ekey, mode)
+			// Update weights.
 			fmt.Println("Updating weights...")
 			S.DiscUpdate(eta, ds, pcweight, peweight, mode)
 
