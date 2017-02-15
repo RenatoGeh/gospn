@@ -11,6 +11,7 @@ import (
 	"github.com/RenatoGeh/gospn/io"
 	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/models/language"
+	"github.com/RenatoGeh/gospn/models/testspn"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils"
@@ -278,9 +279,17 @@ func main() {
 	flag.IntVar(&sys.Mp, "mp", sys.Mp, "The minimum points density for DBSCAN.")
 	flag.BoolVar(&sys.Verbose, "v", sys.Verbose, "Verbose mode.")
 
+	var test bool
+	flag.BoolVar(&test, "test", false, "TestSPN.")
+
 	flag.Parse()
 
 	rand.Seed(rseed)
+
+	if test {
+		testspn.TestSPN()
+		return
+	}
 
 	if p == 0 || p < 0 || p == 1 {
 		fmt.Println("Argument p must be a float64 in range (0, 1).")
