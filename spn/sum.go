@@ -208,7 +208,7 @@ func (s *Sum) NormalizeThis() {
 	if min < 0 {
 		min = math.Abs(min)
 		for i := 0; i < n; i++ {
-			s.w[i] += min
+			s.w[i] += 2 * min
 		}
 	}
 	var norm float64
@@ -232,6 +232,12 @@ func (s *Sum) Normalize() {
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
 func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode InfType) {
+	if v, _ := s.Stored("visited"); v == 0 {
+		s.Store("visited", 1)
+	} else {
+		return
+	}
+
 	n := len(s.ch)
 
 	if mode == SOFT {
@@ -240,15 +246,26 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 		//ds.DeriveExpected(s)
 		//ds.DeriveCorrect(s)
 		for i := 0; i < n; i++ {
-			cc := s.pweights[wckey][i] / (correct + 0.000001)
-			ce := s.pweights[wekey][i] / (expected + 0.000001)
+			cc := s.pweights[wckey][i] / correct
+			ce := s.pweights[wekey][i] / expected
 			//cpn, _ := s.Stored("cpnode")
 			//epn, _ := s.Stored("epnode")
 			//fmt.Printf("Sum -> cpnode = %.10f, epnode = %.10f\n", cpn, epn)
 			//fmt.Printf("Sum -> cc = %.10f / (%.10f + 0.000001) = %.10f\n", s.pweights[wckey][i], correct, cc)
 			//fmt.Printf("Sum -> ce = %.10f / (%.10f + 0.000001) = %.10f\n", s.pweights[wekey][i], expected, ce)
 			//fmt.Printf("Sum -> w: %f += (cc: %.10f - ce: %.10f = %.10f)\n", s.w[i], cc, ce, cc-ce)
-			s.w[i] += eta * (cc - ce - 2*s.l*s.w[i])
+			//_c, _ := s.ch[i].Stored("correct")
+			//_dn, _ := s.Stored("cpnode")
+			//fmt.Printf("%s -> dw[%d] : %.5f * %.5f = %.5f vs %.5f * %.5f = %.5f\n", s.ID(), i, _c, _dn,
+			//_c*_dn, _c, s.w[i], _c*s.w[i])
+			//fmt.Printf("%s -> dw[%d] = %.2f * (%.5f / %.5f - %.5f / %.5f) = %.2f * (%.5f - %.5f) = "+
+			//"%.2f * %.5f = %.5f\n", s.ID(), i, eta, s.pweights[wckey][i], correct,
+			//s.pweights[wekey][i], expected, eta, cc, ce, eta, cc-ce, eta*(cc-ce))
+			if s.l == 0 {
+				s.w[i] += eta * (cc - ce)
+			} else {
+				s.w[i] += eta * (cc - ce - 2*s.l*s.w[i])
+			}
 			//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
 		}
 	} else {

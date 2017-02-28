@@ -78,7 +78,7 @@ func (s *SumVector) NormalizeThis() {
 	if min < 0 {
 		min = math.Abs(min)
 		for i := 0; i < n; i++ {
-			s.w[i] += min
+			s.w[i] += 2 * min
 		}
 	}
 	var norm float64
@@ -110,7 +110,7 @@ func (s *SumVector) Derive(wkey, nkey, ikey string, mode spn.InfType) int {
 		v, _ := ch.Stored(ikey)
 		u, _ := s.Stored(nkey)
 		k, n := int(v), len(pweight)
-		pweight[k] = u
+		pweight[k] = u * s.w[k]
 		for i := 0; i < n; i++ {
 			if i != k {
 				pweight[i] = 0.0
@@ -142,17 +142,23 @@ func (s *SumVector) GenUpdate(eta float64, wkey string) {
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
 func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string, mode spn.InfType) {
+	if v, _ := s.Stored("visited"); v == 0 {
+		s.Store("visited", 1)
+	} else {
+		return
+	}
+
 	n := s.n
 	if mode == spn.SOFT {
+		//ds.ResetSPN("")
+		correct, expected := ds.Correct(), ds.Expected()
 		for i := 0; i < n; i++ {
-			//ds.ResetSPN("")
-			correct, expected := ds.Correct(), ds.Expected()
 			//ds.DeriveExpected(s)
 			//ds.DeriveCorrect(s)
 			//v, _ := s.Ch()[0].Stored("correct")
 			//k := int(v)
-			cc := s.cpw[i] / (correct + 0.000001)
-			ce := s.epw[i] / (expected + 0.000001)
+			cc := s.cpw[i] / correct
+			ce := s.epw[i] / expected
 			//if s.w[k] < 0 || s.epw[k] >= expected {
 			//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
 			//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
@@ -164,7 +170,16 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 			//fmt.Printf("SumVector -> cc = %.10f / (%.10f + 0.000001) = %.10f\n", s.cpw[k], correct, cc)
 			//fmt.Printf("SumVector -> ce = %.10f / (%.10f + 0.000001) = %.10f\n", s.epw[k], expected, ce)
 			//fmt.Printf("SumVector -> w: %f += (cc: %.10f - ce: %.10f = %.10f)\n", s.w[k], cc, ce, cc-ce)
-			s.w[i] += eta * (cc - ce - 2*s.l*s.w[i])
+			//if cc-ce != 0 {
+			//fmt.Printf("%s -> dw[%d] = %.2f * (%.5f / %.5f - %.5f / %.5f) = %.2f * (%.5f - %.5f) = "+
+			//"%.2f * %.5f = %.5f\n", s.ID(), i, eta, s.cpw[i], correct, s.epw[i], expected, eta, cc,
+			//ce, eta, cc-ce, eta*(cc-ce))
+			//}
+			if s.l == 0 {
+				s.w[i] += eta * (cc - ce)
+			} else {
+				s.w[i] += eta * (cc - ce - 2*s.l*s.w[i])
+			}
 		}
 
 		// Normalize

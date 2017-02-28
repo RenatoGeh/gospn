@@ -157,6 +157,8 @@ type Node struct {
 	root bool
 	// Whether to store in DP table or not.
 	stores bool
+	// An optional ID.
+	id string
 }
 
 // An SPN is a node.
@@ -213,6 +215,10 @@ type SPN interface {
 	L2() float64
 	// SetL2 changes the L2 regularization weight penalty throughout all SPN.
 	SetL2(float64)
+	// SetID sets this node's ID.
+	SetID(string)
+	// ID returns this node's ID.
+	ID() string
 }
 
 // VarSet is a variable set specifying variables and their respective instantiations.
@@ -362,6 +368,12 @@ func (n *Node) RResetDP(key string) {
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
 func (n *Node) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode InfType) {
+	if v, _ := n.Stored("visited"); v == 0 {
+		n.Store("visited", 1)
+	} else {
+		return
+	}
+
 	m := len(n.ch)
 
 	for i := 0; i < m; i++ {
@@ -384,4 +396,14 @@ func (n *Node) SetL2(l float64) {
 	for i := 0; i < m; i++ {
 		n.ch[i].SetL2(l)
 	}
+}
+
+// SetID sets this node's ID.
+func (n *Node) SetID(id string) {
+	n.id = id
+}
+
+// ID returns this node's ID.
+func (n *Node) ID() string {
+	return n.id
 }

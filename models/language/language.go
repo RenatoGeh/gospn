@@ -66,7 +66,7 @@ func Language(vfile string, D, N int) {
 
 // Learn learns weights according to LMSPN.
 func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
-	const eta = 0.1
+	const eta = 0.0001
 
 	const (
 		ckey     = "correct"
@@ -85,7 +85,7 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 	//S.Normalize()
 	S.SetL2(0.00001)
 	combs := voc.Combinations()
-	for _l := 0; _l < 1; _l++ {
+	for _l := 0; _l < 5; _l++ {
 		//s := 0.0
 		//klast := 0.0
 		for i := 0; i < combs; i++ {
@@ -162,6 +162,7 @@ func Structure(K, D, N int) spn.SPN {
 	for i := 0; i < N; i++ {
 		// We give each vector an index i+1 (index 0 is reserved for query variable).
 		V[i] = NewVector(i + 1)
+		V[i].SetID(fmt.Sprintf("V[i-%d]", i+1))
 	}
 
 	// H_ij sum layer
@@ -192,6 +193,7 @@ func Structure(K, D, N int) spn.SPN {
 			hmatrix[i][j] = NewSumVector(wmatrix[j])
 			// Connect sum node H_ij to vector node V_i.
 			hmatrix[i][j].AddChild(V[i])
+			hmatrix[i][j].SetID(fmt.Sprintf("H[%d][%d]", i, j))
 		}
 	}
 
@@ -201,6 +203,7 @@ func Structure(K, D, N int) spn.SPN {
 	for i := 0; i < K; i++ {
 		// Create each M_i sum node.
 		M[i] = spn.NewSum()
+		M[i].SetID(fmt.Sprintf("M[%d]", i))
 		// Connect each H_pq sum node to M_i.
 		for p := 0; p < N; p++ {
 			for q := 0; q < D; q++ {
@@ -208,16 +211,20 @@ func Structure(K, D, N int) spn.SPN {
 				M[i].AddChildW(hmatrix[p][q], rand.Float64())
 			}
 		}
-		//M[i].AutoNormalize(true)
+		M[i].AutoNormalize(false)
 	}
 
 	// G product nodes layer
 
 	G := make([]*SquareProduct, K)
+	//G := make([]*spn.Product, K)
 	for i := 0; i < K; i++ {
 		G[i] = NewSquareProduct()
+		G[i].SetID(fmt.Sprintf("G[%d]", i))
+		//G[i] = spn.NewProduct()
 		// Add each M_i sum node as child to square it (simulating covariance).
 		G[i].AddChild(M[i])
+		//G[i].AddChild(M[i])
 	}
 
 	// B sum nodes layer
@@ -225,23 +232,29 @@ func Structure(K, D, N int) spn.SPN {
 	B := make([]*spn.Sum, K)
 	for i := 0; i < K; i++ {
 		B[i] = spn.NewSum()
+		B[i].SetID(fmt.Sprintf("B[%d]", i))
 		// Add both M_i and G_i as children of B_i.
 		B[i].AddChildW(M[i], rand.Float64())
 		B[i].AddChildW(G[i], rand.Float64())
-		//B[i].AutoNormalize(true)
+		B[i].AutoNormalize(false)
 	}
 
 	// S product nodes layer
 
 	S := make([]*ProductIndicator, K)
+	//S := make([]*spn.Product, K)
 	for i := 0; i < K; i++ {
 		S[i] = NewProductIndicator(i)
+		S[i].SetID(fmt.Sprintf("S[%d]", i))
+		//S[i] = spn.NewProduct()
 		// Add B_i as child of S_i.
+		//S[i].AddChild(spn.NewIndicator(0, i))
 		S[i].AddChild(B[i])
 	}
 
 	// Root node.
 	R := spn.NewSum()
+	R.SetID("R")
 	R.AutoNormalize(true)
 	for i := 0; i < K; i++ {
 		// Add each S_i node to the root node.

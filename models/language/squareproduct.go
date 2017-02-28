@@ -49,3 +49,9 @@ func (p *SquareProduct) Derive(wkey, nkey, ikey string, mode spn.InfType) int {
 	}
 	return -1
 }
+
+// DiscUpdate discriminatively updates weights given an eta learning rate.
+//func (p *SquareProduct) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string,
+//mode spn.InfType) {
+//return
+//}
