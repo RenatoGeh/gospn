@@ -6,4 +6,6 @@ type Variable struct {
 	Varid int
 	// Number of categories.
 	Categories int
+	// Variable name.
+	Name string
 }

@@ -48,6 +48,63 @@ A thorough analysis on our implementation can be found at
 
 ### Usage
 
+#### As a Go library
+
+Check the docs: https://godoc.org/github.com/RenatoGeh/gospn
+
+To import the learning algorithms:
+
+```
+import "github.com/RenatoGeh/gospn/learn
+```
+
+To parse an ARFF format dataset and perform learning with the
+Gens-Domingos structure learning algorithm:
+
+First import the relevant packages (`learn` for `Gens`, `io` for
+`ParseArff` and `spn` for inference methods):
+
+```
+import (
+  "github.com/RenatoGeh/gospn/learn"
+  "github.com/RenatoGeh/gospn/io"
+  "github.com/RenatoGeh/gospn/spn"
+)
+```
+
+Extract contents from an ARFF file (for now only discrete variables):
+
+```
+name, scope, values, labels := io.ParseArff("filename.arff")
+```
+
+Send the relevant information to the learning algorithm:
+
+```
+S := Gens(scope, values, -1, 0.0001, 4.0, 4)
+```
+
+`S` is the resulting SPN. We can now compute the marginal probabilities
+given a `spn.VarSet`:
+
+```
+evidence := make(spn.VarSet)
+evidence[0] = 1 // Variable 0 = 1
+// Summing out variable 1
+evidence[2] = 0 // Variable 2 = 0
+// Summing out all other variables.
+p := S.Value(evidence)
+// p is the marginal Pr(evidence), since S is already valid and normalized.
+```
+
+Finding the approximate MPE works the same way. Let `evidence` be some
+evidence, the MPE is given by:
+```
+mpe, args := S.ArgMax(evidence) // mpe is the probability and args is the argmax valuation.
+```
+
+#### As a standalone program
+
 Let's first define the variable `$GOSPN` as the path
 `$GOPATH/src/github.com/RenatoGeh/gospn`. To run GoSPN, we must complete a few steps:
 
@@ -294,4 +351,4 @@ This is a TODO list:
   Learning of Sum-Product Networks* (R. Gens, P. Domingos) NIPS 2012
 * Implement language modelling SPN based on the paper *Language
   Modelling with Sum-Product Networks* (Cheng *et al*) INTERSPEECH 2014
-* Add support for `.arff` and `.csv` dataset file formats.
+* Add support for `.csv` dataset file format.

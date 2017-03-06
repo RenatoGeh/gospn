@@ -92,7 +92,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 			nsc := make(map[int]Variable)
 			for j := 0; j < s; j++ {
 				t := (*kset)[i][j]
-				nsc[t] = Variable{t, sc[t].Categories}
+				nsc[t] = Variable{t, sc[t].Categories, ""}
 			}
 			//sys.Printf("LENGTH: %d\n", len(tdata))
 			//sys.Println("Product node created. Recursing...")

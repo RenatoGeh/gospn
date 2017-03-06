@@ -27,6 +27,26 @@ type Gaussian struct {
 	sd float64
 }
 
+// NewGaussianRaw constructs a new Gaussian from a slice of values.
+func NewGaussianRaw(varid int, vals []float64) *Gaussian {
+	var mean, sd float64
+	n := len(vals)
+
+	for i := 0; i < n; i++ {
+		mean += vals[i]
+	}
+
+	for i := 0; i < n; i++ {
+		d := vals[i] - mean
+		sd += d * d
+	}
+
+	mean /= float64(n)
+	sd = math.Sqrt(sd / float64(n))
+
+	return &Gaussian{Node{sc: []int{varid}}, varid, mean, sd}
+}
+
 // NewGaussian constructs a new Gaussian from a counting slice.
 func NewGaussian(varid int, counts []int) *Gaussian {
 	var mean, sd float64

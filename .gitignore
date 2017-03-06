@@ -1,6 +1,10 @@
 # Vim session
 *.vim
 
+# Input files.
+*.txt
+*.voc
+
 # Output files.
 src/out.put
 src/*.put
