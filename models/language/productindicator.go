@@ -65,7 +65,7 @@ func (p *ProductIndicator) Derive(wkey, nkey, ikey string, mode spn.InfType) int
 
 // DiscUpdate discriminatively updates weights given an eta learning rate.
 //func (p *ProductIndicator) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey string, mode spn.InfType) {
-//if v, _ := p.Stored("visited"); v > 0 {
+//if v, _ := p.Stored("visited"); v > 0 && ds.CorrectSet()[0] == p.indicator {
 //p.Store("visited", 1)
 //} else {
 //return

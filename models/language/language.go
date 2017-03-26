@@ -7,6 +7,21 @@ import (
 	"math/rand"
 )
 
+const (
+	iterations = 2
+	eta        = 0.1
+	infMode    = spn.HARD
+)
+
+const (
+	ckey     = "correct"
+	ekey     = "expected"
+	pcnode   = "cpnode"
+	penode   = "epnode"
+	pcweight = "cpweight"
+	peweight = "epweight"
+)
+
 // Language is a language modelling SPN structure based on the article
 // 	Language Modelling with Sum-Product Networks
 // 	Wei-Chen Cheng, Stanley Kok, Hoai Vu Pham, Hai Leong Chieu, Kian Ming A. Chai
@@ -22,7 +37,8 @@ func Language(vfile string, D, N int) {
 	S := Structure(K, D, N)
 	DrawGraphTools("lmspn.py", S)
 	//fmt.Println("Learning...")
-	Learn(S, voc, D, N, spn.SOFT)
+	//LearnBatch(S, voc, D, N, 50, infMode)
+	Learn(S, voc, D, N, infMode)
 
 	fmt.Println("Writing to file...")
 	//Write("lmspn.mdl", S, K, D, N)
@@ -66,26 +82,15 @@ func Language(vfile string, D, N int) {
 
 // Learn learns weights according to LMSPN.
 func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
-	const eta = 0.0001
-
-	const (
-		ckey     = "correct"
-		ekey     = "expected"
-		pcnode   = "cpnode"
-		penode   = "epnode"
-		pcweight = "cpweight"
-		peweight = "epweight"
-	)
-
 	//conv := 1.0
 	//last := 0.0
 
 	S.SetStore(true)
 	voc.Set(N)
 	//S.Normalize()
-	S.SetL2(0.00001)
+	//S.SetL2(0.00001)
 	combs := voc.Combinations()
-	for _l := 0; _l < 5; _l++ {
+	for _l := 0; _l < iterations; _l++ {
 		//s := 0.0
 		//klast := 0.0
 		for i := 0; i < combs; i++ {
@@ -143,6 +148,7 @@ func Learn(S spn.SPN, voc *Vocabulary, D, N int, mode spn.InfType) spn.SPN {
 			C = nil
 			E = nil
 		}
+		fmt.Printf("=================\nIteration %d\n=================\n", _l)
 		//d := s - last
 		//last = s
 		//conv = d
@@ -255,11 +261,97 @@ func Structure(K, D, N int) spn.SPN {
 	// Root node.
 	R := spn.NewSum()
 	R.SetID("R")
-	R.AutoNormalize(true)
+	R.AutoNormalize(false)
 	for i := 0; i < K; i++ {
 		// Add each S_i node to the root node.
 		R.AddChildW(S[i], rand.Float64())
 	}
 
 	return R
+}
+
+// LearnBatch learns a mini-batch of size B, updating weights according to LMSPN.
+func LearnBatch(S spn.SPN, voc *Vocabulary, D, N, B int, mode spn.InfType) spn.SPN {
+	S.SetStore(true)
+	voc.Set(N)
+	//S.Normalize()
+	//S.SetL2(0.00001)
+	combs := voc.Combinations()
+	if B > combs {
+		fmt.Printf("Mini-batch size (%d) greater than dataset instance size (%d)!\n", B, combs)
+		return nil
+	}
+
+	// Preprocess mini-batch keys.
+	bConv := func(key string, it int) string {
+		return fmt.Sprintf("%s_%d", key, it)
+	}
+	ipcnode := make([]string, B)
+	ipenode := make([]string, B)
+	ickey := make([]string, B)
+	iekey := make([]string, B)
+	ipcweight := make([]string, B)
+	ipeweight := make([]string, B)
+	storers := make([]*spn.DiscStorer, B)
+	for b := 0; b < B; b++ {
+		ipcnode[b] = bConv(pcnode, b)
+		ipenode[b] = bConv(penode, b)
+		ickey[b] = bConv(ckey, b)
+		iekey[b] = bConv(ekey, b)
+		ipcweight[b] = bConv(pcweight, b)
+		ipeweight[b] = bConv(peweight, b)
+	}
+
+	for _l := 0; _l < iterations; _l++ {
+		//s := 0.0
+		//klast := 0.0
+		for i := 0; i < combs; {
+			lbb := B
+			if B > (combs - i) {
+				lbb = combs - i
+			}
+			S.RResetDP("")
+			for b := 0; b < lbb; b++ {
+				S.Rootify(ipcnode[b])
+				S.Rootify(ipenode[b])
+				C, E := voc.Next(), make(spn.VarSet)
+				m := len(C)
+				fmt.Printf("Learning with words: %s", voc.Translate(C[0]))
+				for j := 1; j < m; j++ {
+					E[j] = C[j]
+					fmt.Printf(" %s", voc.Translate(C[j]))
+				}
+				fmt.Printf("\n")
+				ds := spn.NewDiscStorer(S, C, E, ickey[b], iekey[b], ipcnode[b], ipenode[b], ipcweight[b], ipeweight[b], mode)
+				//ds.Store(false)
+				// Stores correct/guess values.
+				fmt.Println("Storing correct/guess soft inference values...")
+				fmt.Printf("Correct = %f\n", S.Soft(C, ickey[b]))
+				// Derive correct/guess nodes.
+				fmt.Println("Derivating correct/guess nodes...")
+				S.RootDerive(ipcweight[b], ipcnode[b], ickey[b], mode)
+				// Stores expected values.
+				fmt.Println("Storing expected soft inference values...")
+				fmt.Printf("Expected = %f\n", S.Soft(E, iekey[b]))
+				// Derive expected nodes.
+				fmt.Println("Derivating expected nodes...")
+				S.RootDerive(ipeweight[b], ipenode[b], iekey[b], mode)
+				storers[b] = ds
+			}
+			i += lbb
+			// Update weights.
+			fmt.Println("Updating weights...")
+			S.DiscUpdateBatch(eta, storers, ipcweight, ipeweight, mode, lbb)
+
+			fmt.Printf("Adding convergence diff for instance %d...\n", i)
+			S.RResetDP("")
+		}
+		//d := s - last
+		//last = s
+		//conv = d
+		//fmt.Printf("Discriminative Learning diff: %.5f\n", math.Abs(conv))
+		voc.Set(N)
+	}
+
+	return S
 }

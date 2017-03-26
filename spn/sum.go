@@ -150,7 +150,7 @@ func (s *Sum) Derive(wkey, nkey, ikey string, mode InfType) int {
 	}
 	s.pweights[wkey][imax]++
 
-	return imax
+	return imax + 1
 }
 
 // LSoft is Soft in logspace.
@@ -269,9 +269,6 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 			//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
 		}
 	} else {
-		ds.ResetSPN("")
-		ds.DeriveExpected(s)
-		ds.DeriveCorrect(s)
 		if s.pweights[wckey] == nil {
 			s.pweights[wckey] = make([]float64, n)
 		}
@@ -281,7 +278,7 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 		for i := 0; i < n; i++ {
 			//fmt.Printf("[%d-%d]: (%s)->%v, (%s)->%v\n", i, n, wckey, s.pweights[wckey], wekey, s.pweights[wekey])
 			c, e := s.pweights[wckey][i], s.pweights[wekey][i]
-			s.w[i] += eta * ((c-e)/(s.w[i]+0.01) - 2*s.l*s.w[i])
+			s.w[i] += eta * (c - e) / s.w[i]
 			if c > 0 || e > 0 {
 				s.ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
 			}
@@ -295,6 +292,73 @@ func (s *Sum) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode 
 	if mode == SOFT {
 		for i := 0; i < n; i++ {
 			s.ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
+		}
+	}
+}
+
+// DiscUpdateBatch discriminatively updates weights given an eta learning rate.
+func (s *Sum) DiscUpdateBatch(eta float64, ds []*DiscStorer, wckey, wekey []string, mode InfType, rng int) {
+	if v, _ := s.Stored("visited"); v == 0 {
+		s.Store("visited", 1)
+	} else {
+		return
+	}
+
+	n := len(s.ch)
+
+	B := rng
+	if mode == SOFT {
+		var cca, cea float64
+		for b := 0; b < B; b++ {
+			correct, expected := ds[b].Correct(), ds[b].Expected()
+			//correct, _ := s.Stored(ds[b].CorrectKey())
+			//expected, _ := s.Stored(ds[b].ExpectedKey())
+			for i := 0; i < n; i++ {
+				//fmt.Printf("label: %s, wckey: %s, i: %d, b: %d, pweights: %p\n", s.ID(), wckey[b], i, b, s.pweights[wckey[b]])
+				cc := s.pweights[wckey[b]][i] / correct
+				ce := s.pweights[wekey[b]][i] / expected
+				cca += cc
+				cea += ce
+				//if s.ID() != "R" {
+				//fmt.Printf("%s -> dw[%d] = %.2f * (%.5f / %.5f - %.5f / %.5f) = %.2f * (%.5f - %.5f) = "+
+				//"%.2f * %.5f = %.5f\n", s.ID(), i, eta, s.pweights[wckey[b]][i], correct,
+				//s.pweights[wekey[b]][i], expected, eta, cc, ce, eta, cc-ce, eta*(cc-ce))
+				//}
+			}
+		}
+		for i := 0; i < n; i++ {
+			if s.l == 0 {
+				s.w[i] += eta * (cca - cea)
+			} else {
+				s.w[i] += eta * (cca - cea - 2*s.l*s.w[i])
+			}
+			//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
+		}
+	} else {
+		for b := 0; b < B; b++ {
+			if s.pweights[wckey[b]] == nil {
+				s.pweights[wckey[b]] = make([]float64, n)
+			}
+			if s.pweights[wekey[b]] == nil {
+				s.pweights[wekey[b]] = make([]float64, n)
+			}
+			for i := 0; i < n; i++ {
+				c, e := s.pweights[wckey[b]][i], s.pweights[wekey[b]][i]
+				s.w[i] += eta * (c - e) / s.w[i]
+				if c > 0 || e > 0 {
+					s.ch[i].DiscUpdateBatch(eta, ds, wckey, wekey, mode, rng)
+				}
+			}
+		}
+	}
+
+	if s.norm {
+		s.NormalizeThis()
+	}
+
+	if mode == SOFT {
+		for i := 0; i < n; i++ {
+			s.ch[i].DiscUpdateBatch(eta, ds, wckey, wekey, mode, rng)
 		}
 	}
 }
@@ -338,7 +402,7 @@ func (s *Sum) RootDerive(wkey, nkey, ikey string, mode InfType) {
 					q.Enqueue(ch[i])
 				}
 			} else {
-				q.Enqueue(ch[r])
+				q.Enqueue(ch[r-1])
 			}
 		}
 	}

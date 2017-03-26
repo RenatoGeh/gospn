@@ -16,8 +16,7 @@ type SumVector struct {
 	// Length of w
 	n int
 	// Store partial deriatives wrt weights.
-	cpw []float64
-	epw []float64
+	pweights map[string][]float64
 	// L2 regularization weight penalty.
 	l float64
 }
@@ -25,7 +24,7 @@ type SumVector struct {
 // NewSumVector creates a new SumVector node.
 func NewSumVector(waddr []float64) *SumVector {
 	n := len(waddr)
-	return &SumVector{spn.NewNode(), waddr, n, make([]float64, n), make([]float64, n), 0}
+	return &SumVector{spn.NewNode(), waddr, n, make(map[string][]float64), 0}
 }
 
 // Soft is a common base for all soft inference methods.
@@ -98,27 +97,24 @@ func (s *SumVector) Normalize() {
 // Derive derives this node only.
 func (s *SumVector) Derive(wkey, nkey, ikey string, mode spn.InfType) int {
 	ch := s.Ch()[0]
-	var pweight []float64
 
-	if wkey == "cpweight" {
-		pweight = s.cpw
-	} else {
-		pweight = s.epw
+	if s.pweights[wkey] == nil {
+		s.pweights[wkey] = make([]float64, s.n)
 	}
 
 	if mode == spn.SOFT {
 		v, _ := ch.Stored(ikey)
 		u, _ := s.Stored(nkey)
-		k, n := int(v), len(pweight)
-		pweight[k] = u * s.w[k]
+		k, n := int(v), len(s.pweights[wkey])
+		s.pweights[wkey][k] = u * s.w[k]
 		for i := 0; i < n; i++ {
 			if i != k {
-				pweight[i] = 0.0
+				s.pweights[wkey][i] = 0.0
 			}
 		}
 	} else {
 		v, _ := ch.Stored(ikey)
-		pweight[int(v)]++
+		s.pweights[wkey][int(v)]++
 	}
 
 	return 0
@@ -128,7 +124,7 @@ func (s *SumVector) Derive(wkey, nkey, ikey string, mode spn.InfType) int {
 func (s *SumVector) GenUpdate(eta float64, wkey string) {
 	v, _ := s.Ch()[0].Stored("correct")
 	k := int(v)
-	s.w[k] += eta * s.epw[k]
+	s.w[k] += eta * s.pweights[wkey][k]
 
 	// Normalize
 	t := 0.0
@@ -157,8 +153,8 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 			//ds.DeriveCorrect(s)
 			//v, _ := s.Ch()[0].Stored("correct")
 			//k := int(v)
-			cc := s.cpw[i] / correct
-			ce := s.epw[i] / expected
+			cc := s.pweights[wckey][i] / correct
+			ce := s.pweights[wekey][i] / expected
 			//if s.w[k] < 0 || s.epw[k] >= expected {
 			//fmt.Printf("s.epw: %.10f expected: %.10f\n", s.epw[k], expected)
 			//fmt.Printf("s.cpw: %.10f correct: %.10f\n", s.cpw[k], correct)
@@ -190,7 +186,60 @@ func (s *SumVector) DiscUpdate(eta float64, ds *spn.DiscStorer, wckey, wekey str
 	//ds.DeriveExpected(s)
 	//ds.DeriveCorrect(s)
 	for i := 0; i < n; i++ {
-		s.w[i] += eta * ((s.cpw[i]-s.epw[i])/(s.w[i]+0.01) - 2*s.l*s.w[i])
+		s.w[i] += eta * (s.pweights[wckey][i] - s.pweights[wekey][i]) / s.w[i]
+	}
+
+	// Normalize
+	//s.NormalizeThis()
+}
+
+// DiscUpdateBatch discriminatively updates weights given an eta learning rate.
+func (s *SumVector) DiscUpdateBatch(eta float64, ds []*spn.DiscStorer, wckey, wekey []string, mode spn.InfType, rng int) {
+	if v, _ := s.Stored("visited"); v == 0 {
+		s.Store("visited", 1)
+	} else {
+		return
+	}
+
+	n := s.n
+
+	B := rng
+	if mode == spn.SOFT {
+		var cca, cea float64
+		for b := 0; b < B; b++ {
+			correct, expected := ds[b].Correct(), ds[b].Expected()
+			//correct, _ := s.Stored(ds[b].CorrectKey())
+			//expected, _ := s.Stored(ds[b].ExpectedKey())
+			for i := 0; i < n; i++ {
+				cc := s.pweights[wckey[b]][i] / correct
+				ce := s.pweights[wekey[b]][i] / expected
+				cca += cc
+				cea += ce
+				//fmt.Printf("%s -> dw[%d] = %.2f * (%.5f / %.5f - %.5f / %.5f) = %.2f * (%.5f - %.5f) = "+
+				//"%.2f * %.5f = %.5f\n", s.ID(), i, eta, s.pweights[wckey[b]][i], correct,
+				//s.pweights[wekey[b]][i], expected, eta, cc, ce, eta, cc-ce, eta*(cc-ce))
+			}
+		}
+		for i := 0; i < n; i++ {
+			if s.l == 0 {
+				s.w[i] += eta * (cca - cea)
+			} else {
+				s.w[i] += eta * (cca - cea - 2*s.l*s.w[i])
+			}
+		}
+	} else {
+		for b := 0; b < B; b++ {
+			if s.pweights[wckey[b]] == nil {
+				s.pweights[wckey[b]] = make([]float64, n)
+			}
+			if s.pweights[wekey[b]] == nil {
+				s.pweights[wekey[b]] = make([]float64, n)
+			}
+			for i := 0; i < n; i++ {
+				c, e := s.pweights[wckey[b]][i], s.pweights[wekey[b]][i]
+				s.w[i] += eta * (c - e) / s.w[i]
+			}
+		}
 	}
 
 	// Normalize
@@ -207,14 +256,9 @@ func (s *SumVector) RResetDP(key string) {
 func (s *SumVector) ResetDP(key string) {
 	s.Node.ResetDP(key)
 	if key == "" {
-		// Compiler will optimize to memclr (as of gc 1.5+).
-		for i := range s.epw {
-			s.epw[i] = 0.0
-		}
-		// Compiler will optimize to memclr (as of gc 1.5+).
-		for i := range s.epw {
-			s.cpw[i] = 0.0
-		}
+		s.pweights = make(map[string][]float64)
+	} else {
+		delete(s.pweights, key)
 	}
 }
 

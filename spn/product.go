@@ -148,7 +148,7 @@ func (p *Product) RootDerive(wkey, nkey, ikey string, mode InfType) {
 					q.Enqueue(ch[i])
 				}
 			} else {
-				q.Enqueue(ch[r])
+				q.Enqueue(ch[r-1])
 			}
 		}
 	}

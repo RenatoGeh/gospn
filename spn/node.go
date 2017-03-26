@@ -140,6 +140,12 @@ func (ds *DiscStorer) CorrectSet() VarSet { return ds.c }
 // ExpectedSet returns the expected VarSet.
 func (ds *DiscStorer) ExpectedSet() VarSet { return ds.e }
 
+// CorrectKey returns the S(Y|X) key.
+func (ds *DiscStorer) CorrectKey() string { return ds.ckey }
+
+// ExpectedKey returns the S(1|X) key.
+func (ds *DiscStorer) ExpectedKey() string { return ds.ekey }
+
 // ResetSPN resets the SPN.
 func (ds *DiscStorer) ResetSPN(key string) { ds.s.RResetDP(key) }
 
@@ -207,6 +213,8 @@ type SPN interface {
 	Normalize()
 	// DiscUpdate discriminatively updates weights given an eta learning rate.
 	DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode InfType)
+	// DiscUpdateBatch discriminatively updates weights given an eta learning rate.
+	DiscUpdateBatch(eta float64, ds []*DiscStorer, wckey, wekey []string, mode InfType, rng int)
 	// ResetDP resets a key on the DP table. If key is nil, resets everything.
 	ResetDP(key string)
 	// RResetDP recursively ResetDPs all children.
@@ -378,6 +386,21 @@ func (n *Node) DiscUpdate(eta float64, ds *DiscStorer, wckey, wekey string, mode
 
 	for i := 0; i < m; i++ {
 		n.ch[i].DiscUpdate(eta, ds, wckey, wekey, mode)
+	}
+}
+
+// DiscUpdateBatch discriminatively updates weights given an eta learning rate.
+func (n *Node) DiscUpdateBatch(eta float64, ds []*DiscStorer, wckey, wekey []string, mode InfType, rng int) {
+	if v, _ := n.Stored("visited"); v == 0 {
+		n.Store("visited", 1)
+	} else {
+		return
+	}
+
+	m := len(n.ch)
+
+	for i := 0; i < m; i++ {
+		n.ch[i].DiscUpdateBatch(eta, ds, wckey, wekey, mode, rng)
 	}
 }
 
