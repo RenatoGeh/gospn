@@ -7,10 +7,13 @@ import (
 	"math/rand"
 )
 
+// Config
 const (
 	iterations = 2
-	eta        = 0.1
+	eta        = 0.01
 	infMode    = spn.HARD
+	batch      = true
+	batchSize  = 50
 )
 
 const (
@@ -38,21 +41,25 @@ func Language(vfile string, D, N int) {
 	DrawGraphTools("lmspn.py", S)
 	//fmt.Println("Learning...")
 	//LearnBatch(S, voc, D, N, 50, infMode)
-	Learn(S, voc, D, N, infMode)
+	if batch {
+		LearnBatch(S, voc, D, N, batchSize, infMode)
+	} else {
+		Learn(S, voc, D, N, infMode)
+	}
 
 	fmt.Println("Writing to file...")
 	//Write("lmspn.mdl", S, K, D, N)
 
 	pre := make(spn.VarSet)
 	fmt.Printf("Generated the following first %d words from vocabulary:\n ", N)
-	for i := 1; i <= N; i++ {
-		w, id := voc.Rand()
-		pre[i] = id
-		fmt.Printf(" %s", w)
-	}
-	//pre[1] = 0
-	//pre[2] = 1
-	//pre[3] = 2
+	//for i := 1; i <= N; i++ {
+	//w, id := voc.Rand()
+	//pre[i] = id
+	//fmt.Printf(" %s", w)
+	//}
+	pre[1] = 7
+	pre[2] = 24
+	pre[3] = 66
 
 	const M = 100
 	S.SetStore(false)
@@ -217,7 +224,7 @@ func Structure(K, D, N int) spn.SPN {
 				M[i].AddChildW(hmatrix[p][q], rand.Float64())
 			}
 		}
-		M[i].AutoNormalize(false)
+		M[i].AutoNormalize(true)
 	}
 
 	// G product nodes layer
@@ -226,11 +233,11 @@ func Structure(K, D, N int) spn.SPN {
 	//G := make([]*spn.Product, K)
 	for i := 0; i < K; i++ {
 		G[i] = NewSquareProduct()
-		G[i].SetID(fmt.Sprintf("G[%d]", i))
 		//G[i] = spn.NewProduct()
+		G[i].SetID(fmt.Sprintf("G[%d]", i))
 		// Add each M_i sum node as child to square it (simulating covariance).
-		G[i].AddChild(M[i])
 		//G[i].AddChild(M[i])
+		G[i].AddChild(M[i])
 	}
 
 	// B sum nodes layer
@@ -242,7 +249,7 @@ func Structure(K, D, N int) spn.SPN {
 		// Add both M_i and G_i as children of B_i.
 		B[i].AddChildW(M[i], rand.Float64())
 		B[i].AddChildW(G[i], rand.Float64())
-		B[i].AutoNormalize(false)
+		B[i].AutoNormalize(true)
 	}
 
 	// S product nodes layer
@@ -261,7 +268,7 @@ func Structure(K, D, N int) spn.SPN {
 	// Root node.
 	R := spn.NewSum()
 	R.SetID("R")
-	R.AutoNormalize(false)
+	R.AutoNormalize(true)
 	for i := 0; i < K; i++ {
 		// Add each S_i node to the root node.
 		R.AddChildW(S[i], rand.Float64())

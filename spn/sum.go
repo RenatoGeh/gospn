@@ -327,12 +327,7 @@ func (s *Sum) DiscUpdateBatch(eta float64, ds []*DiscStorer, wckey, wekey []stri
 			}
 		}
 		for i := 0; i < n; i++ {
-			if s.l == 0 {
-				s.w[i] += eta * (cca - cea)
-			} else {
-				s.w[i] += eta * (cca - cea - 2*s.l*s.w[i])
-			}
-			//s.w[i] += eta * ((s.pweights[wckey][i] / correct) - (s.pweights[wekey][i] / expected))
+			s.w[i] += eta * (cca - cea)
 		}
 	} else {
 		for b := 0; b < B; b++ {
@@ -344,7 +339,7 @@ func (s *Sum) DiscUpdateBatch(eta float64, ds []*DiscStorer, wckey, wekey []stri
 			}
 			for i := 0; i < n; i++ {
 				c, e := s.pweights[wckey[b]][i], s.pweights[wekey[b]][i]
-				s.w[i] += eta * (c - e) / s.w[i]
+				s.w[i] += eta * (c - e) / (s.w[i] + 0.001)
 				if c > 0 || e > 0 {
 					s.ch[i].DiscUpdateBatch(eta, ds, wckey, wekey, mode, rng)
 				}

@@ -237,7 +237,7 @@ func (s *SumVector) DiscUpdateBatch(eta float64, ds []*spn.DiscStorer, wckey, we
 			}
 			for i := 0; i < n; i++ {
 				c, e := s.pweights[wckey[b]][i], s.pweights[wekey[b]][i]
-				s.w[i] += eta * (c - e) / s.w[i]
+				s.w[i] += eta * (c - e) / (s.w[i] + 0.001)
 			}
 		}
 	}
