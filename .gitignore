@@ -11,6 +11,7 @@ out.put
 
 # Data image files.
 *.data
+*.voc
 
 # LaTeX
 *.aux
