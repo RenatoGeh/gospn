@@ -29,7 +29,11 @@ func (s *Sum) AddChildW(c SPN, w float64) {
 // Sc returns the scope of this node.
 func (s *Sum) Sc() []int {
 	if s.sc == nil {
-		copy(s.sc, s.ch[0].Sc())
+		sch := s.ch[0].Sc()
+		s.sc = make([]int, len(sch))
+		for i := range sch {
+			s.sc[i] = sch[i]
+		}
 	}
 	return s.sc
 }
@@ -100,4 +104,10 @@ func (s *Sum) Type() string { return "sum" }
 // Weights returns weights if sum product. Returns nil otherwise.
 func (s *Sum) Weights() []float64 {
 	return s.w
+}
+
+// AddChild adds a child.
+func (s *Sum) AddChild(c SPN) {
+	s.ch = append(s.ch, c)
+	c.AddParent(s)
 }

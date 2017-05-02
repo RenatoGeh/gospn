@@ -16,13 +16,8 @@ func (p *Product) Type() string { return "product" }
 // Sc returns the scope of this node.
 func (p *Product) Sc() []int {
 	if p.sc == nil {
-		n := len(p.ch)
-		for i := 0; i < n; i++ {
-			chsc := p.ch[i].Sc()
-			k := len(chsc)
-			for j := 0; j < k; j++ {
-				p.sc = append(p.sc, chsc[j])
-			}
+		for i := range p.ch {
+			p.sc = append(p.sc, p.ch[i].Sc()...)
 		}
 	}
 	return p.sc
@@ -68,4 +63,10 @@ func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 	}
 
 	return argmax, v
+}
+
+// AddChild adds a child.
+func (p *Product) AddChild(c SPN) {
+	p.ch = append(p.ch, c)
+	c.AddParent(p)
 }

@@ -194,8 +194,8 @@ Example datasets are available at `$GOSPN/data` as credited on section
 1. Set your dataset name and image width, height and max value
    (`-dataset`, `-width`, `-height` and `-max`).
 2. Run GoSPN with `-mode=cmpl`.
-3. Example: `go run main.go -mode=cmpl -dataset=olivetti_3bit -width=56
-   -height=46 -max=8`.
+3. Example: `go run main.go -mode=cmpl -dataset=olivetti_3bit -width=46
+   -height=56 -max=8`.
 
 ### Dependencies
 

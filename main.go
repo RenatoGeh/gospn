@@ -207,6 +207,9 @@ func imageCompletion(filename string, kclusters int, concurrents int) {
 			io.VarSetToPGM(fmt.Sprintf("mpe_cmpl_%d.pgm", id), randVarSet(s, lsc, 100),
 				sys.Width, sys.Height, sys.Max-1)
 
+			//fmt.Printf("P-%d: Drawing feature maps for instance %d.\n", id, id)
+			//io.DrawRegions(s, fmt.Sprintf("featmap_%d", id), sys.Width, sys.Height, "product")
+
 			//out, _ := filepath.Abs("results/" + dataset + "/models")
 			//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
 
