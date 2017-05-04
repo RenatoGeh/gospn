@@ -81,7 +81,7 @@ name, scope, values, labels := io.ParseArff("filename.arff")
 Send the relevant information to the learning algorithm:
 
 ```
-S := Gens(scope, values, -1, 0.0001, 4.0, 4)
+S := learn.Gens(scope, values, -1, 0.0001, 4.0, 4)
 ```
 
 `S` is the resulting SPN. We can now compute the marginal probabilities
@@ -267,7 +267,7 @@ is easy. First go to the GoSPN source dir.
 $ cd $GOPATH/src/github.com/RenatoGeh/gospn/
 ```
 
-We'll call `$GOPATH/src/github.com/RenatoGeh/gospn/` as `$GOSPN`. To compile and run:
+To compile and run:
 
 ```
 $ go run main.go <args>
