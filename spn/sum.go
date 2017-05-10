@@ -31,9 +31,7 @@ func (s *Sum) Sc() []int {
 	if s.sc == nil {
 		sch := s.ch[0].Sc()
 		s.sc = make([]int, len(sch))
-		for i := range sch {
-			s.sc[i] = sch[i]
-		}
+		copy(s.sc, sch)
 	}
 	return s.sc
 }

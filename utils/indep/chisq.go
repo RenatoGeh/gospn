@@ -2,14 +2,9 @@ package indep
 
 // Chi-Square Independence Test
 
-/*
-#cgo LDFLAGS: -lgsl -lgslcblas
-#include <gsl/gsl_cdf.h>
-*/
-import "C"
-
 import (
 	//"fmt"
+	"github.com/gonum/stat/distuv"
 	"math"
 )
 
@@ -17,7 +12,9 @@ import (
 // 	Pr(X^2 <= chi)
 // Where X^2 is the chi-square distribution X^2(df), with df being the degree of freedom.
 func ChiSquare(chi float64, df int) float64 {
-	return float64(C.gsl_cdf_chisq_P(C.double(chi), C.double(df)))
+	// GoNum version.
+	cs := distuv.ChiSquared{float64(df), nil}
+	return cs.CDF(chi)
 }
 
 const eps = 1e-12
@@ -90,171 +87,6 @@ func ugamma(x, s float64, regularized bool) float64 {
 	}
 	return math.Exp(s*math.Log(x) - x - math.Log(f))
 }
-
-type ifctn func(float64) float64
-
-func simpson38(f ifctn, a, b float64, n int) float64 {
-	h := (b - a) / float64(n)
-	h1 := h / 3.0
-	sum := f(a) + f(b)
-	for j := 3.0*n - 1.0; j > 0; j-- {
-		if j%3 == 0 {
-			sum += 2.0 * f(a+h1*float64(j))
-		} else {
-			sum += 3.0 * f(a+h1*float64(j))
-		}
-	}
-	return h * sum / 8.0
-}
-
-func gammaIncQ(a, x float64) float64 {
-	aa1 := a - 1
-	var f ifctn = func(t float64) float64 {
-		return math.Pow(t, aa1) * math.Exp(-t)
-	}
-	y := aa1
-	h := 1.5e-2
-	for f(y)*(x-y) > 2e-8 && y < x {
-		y += .4
-	}
-	if y > x {
-		y = x
-	}
-	return 1.0 - simpson38(f, 0, y, int(y/h/math.Gamma(a)))
-}
-
-func chisquare(dof int, distance float64) float64 {
-	return gammaIncQ(float64(dof)/2.0, distance/2.0)
-}
-
-// Lower incomplete Gamma function.
-//func igamma(a, x float64) float64 {
-//var sum float64 = 0.0
-//var t float64 = 1.0 / a
-//var n float64 = 1.0
-
-//for t != 0 {
-//sum += t
-//t *= x / (a + n)
-//n++
-//}
-
-//return math.Pow(x, a) * math.Exp(-x) * sum
-//}
-
-// Incomplete gamma convergence limit.
-//const convgamma = 200
-
-// Incomplete Gamma function.
-//func Igamma(k, x float64) float64 {
-//if x < 0.0 {
-//return 0.0
-//}
-
-//s := (1.0 / x) * math.Pow(x, k) * math.Exp(-x)
-//sum, nom, den := 1.0, 1.0, 1.0
-
-//for i := 0; i < convgamma; i++ {
-//nom *= x
-//k++
-//den *= k
-//sum += nom / den
-//}
-
-//return sum * s
-//}
-
-//func igammac(a, x float64) float64 {
-//if x <= 0 || a <= 0 {
-//return 1.0
-//} else if x < 1 || x < a {
-//return 1.0 - Igamma(a, x)
-//}
-
-//lgamma, _ := math.Lgamma(a)
-//ax := a*math.Log(x) - x - lgamma
-//if ax < -709.78271289338399 {
-//return 0.0
-//}
-
-//ax = math.Exp(ax)
-//var y float64 = 1 - a
-//var z float64 = x + y - 1
-//c := 0.0
-//p2 := 1.0
-//q2 := x
-//p1 := x + 1
-//q1 := z * x
-//ans := p1 / q1
-
-//const eps = 0.000000000000001
-//const bignum = 4503599627370496.0
-//const invbignum = 2.22044604925031308085 * 0.0000000000000001
-
-//var t float64 = -1.0
-//var r float64
-
-//for t > eps {
-//c++
-//y++
-//z += 2
-//yc := y * c
-//pk := p1*z - p2*yc
-//qk := q1*z - q2*yc
-
-//if qk <= 0.0 {
-//r = pk / qk
-//t = math.Abs((ans - r) / r)
-//ans = r
-//} else {
-//t = 1.0
-//}
-
-//p2 = p1
-//p1 = pk
-//q2 = q1
-//q1 = qk
-
-//if math.Abs(pk) > bignum {
-//p2 = p2 * invbignum
-//p1 = p1 * invbignum
-//q2 = q2 * invbignum
-//q1 = q1 * invbignum
-//}
-//}
-
-//return ans * ax
-//}
-
-//func Igamma(a, x float64) float64 {
-//if x <= 0 || a <= 0 {
-//return 0.0
-//} else if x > 1.0 && x > a {
-//return 1.0 - igammac(a, x)
-//}
-
-//lgamma, _ := math.Lgamma(a)
-//ax := a*math.Log(x) - x - lgamma
-
-//if ax < -709.78271289338399 {
-//return 0.0
-//}
-
-//ax = math.Exp(ax)
-//var r float64 = a
-//var c float64 = 1.0
-//var ans float64 = 1.0
-
-//const eps = 0.000000000000001
-
-//for c/ans > eps {
-//r++
-//c = c * x / r
-//ans += c
-//}
-
-//return ans * ax / a
-//}
 
 // Chisquare returns the p-value of Pr(X^2 > cv).
 // Compare this value to the significance level assumed. If chisquare < sigval, then we cannot

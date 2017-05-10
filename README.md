@@ -208,29 +208,25 @@ available for FreeBSD, Linux, Mac OS X and Windows for both 32 and
 The dependencies below can be considered "optional", in that the user
 can avoid using using them if one wishes so.
 
-#### GNU GSL Scientific Library (recommended)
+#### GoNum
 
-GoSPN uses GNU GSL to compute the cumulative probability function
+We have deprecated GNU GSL in favor of GoNum (<https://github.com/gonum/>).
+GoNum is written in Go, meaning when installing GoSPN, the Go package
+manager should automatically install all dependencies (including GoNum).
+
+In case this does not occur and something like this comes up on the
+screen:
 
 ```
-Pr(X^2 <= chi), X^2(df)
+cannot find package "github.com/gonum/stat" in any of
 ```
 
-For the independence test (`utils/indep/indtest.go`). A builtin
-Chi-Square function is already present in `utils/indep/indtest.go`
-under the name of `Chisquare`. However `Chisquare` has worse numerical
-error when compared to its GSL equivalent `ChiSquare` (see
-`utils/indep/chisq.go`).
+Enter the following commands:
 
-For information on how to compile and install GNU GSL, see
-<https://www.gnu.org/software/gsl/>.
-
-If you do not wish to install GNU GSL, simply rename `ChiSquare` in file
-`utils/indep/indtest.go` to `Chisquare`.
-
-GoSPN uses Go's `cgo` to run C code inside Go. File
-`utils/indep/chisq.go` contains the wrapper function `ChiSquare`
-that calls `gsl_cdf_chisq_P` from `gsl/gsl_cdf.h`.
+```
+go get -u github.com/gonum/stat
+go get -u github.com/gonum/mathext
+```
 
 #### graph-tool (optional)
 

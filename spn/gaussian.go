@@ -1,13 +1,8 @@
 package spn
 
-/*
-#cgo LDFLAGS: -lgsl -lgslcblas
-#include <gsl/gsl_randist.h>
-*/
-import "C"
-
 import (
 	//"fmt"
+	"github.com/gonum/stat/distuv"
 	"math"
 )
 
@@ -25,6 +20,8 @@ type Gaussian struct {
 	mean float64
 	// Standard deviation
 	sd float64
+	// GoNum's normal distribution
+	dist distuv.Normal
 }
 
 // NewGaussianRaw constructs a new Gaussian from a slice of values.
@@ -44,7 +41,7 @@ func NewGaussianRaw(varid int, vals []float64) *Gaussian {
 	mean /= float64(n)
 	sd = math.Sqrt(sd / float64(n))
 
-	return &Gaussian{Node{sc: []int{varid}}, varid, mean, sd}
+	return &Gaussian{Node{sc: []int{varid}}, varid, mean, sd, distuv.Normal{mean, sd, nil}}
 }
 
 // NewGaussian constructs a new Gaussian from a counting slice.
@@ -74,7 +71,7 @@ func NewGaussian(varid int, counts []int) *Gaussian {
 
 	//fmt.Printf("StdDev: %.5f\n", sd)
 
-	return &Gaussian{Node{sc: []int{varid}}, varid, mean, sd}
+	return &Gaussian{Node{sc: []int{varid}}, varid, mean, sd, distuv.Normal{mean, sd, nil}}
 }
 
 // Type returns the type of this node.
@@ -86,7 +83,7 @@ func (g *Gaussian) Value(val VarSet) float64 {
 	v, ok := val[g.varid]
 	if ok {
 		//fmt.Println("Yelloooo")
-		return math.Log(float64(C.gsl_ran_ugaussian_pdf(C.double((float64(v) - g.mean) / g.sd))))
+		return g.dist.LogProb(float64(v))
 	}
 	return 0.0 // ln(1.0) = 0.0
 }
@@ -95,11 +92,7 @@ func (g *Gaussian) Value(val VarSet) float64 {
 func (g *Gaussian) Max(val VarSet) float64 {
 	v, ok := val[g.varid]
 	if ok {
-		//fmt.Printf("Preparing Gaussian with parameters z = (x-mu)/sigma = (%.3f - %.3f) / %.3f\n",
-		//float64(v), g.mean, g.sd)
-		z := math.Log(float64(C.gsl_ran_ugaussian_pdf(C.double((float64(v) - g.mean) / g.sd))))
-		//fmt.Printf("Max: Gaussian[%d] = %.5f\n", g.varid, z)
-		return z
+		return g.dist.LogProb(float64(v))
 	}
 	return math.Log(GaussMax)
 }
@@ -111,10 +104,7 @@ func (g *Gaussian) ArgMax(val VarSet) (VarSet, float64) {
 
 	if ok {
 		retval[g.varid] = v
-		//fmt.Printf("Preparing Gaussian with parameters z = (x-mu)/sigma = (%.3f - %.3f) / %.3f\n",
-		//float64(v), g.mean, g.sd)
-		z := math.Log(float64(C.gsl_ran_ugaussian_pdf(C.double((float64(v) - g.mean) / g.sd))))
-		//fmt.Printf("ArgMax: Gaussian[%d] = %.5f\n", g.varid, z)
+		z := g.dist.LogProb(float64(v))
 		return retval, z
 	}
 
