@@ -17,7 +17,7 @@ an edge between them. Otherwise there is no such edge.
 
 The resulting graph after such construction is a graph with clusters of connected graphs. Let
 H_1 and H_2 be two complete subgraphs in G. Then there exists no edge between any one vertex in
-H_1 and another in H_2. This constitues an independence relation between these subgraphs. Thus we
+H_1 and another in H_2. This constitutes an independence relation between these subgraphs. Thus we
 say that sets of variables in H_1 are independent of sets of variables in H_2. We now show why this
 is correct. Consider the following example (it can be extended to the general case easily):
 

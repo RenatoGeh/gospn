@@ -67,6 +67,35 @@ func NewCountingMultinomial(varid int, counts []int) *Multinomial {
 	return &Multinomial{Node{sc: []int{varid}}, varid, pr, Mode{mi, m}}
 }
 
+// NewScopedCountingMultinomial does the same as NewCountingMultinomial except it allows multiple
+// variable scope.
+func NewScopedCountingMultinomial(varid int, esc []int, counts []int) *Multinomial {
+	n := len(counts)
+
+	pr := make([]float64, n)
+	s := 0.0
+	for i := 0; i < n; i++ {
+		s += 1.0 + float64(counts[i])
+		pr[i] = float64(1 + counts[i])
+	}
+
+	for i := 0; i < n; i++ {
+		pr[i] /= float64(s)
+	}
+
+	var m float64
+	var mi int
+
+	for i := 0; i < n; i++ {
+		if pr[i] > m {
+			m = pr[i]
+			mi = i
+		}
+	}
+
+	return &Multinomial{Node{sc: esc}, varid, pr, Mode{mi, m}}
+}
+
 // NewEmptyMultinomial constructs a new empty Multinomial for learning.  Argument m is the
 // cardinality of varid.
 func NewEmptyMultinomial(varid, m int) *Multinomial {
