@@ -351,7 +351,7 @@ func BufferedPGMFToData(dirname, dname string) (int, int, int) {
 			vals = append(vals, labels[id])
 
 			mutex.Lock()
-			for j := 0; j < len(vals); j++ {
+			for j := 0; j < len(vals)-1; j++ {
 				fmt.Fprintf(out, "%d ", vals[j])
 			}
 			fmt.Fprintf(out, "%d\n", vals[len(vals)-1])
