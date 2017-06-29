@@ -12,7 +12,7 @@ type point struct {
 	y int
 }
 
-var i_vars int
+var width, height int
 
 // Computes surface area of rectangle (p, q) under the assumption the atomic unit is the rectangle
 // (k, k).
@@ -25,6 +25,7 @@ func area(p, q point, k int) int {
 func createLeaf(p, q point, b int, data []map[int]int) spn.SPN {
 	w, h := q.x-p.x, q.y-p.y
 	n := w * h
+
 	X := make([]int, n)
 
 	// Selects all variables inside rectangle area (p, q). X is equivalent to this leaf's scope.
@@ -45,14 +46,14 @@ func createLeaf(p, q point, b int, data []map[int]int) spn.SPN {
 		}
 	}
 
-	lambda := spn.NewScopedCountingMultinomial(i_vars, X, f)
-	i_vars++
+	lambda := spn.NewScopedCountingMultinomial(p.x+p.y*height, X, f)
 	return lambda
 }
 
+// Poon is the Poon-Domingos generative SPN learning algorithm.
 func Poon(k, b, w, h int, data []map[int]int) spn.SPN {
-	i_vars = 0
-	return genStructure(k, b, point{0, 0}, point{w - 1, h - 1}, data)
+	width, height = w, h
+	return genStructure(k, b, point{0, 0}, point{w, h}, data)
 }
 
 // This function generates a dense SPN from a dataset of images. This function is an implementation
@@ -66,62 +67,72 @@ func genStructure(k, b int, p0, p1 point, data []map[int]int) spn.SPN {
 	S := spn.NewSum()
 	q := point{p0.x, p1.y}
 	// x-axis
-	sys.Printf("genStrucure(k=%d, b=%d, p0={%d, %d}, p1={%d, %d}, data)\n"+
-		"m := %d, n := %d, q := {%d, %d}\n", k, b, p0.x, p0.y, p1.x, p1.y, m, n, q.x, q.y)
+	sys.Printf("genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
+		"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q.x, q.y)
 	if n > 1 {
-		for i := 0; i < n-1; i++ {
+		for i := 1; i < n; i++ {
 			q.x = int(math.Min(float64(p1.x), float64(q.x+k)))
 			r := point{q.x, p0.y}
 			pi := spn.NewProduct()
 			a1, a2 := area(p0, q, k), area(r, p1, k)
-			sys.Printf("i := %d -> n := %d\nq := {%d, %d}\nr := {%d, %d}\na1 := %d, a2 := %d\n",
-				i, n, q.x, q.y, r.x, r.y, a1, a2)
+			sys.Printf("i := %d -> n := %d\nq := %v\nr := %v\na1 := %d, a2 := %d\n", i, n, q, r, a1, a2)
 			var c1 spn.SPN
 			if a1 == 1 {
 				sys.Println("a1 = 1. Create single leaf.")
 				c1 = createLeaf(p0, q, b, data)
-				sys.Printf("Created leaf from region (p0={%d, %d}, q={%d, %d}).\n", p0.x, p0.y, q.x, q.y)
+				sys.Printf("Created leaf from region (p0=%v, q=%v).\n", p0, q)
 			} else if a1 == 2 {
-				sys.Println("a1 = 2. Create two leaves.")
 				c1 = spn.NewProduct()
-				cc1 := createLeaf(p0, point{p0.x + k, p0.y + k}, b, data)
-				sys.Printf("Created leaf cc1 from region ({%d, %d}, {%d, %d}).\n",
-					p0.x, p0.y, p0.x+k, p0.y+k)
-				cc2 := createLeaf(point{p0.x + k, p0.y}, q, b, data)
-				sys.Printf("Created leaf cc2 from region ({%d, %d}, {%d, %d}).\n",
-					p0.x, p0.y+k, q.x, q.y)
+				s, t, u := point{p0.x + k, p0.y + k}, point{p0.x, p0.y + k}, point{p0.x + k, p0.y}
+				cc1 := createLeaf(p0, s, b, data)
+				sys.Printf("Created leaf cc1 from region (%v, %v).\n", p0, s)
+				var cc2 spn.SPN
+				if m > 1 {
+					sys.Println("Special case for n > 1, a1 = 2.")
+					cc2 = createLeaf(t, q, b, data)
+					sys.Printf("Created leaf cc2 from region (%v, %v).\n", t, q)
+				} else {
+					sys.Println("Special case for n = 1, a1 = 2.")
+					cc2 = createLeaf(u, q, b, data)
+					sys.Printf("Created leaf cc2 from region (%v, %v).\n", u, q)
+				}
 				c1.AddChild(cc1)
 				c1.AddChild(cc2)
 			} else {
-				sys.Printf("a1 > 2. Recurse: genStructure(k=%d, b=%d, p0={%d, %d}, q={%d, %d}, data)\n",
-					k, b, p0.x, p0.y, q.x, q.y)
+				sys.Printf("a1 > 2. Recurse: genStructure(k=%d, b=%d, p0=%v, q=%v, data)\n", k, b, p0, q)
 				c1 = genStructure(k, b, p0, q, data)
-				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0={%d, %d}, p1={%d, %d}, data)\n"+
-					"m := %d, n := %d, q := {%d, %d}\n", k, b, p0.x, p0.y, p1.x, p1.y, m, n, q.x, q.y)
+				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
+					"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
 			}
 			pi.AddChild(c1)
 			var c2 spn.SPN
 			if a2 == 1 {
 				sys.Println("a2 = 1. Create single leaf.")
 				c2 = createLeaf(r, p1, b, data)
-				sys.Printf("Created leaf from region (r={%d, %d}, p1={%d, %d}).\n", r.x, r.y, p1.x, p1.y)
+				sys.Printf("Created leaf from region (r=%v, p1=%v).\n", r, p1)
 			} else if a2 == 2 {
 				sys.Println("a2 = 2. Create two leaves.")
 				c2 = spn.NewProduct()
-				cc1 := createLeaf(r, point{r.x + k, r.y + k}, b, data)
-				sys.Printf("Created leaf cc1 from region ({%d, %d}, {%d, %d}).\n",
-					r.x, r.y, r.x+k, r.y+k)
-				cc2 := createLeaf(point{r.x + k, r.y}, p1, b, data)
-				sys.Printf("Created leaf cc2 from region ({%d, %d}, {%d, %d}).\n",
-					r.x, r.y+k, p1.x, p1.y)
+				s, t, u := point{r.x + k, r.y + k}, point{r.x, r.y + k}, point{r.x + k, r.y}
+				cc1 := createLeaf(r, s, b, data)
+				sys.Printf("Created leaf cc1 from region (%v, %v).\n", r, s)
+				var cc2 spn.SPN
+				if m > 1 {
+					sys.Println("Special case for n > 1, a2 = 2.")
+					cc2 = createLeaf(t, p1, b, data)
+					sys.Printf("Created leaf cc2 from region (%v, %v).\n", t, p1)
+				} else {
+					sys.Println("Special case for n = 1, a2 = 2.")
+					cc2 = createLeaf(u, p1, b, data)
+					sys.Printf("Created leaf cc2 from region (%v, %v).\n", u, p1)
+				}
 				c2.AddChild(cc1)
 				c2.AddChild(cc2)
 			} else {
-				sys.Printf("a2 > 2. Recurse: genStructure(k=%d, b=%d, r={%d, %d}, p1={%d, %d}, data)\n",
-					k, b, r.x, r.y, p1.x, p1.y)
+				sys.Printf("a2 > 2. Recurse: genStructure(k=%d, b=%d, r=%v, p1=%v, data)\n", k, b, r, p1)
 				c2 = genStructure(k, b, r, p1, data)
-				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0={%d, %d}, p1={%d, %d}, data)\n"+
-					"m := %d, n := %d, q := {%d, %d}\n", k, b, p0.x, p0.y, p1.x, p1.y, m, n, q.x, q.y)
+				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
+					"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
 			}
 			pi.AddChild(c2)
 			sys.Printf("Creating new product node as child with weight w=1/n=%f.\n", 1.0/float64(n))
@@ -131,59 +142,70 @@ func genStructure(k, b int, p0, p1 point, data []map[int]int) spn.SPN {
 	q.x, q.y = p1.x, p0.y
 	// y-axis
 	if m > 1 {
-		for j := 0; j < m-1; j++ {
+		for j := 1; j < m; j++ {
 			q.y = int(math.Min(float64(p1.y), float64(q.y+k)))
 			r := point{p0.x, q.y}
 			pi := spn.NewProduct()
 			a1, a2 := area(p0, q, k), area(r, p1, k)
-			sys.Printf("j := %d -> m := %d\nq := {%d, %d}\nr := {%d, %d}\na1 := %d, a2 := %d\n",
-				j, m, q.x, q.y, r.x, r.y, a1, a2)
+			sys.Printf("j := %d -> m := %d\nq := %v\nr := %v\na1 := %d, a2 := %d\n", j, m, q, r, a1, a2)
 			var c1 spn.SPN
 			if a1 == 1 {
 				sys.Println("a1 = 1. Create single leaf.")
 				c1 = createLeaf(p0, q, b, data)
-				sys.Printf("Created leaf from region (p0={%d, %d}, q={%d, %d}).\n", p0.x, p0.y, q.x, q.y)
+				sys.Printf("Created leaf from region (p0=%v, q=%v).\n", p0, q)
 			} else if a1 == 2 {
 				sys.Println("a1 = 2. Create two leaves.")
 				c1 = spn.NewProduct()
-				cc1 := createLeaf(p0, point{p0.x + k, p0.y + k}, b, data)
-				sys.Printf("Created leaf cc1 from region ({%d, %d}, {%d, %d}).\n",
-					p0.x, p0.y, p0.x+k, p0.y+k)
-				cc2 := createLeaf(point{p0.x, p0.y + k}, q, b, data)
-				sys.Printf("Created leaf cc2 from region ({%d, %d}, {%d, %d}).\n",
-					p0.x, p0.y+k, q.x, q.y)
+				s, t, u := point{p0.x + k, p0.y + k}, point{p0.x, p0.y + k}, point{p0.x + k, p0.y}
+				cc1 := createLeaf(p0, s, b, data)
+				sys.Printf("Created leaf cc1 from region (%v, %v).\n", p0, s)
+				var cc2 spn.SPN
+				if n > 1 {
+					sys.Println("Special case for m > 1, a1 = 2.")
+					cc2 = createLeaf(u, q, b, data)
+					sys.Printf("Created leaf cc2 from region (%v, %v).\n", u, q)
+				} else {
+					sys.Println("Special case for m = 1, a1 = 2.")
+					cc2 = createLeaf(t, q, b, data)
+					sys.Printf("Created leaf cc2 from region (%v, %v).\n", t, q)
+				}
 				c1.AddChild(cc1)
 				c1.AddChild(cc2)
 			} else {
-				sys.Printf("a1 > 2. Recurse: genStructure(k=%d, b=%d, p0={%d, %d}, q={%d, %d}, data)\n",
-					k, b, p0.x, p0.y, q.x, q.y)
+				sys.Printf("a1 > 2. Recurse: genStructure(k=%d, b=%d, p0=%v, q=%v, data)\n", k, b, p0, q)
 				c1 = genStructure(k, b, p0, q, data)
-				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0={%d, %d}, p1={%d, %d}, data)\n"+
-					"m := %d, n := %d, q := {%d, %d}\n", k, b, p0.x, p0.y, p1.x, p1.y, m, n, q.x, q.y)
+				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
+					"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
 			}
 			pi.AddChild(c1)
 			var c2 spn.SPN
 			if a2 == 1 {
 				sys.Println("a2 = 1. Create single leaf.")
-				sys.Printf("Created leaf from region (r={%d, %d}, p1={%d, %d}).\n", r.x, r.y, p1.x, p1.y)
+				sys.Printf("Created leaf from region (r=%v, p1=%v).\n", r, p1)
 				c2 = createLeaf(r, p1, b, data)
 			} else if a2 == 2 {
 				sys.Println("a2 = 2. Create two leaves.")
 				c2 = spn.NewProduct()
-				cc1 := createLeaf(r, point{r.x + k, r.y + k}, b, data)
-				sys.Printf("Created leaf cc1 from region ({%d, %d}, {%d, %d}).\n",
-					r.x, r.y, r.x+k, r.y+k)
-				cc2 := createLeaf(point{r.x, r.y + k}, p1, b, data)
-				sys.Printf("Created leaf cc2 from region ({%d, %d}, {%d, %d}).\n",
-					r.x, r.y+k, p1.x, p1.y)
+				s, t, u := point{r.x + k, r.y + k}, point{r.x, r.y + k}, point{r.x + k, r.y}
+				cc1 := createLeaf(r, s, b, data)
+				sys.Printf("Created leaf cc1 from region (%v, %v).\n", r, s)
+				var cc2 spn.SPN
+				if n > 1 {
+					sys.Println("Special case for m > 1, a2 = 2.")
+					cc2 = createLeaf(u, p1, b, data)
+					sys.Printf("Created leaf cc2 from region (%v, %v).\n", u, p1)
+				} else {
+					sys.Println("Special case for m = 1, a2 = 2.")
+					cc2 = createLeaf(t, p1, b, data)
+					sys.Printf("Created leaf cc2 from region (%v, %v).\n", t, p1)
+				}
 				c2.AddChild(cc1)
 				c2.AddChild(cc2)
 			} else {
-				sys.Printf("a2 > 2. Recurse: genStructure(k=%d, b=%d, r={%d, %d}, p1={%d, %d}, data)\n",
-					k, b, r.x, r.y, p1.x, p1.y)
+				sys.Printf("a2 > 2. Recurse: genStructure(k=%d, b=%d, r=%v, p1=%v, data)\n", k, b, r, p1)
 				c2 = genStructure(k, b, r, p1, data)
-				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0={%d, %d}, p1={%d, %d}, data)\n"+
-					"m := %d, n := %d, q := {%d, %d}\n", k, b, p0.x, p0.y, p1.x, p1.y, m, n, q.x, q.y)
+				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
+					"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
 			}
 			pi.AddChild(c2)
 			sys.Printf("Creating new product node as child with weight w=1/m=%f.\n", 1.0/float64(m))
