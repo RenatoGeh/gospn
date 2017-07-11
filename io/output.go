@@ -65,6 +65,7 @@ func DrawGraphTools(filename string, s spn.SPN) {
 	nvars, nsums, nprods := 0, 0, 0
 	queue := common.QueueBFSPair{}
 	queue.Enqueue(&common.BFSPair{Spn: s, Pname: "", Weight: -1.0})
+	vmap := make(map[int]string)
 	for !queue.Empty() {
 		currpair := queue.Dequeue()
 		curr, pname, pw := currpair.Spn, currpair.Pname, currpair.Weight
@@ -104,9 +105,17 @@ func DrawGraphTools(filename string, s spn.SPN) {
 
 			// If leaf, then simply write to the graphviz dot file. Else, recurse the BFS.
 			if c.Type() == "leaf" {
-				cname := fmt.Sprintf("X%d", nvars)
-				fmt.Fprintf(file, "%s = add_node(\"X_%d\", \"#0066ff\")\n", cname, c.Sc()[0])
-				nvars++
+				_id := c.Sc()[0]
+				_v, _e := vmap[_id]
+				var cname string
+				if !_e {
+					cname = fmt.Sprintf("X%d", nvars)
+					fmt.Fprintf(file, "%s = add_node(\"X_%d\", \"#0066ff\")\n", cname, c.Sc()[0])
+					nvars++
+					vmap[_id] = cname
+				} else {
+					cname = _v
+				}
 				if currt == "sum" {
 					fmt.Fprintf(file, "add_edge(%s, %s, \"%.3f\")\n", name, cname, w[i])
 				} else {
@@ -124,12 +133,12 @@ func DrawGraphTools(filename string, s spn.SPN) {
 
 	fmt.Fprintf(file, "g.vertex_properties[\"name\"]=vnames\n")
 	fmt.Fprintf(file, "g.vertex_properties[\"color\"]=vcolors\n")
-	//fmt.Fprintf(file, "\ngraph_draw(g, vertex_text=g.vertex_properties[\"name\"], "+
-	//"edge_text=enames, vertex_fill_color=g.vertex_properties[\"color\"], "+
-	//"output_size=[16384, 16384], output=\"%s\", bg_color=[1, 1, 1, 1])\n", outname)
-	fmt.Fprintf(file, "\ngraph_draw(g, "+
+	fmt.Fprintf(file, "\ngraph_draw(g, vertex_text=g.vertex_properties[\"name\"], "+
 		"edge_text=enames, vertex_fill_color=g.vertex_properties[\"color\"], "+
 		"output_size=[16384, 16384], output=\"%s\", bg_color=[1, 1, 1, 1])\n", outname)
+	//fmt.Fprintf(file, "\ngraph_draw(g, "+
+	//"edge_text=enames, vertex_fill_color=g.vertex_properties[\"color\"], "+
+	//"output_size=[16384, 16384], output=\"%s\", bg_color=[1, 1, 1, 1])\n", outname)
 }
 
 // DrawGraph creates a file filename and draws an SPN spn in Graphviz dot.

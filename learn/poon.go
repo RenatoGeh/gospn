@@ -13,6 +13,7 @@ type point struct {
 }
 
 var width, height int
+var vmap map[int]spn.SPN
 
 // Computes surface area of rectangle (p, q) under the assumption the atomic unit is the rectangle
 // (k, k).
@@ -23,6 +24,11 @@ func area(p, q point, k int) int {
 // Creates a univariate distribution over pixels inside (p, q), where b is the number of possible
 // valuations of each pixel and data is the dataset.
 func createLeaf(p, q point, b int, data []map[int]int) spn.SPN {
+	id := p.x + p.y*width
+	if c, e := vmap[id]; e {
+		return c
+	}
+
 	w, h := q.x-p.x, q.y-p.y
 	n := w * h
 
@@ -30,9 +36,9 @@ func createLeaf(p, q point, b int, data []map[int]int) spn.SPN {
 
 	// Selects all variables inside rectangle area (p, q). X is equivalent to this leaf's scope.
 	var l int
-	for i := 0; i < w; i++ {
-		for j := 0; j < h; j++ {
-			k := (i + p.x) + j*w
+	for i := p.y; i < q.y; i++ {
+		for j := p.x; j < q.x; j++ {
+			k := j + i*width
 			X[l] = k
 			l++
 		}
@@ -46,13 +52,15 @@ func createLeaf(p, q point, b int, data []map[int]int) spn.SPN {
 		}
 	}
 
-	lambda := spn.NewScopedCountingMultinomial(p.x+p.y*height, X, f)
+	lambda := spn.NewScopedCountingMultinomial(id, X, f)
+	vmap[id] = lambda
 	return lambda
 }
 
 // Poon is the Poon-Domingos generative SPN learning algorithm.
 func Poon(k, b, w, h int, data []map[int]int) spn.SPN {
 	width, height = w, h
+	vmap = make(map[int]spn.SPN)
 	return genStructure(k, b, point{0, 0}, point{w, h}, data)
 }
 
