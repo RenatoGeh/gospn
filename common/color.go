@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"os"
 )
@@ -56,58 +55,58 @@ type hsv struct {
 	v float64
 }
 
-func rgb2hsv(in rgb) hsv {
-	var out hsv
-	var min, max, delta float64
+//func rgb2hsv(in rgb) hsv {
+//var out hsv
+//var min, max, delta float64
 
-	if in.r < in.g {
-		min = in.r
-	} else {
-		min = in.g
-	}
-	if min >= in.b {
-		min = in.b
-	}
+//if in.r < in.g {
+//min = in.r
+//} else {
+//min = in.g
+//}
+//if min >= in.b {
+//min = in.b
+//}
 
-	if in.r > in.g {
-		max = in.r
-	} else {
-		max = in.g
-	}
-	if max <= in.b {
-		max = in.b
-	}
+//if in.r > in.g {
+//max = in.r
+//} else {
+//max = in.g
+//}
+//if max <= in.b {
+//max = in.b
+//}
 
-	out.v = max
-	delta = max - min
+//out.v = max
+//delta = max - min
 
-	if delta < 0.00001 {
-		out.s = 0
-		out.h = 0
-		return out
-	}
-	if max > 0 {
-		out.s = (delta / max)
-	} else {
-		out.s = 0
-		out.h = math.NaN()
-		return out
-	}
-	if in.r >= max {
-		out.h = (in.g - in.b) / delta
-	} else if in.g >= max {
-		out.h = 2.0 + (in.b-in.r)/delta
-	} else {
-		out.h = 4.0 + (in.r-in.g)/delta
-	}
-	out.h *= 60.0
+//if delta < 0.00001 {
+//out.s = 0
+//out.h = 0
+//return out
+//}
+//if max > 0 {
+//out.s = (delta / max)
+//} else {
+//out.s = 0
+//out.h = math.NaN()
+//return out
+//}
+//if in.r >= max {
+//out.h = (in.g - in.b) / delta
+//} else if in.g >= max {
+//out.h = 2.0 + (in.b-in.r)/delta
+//} else {
+//out.h = 4.0 + (in.r-in.g)/delta
+//}
+//out.h *= 60.0
 
-	if out.h < 0.0 {
-		out.h += 360.0
-	}
+//if out.h < 0.0 {
+//out.h += 360.0
+//}
 
-	return out
-}
+//return out
+//}
 
 func hsv2rgb(in hsv) rgb {
 	var hh, p, q, t, ff float64

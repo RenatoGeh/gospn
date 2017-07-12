@@ -39,6 +39,12 @@ func (q *Queue) Size() int { return len(q.data) }
 // Empty returns whether the queue is empty or not.
 func (q *Queue) Empty() bool { return len(q.data) == 0 }
 
+// Give is equivalent to Enqueue.
+func (q *Queue) Give(e interface{}) { q.Enqueue(e) }
+
+// Take is equivalent to Dequeue.
+func (q *Queue) Take() interface{} { return q.Dequeue() }
+
 /*************************************************************************************************/
 
 // QueueSPN is a queue of spn.SPNs.
