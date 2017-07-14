@@ -26,42 +26,93 @@ func DeriveSPN(S spn.SPN, storage *Storer, tk, itk int, c common.Collection) (sp
 		tk = storage.NewTicket()
 	}
 	if c == nil {
-		c = &common.Stack{}
+		c = &common.Queue{}
 	}
 
 	table, _ := storage.Table(tk)
 	inf, _ := storage.Table(itk)
-	table[S] = 0.0
+	table.StoreSingle(S, 0.0)
 	c.Give(S)
 
 	for !c.Empty() {
 		s := c.Take().(spn.SPN)
 		ch := s.Ch()
-		pv := table[s]
+		pv, _ := table.Single(s)
 		if s.Type() == "sum" {
 			sum := s.(*spn.Sum)
 			W := sum.Weights()
 			for i, cs := range ch {
-				v, e := table[cs]
+				v, e := table.Single(cs)
 				if !e {
-					table[cs] = math.Log(W[i]) + pv
+					table.StoreSingle(cs, math.Log(W[i])+pv)
 				} else {
-					table[cs] = math.Log(math.Exp(v) + W[i]*math.Exp(pv))
+					table.StoreSingle(cs, math.Log(math.Exp(v)+math.Exp(math.Log(W[i])+pv)))
 				}
 			}
 		} else /* there can never be a case where s is a leaf, therefore s is a product */ {
 			for i, cs := range ch {
-				v, e := table[cs]
+				v, e := table.Single(cs)
 				t := pv
 				for j := range ch {
 					if j != i {
-						t += inf[ch[j]]
+						_v, _ := inf.Single(ch[j])
+						t += _v
 					}
 				}
 				if !e {
-					table[cs] = t
+					table.StoreSingle(cs, t)
 				} else {
-					table[cs] = math.Log(math.Exp(v) + math.Exp(t))
+					table.StoreSingle(cs, math.Log(math.Exp(v)+math.Exp(t)))
+				}
+			}
+		}
+
+		for _, cs := range ch {
+			if cs.Type() != "leaf" {
+				c.Give(cs)
+			}
+		}
+	}
+
+	return S, tk
+}
+
+// DeriveWeights computes the derivative dS/dW, where W is the multiset of weights in SPN S.
+// The derivative of S with respect to W is given by
+// 	dS/dw_{n,j} <- S_j * dS/dS_n, if S_n is a sum node
+// It is only relevant to compute dS/dw_{n,j} in sum nodes since weights do not appear in product
+// nodes. Argument S is the SPN to find the derivative of. Argument storage is the DP storage
+// object we store the derivatives values and extract inference values from. Integers tk and itk
+// are the tickets for the stored derivatives and inference values respectively. Collection c is
+// the data type to be used for the graph search. If c is a stack, then DeriveWeights performs a
+// depth-first search. If c is a queue, then DeriveWeights's graph search is a breadth-first
+// search. The default value for c is Queue. DeriveWeights returns the SPN S and a ticket if tk is
+// a negative value.
+func DeriveWeights(S spn.SPN, storage *Storer, tk, itk int, c common.Collection) (spn.SPN, int) {
+	if tk < 0 {
+		tk = storage.NewTicket()
+	}
+	if c == nil {
+		c = &common.Queue{}
+	}
+
+	table, _ := storage.Table(tk)
+	table.StoreSingle(S, 0.0)
+	c.Give(S)
+
+	for !c.Empty() {
+		s := c.Take().(spn.SPN)
+		ch := s.Ch()
+		pv, _ := table.Single(s)
+		if s.Type() == "sum" {
+			sum := s.(*spn.Sum)
+			W := sum.Weights()
+			for i, cs := range ch {
+				v, e := table.Single(cs)
+				if !e {
+					table.StoreSingle(cs, math.Log(W[i])+pv)
+				} else {
+					table.StoreSingle(cs, math.Log(math.Exp(v)+math.Exp(math.Log(W[i])+pv)))
 				}
 			}
 		}
