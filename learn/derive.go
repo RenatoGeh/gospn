@@ -82,13 +82,13 @@ func DeriveSPN(S spn.SPN, storage *Storer, tk, itk int, c common.Collection) (sp
 // 	dS/dw_{n,j} <- S_j * dS/dS_n, if S_n is a sum node
 // It is only relevant to compute dS/dw_{n,j} in sum nodes since weights do not appear in product
 // nodes. Argument S is the SPN to find the derivative of. Argument storage is the DP storage
-// object we store the derivatives values and extract inference values from. Integers tk and itk
-// are the tickets for the stored derivatives and inference values respectively. Collection c is
-// the data type to be used for the graph search. If c is a stack, then DeriveWeights performs a
-// depth-first search. If c is a queue, then DeriveWeights's graph search is a breadth-first
-// search. The default value for c is Queue. DeriveWeights returns the SPN S and a ticket if tk is
-// a negative value.
-func DeriveWeights(S spn.SPN, storage *Storer, tk, itk int, c common.Collection) (spn.SPN, int) {
+// object we store the derivatives values and extract inference values from. Integers tk, dtk and
+// itk are the tickets for where to store dS/dW, where to locate dS/dS_i and stored inference
+// values respectively. Collection c is the data type to be used for the graph search. If c is a
+// stack, then DeriveWeights performs a depth-first search. If c is a queue, then DeriveWeights's
+// graph search is a breadth-first search. The default value for c is Queue. DeriveWeights returns
+// the SPN S and a ticket if tk is a negative value.
+func DeriveWeights(S spn.SPN, storage *Storer, tk, dtk, itk int, c common.Collection) (spn.SPN, int) {
 	if tk < 0 {
 		tk = storage.NewTicket()
 	}
@@ -96,24 +96,19 @@ func DeriveWeights(S spn.SPN, storage *Storer, tk, itk int, c common.Collection)
 		c = &common.Queue{}
 	}
 
-	table, _ := storage.Table(tk)
-	table.StoreSingle(S, 0.0)
+	wt, _ := storage.Table(tk)
+	st, _ := storage.Table(dtk)
+	it, _ := storage.Table(itk)
 	c.Give(S)
 
 	for !c.Empty() {
 		s := c.Take().(spn.SPN)
 		ch := s.Ch()
-		pv, _ := table.Single(s)
+		pv, _ := st.Single(s)
 		if s.Type() == "sum" {
-			sum := s.(*spn.Sum)
-			W := sum.Weights()
 			for i, cs := range ch {
-				v, e := table.Single(cs)
-				if !e {
-					table.StoreSingle(cs, math.Log(W[i])+pv)
-				} else {
-					table.StoreSingle(cs, math.Log(math.Exp(v)+math.Exp(math.Log(W[i])+pv)))
-				}
+				v, _ := it.Single(cs)
+				wt.Store(cs, i, v+pv)
 			}
 		}
 
