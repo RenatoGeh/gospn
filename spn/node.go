@@ -14,6 +14,8 @@ type Node struct {
 type SPN interface {
 	// Value returns the value of this node given an instantiation.
 	Value(val VarSet) float64
+	// Compute returns the soft value of this node's type given the children's values.
+	Compute(cv []float64) float64
 	// Max returns the MAP value of this node given an evidence.
 	Max(val VarSet) float64
 	// ArgMax returns the MAP value and state given an evidence.
@@ -37,6 +39,11 @@ type VarSet map[int]int
 
 // Value returns the value of this node given an instantiation. (virtual)
 func (n *Node) Value(val VarSet) float64 {
+	return -1
+}
+
+// Compute returns the soft value of this node's type given the children's values.
+func (n *Node) Compute(cv []float64) float64 {
 	return -1
 }
 

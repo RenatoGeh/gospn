@@ -41,25 +41,32 @@ func (s *Sum) Value(val VarSet) float64 {
 	n := len(s.ch)
 
 	vals := make([]float64, n)
-	max, imax := math.Inf(-1), -1
 	for i := 0; i < n; i++ {
 		v, w := s.ch[i].Value(val), math.Log(s.w[i])
 		vals[i] = v + w
-		if vals[i] > max {
-			max, imax = vals[i], i
+	}
+
+	return s.Compute(vals)
+}
+
+// Compute returns the soft value of this node's type given the children's values.
+func (s *Sum) Compute(cv []float64) float64 {
+	max, imax := math.Inf(-1), -1
+
+	for i, v := range cv {
+		if v > max {
+			max, imax = v, i
 		}
 	}
 
 	p, r := max, 0.0
-
-	for i := 0; i < n; i++ {
+	for i := range cv {
 		if i != imax {
-			r += math.Exp(vals[i] - p)
+			r += math.Exp(cv[i] - p)
 		}
 	}
 
 	r = p + math.Log1p(r)
-
 	return r
 }
 

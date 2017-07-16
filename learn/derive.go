@@ -31,8 +31,10 @@ func DeriveSPN(S spn.SPN, storage *Storer, tk, itk int, c common.Collection) (sp
 
 	table, _ := storage.Table(tk)
 	inf, _ := storage.Table(itk)
+	visited := make(map[spn.SPN]bool)
 	table.StoreSingle(S, 0.0)
 	c.Give(S)
+	visited[S] = true
 
 	for !c.Empty() {
 		s := c.Take().(spn.SPN)
@@ -68,8 +70,9 @@ func DeriveSPN(S spn.SPN, storage *Storer, tk, itk int, c common.Collection) (sp
 		}
 
 		for _, cs := range ch {
-			if cs.Type() != "leaf" {
+			if cs.Type() != "leaf" && !visited[cs] {
 				c.Give(cs)
+				visited[cs] = true
 			}
 		}
 	}
@@ -99,7 +102,9 @@ func DeriveWeights(S spn.SPN, storage *Storer, tk, dtk, itk int, c common.Collec
 	wt, _ := storage.Table(tk)
 	st, _ := storage.Table(dtk)
 	it, _ := storage.Table(itk)
+	visited := make(map[spn.SPN]bool)
 	c.Give(S)
+	visited[S] = true
 
 	for !c.Empty() {
 		s := c.Take().(spn.SPN)
@@ -113,11 +118,79 @@ func DeriveWeights(S spn.SPN, storage *Storer, tk, dtk, itk int, c common.Collec
 		}
 
 		for _, cs := range ch {
-			if cs.Type() != "leaf" {
+			if cs.Type() != "leaf" && !visited[cs] {
 				c.Give(cs)
+				visited[cs] = true
 			}
 		}
 	}
 
 	return S, tk
+}
+
+// StoreInference takes an SPN S and stores the values for an instance I on a DP table storage
+// at the position designated by the ticket tk. Returns S and the ticket used (if tk < 0,
+// StoreInference creates a new ticket).
+func StoreInference(S spn.SPN, I spn.VarSet, tk int, storage *Storer) spn.SPN {
+	if tk < 0 {
+		tk = storage.NewTicket()
+	}
+
+	// Since we're avoiding recursion, we have to account for node value dependencies. A node depends
+	// on the values of its children. We handle this issue by doing a DFS on the SPN. We memorize the
+	// order the nodes are pushed, since in a DFS, the order of the stack is equivalent to the
+	// topological ordering of the graph. The topological sort of the graph is equivalent to the
+	// reversed order we must follow to compute all dependencies.
+	visited := make(map[spn.SPN]bool)
+	c, _c := &common.Stack{}, &common.Stack{}
+	c.Push(S)
+	visited[S] = true
+	_c.Push(S)
+
+	for !_c.Empty() {
+		s := _c.Pop().(spn.SPN)
+		ch := s.Ch()
+		for _, cs := range ch {
+			if !visited[cs] {
+				_c.Push(cs)
+				c.Push(cs)
+				visited[cs] = true
+			}
+		}
+	}
+
+	_c, visited = nil, nil // free memory as soon as soon as the garbage collector allows
+	// We guarantee that every dependency will be computed before. The proof is simple:
+	// Let T be the topological sort given by a DFS search on the DAG G. We shall prove the
+	// hypothesis by contradiction. Let i be a node that has node j as dependency. Suppose i comes
+	// after j in T, since we will follow T in a reversed order, i will then come before j. But i has
+	// a child j, which contradicts the topological sort T.
+	table, _ := storage.Table(tk)
+	for !c.Empty() {
+		s := c.Pop().(spn.SPN)
+		switch t := s.Type(); t {
+		case "leaf":
+			table.StoreSingle(s, s.Value(I))
+		case "sum":
+			sum := s.(*spn.Sum)
+			ch := sum.Ch()
+			n := len(ch)
+			vals := make([]float64, n)
+			for i, cs := range ch {
+				vals[i], _ = table.Single(cs)
+			}
+			table.StoreSingle(s, sum.Compute(vals))
+		case "product":
+			prod := s.(*spn.Product)
+			ch := prod.Ch()
+			n := len(ch)
+			vals := make([]float64, n)
+			for i, cs := range ch {
+				vals[i], _ = table.Single(cs)
+			}
+			table.StoreSingle(s, prod.Compute(vals))
+		}
+	}
+
+	return S
 }

@@ -23,6 +23,15 @@ func (q *Queue) Dequeue() interface{} {
 	return e
 }
 
+// DequeueBack removes and returns the last element of the queue.
+func (q *Queue) DequeueBack() interface{} {
+	n := len(q.data) - 1
+	e := q.data[n]
+	q.data[n] = nil
+	q.data = q.data[1:n]
+	return e
+}
+
 // Peek returns the first element of the queue.
 func (q *Queue) Peek() interface{} {
 	return q.data[0]

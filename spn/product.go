@@ -27,13 +27,22 @@ func (p *Product) Sc() []int {
 func (p *Product) Value(val VarSet) float64 {
 	n := len(p.ch)
 	ch := p.Ch()
-	var v float64
+	vals := make([]float64, n)
 
-	for i := 0; i < n; i++ {
-		v += ch[i].Value(val)
+	for i := range ch {
+		vals[i] = ch[i].Value(val)
 	}
 
-	return v
+	return p.Compute(vals)
+}
+
+// Compute returns the soft value of this node's type given the children's values.
+func (p *Product) Compute(cv []float64) float64 {
+	var r float64
+	for _, v := range cv {
+		r += v
+	}
+	return r
 }
 
 // Max returns the MAP state given a valuation.

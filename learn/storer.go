@@ -102,7 +102,7 @@ func (t StorerTable) Store(S spn.SPN, l int, e float64) bool {
 	_, err := t[S]
 	if !err {
 		t[S] = make(map[int]float64)
-		t[S][0] = e
+		t[S][l] = e
 	} else {
 		t[S][l] = e
 	}
