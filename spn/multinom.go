@@ -111,6 +111,9 @@ func NewEmptyMultinomial(varid, m int) *Multinomial {
 // Type returns the type of this node.
 func (m *Multinomial) Type() string { return "leaf" }
 
+// Pr returns the discrete probability distribution.
+func (m *Multinomial) Pr() []float64 { return m.pr }
+
 // Value returns the probability of a certain valuation. That is Pr(X=val[varid]), where
 // Pr is a probability function over a Multinomial distribution.
 func (m *Multinomial) Value(val VarSet) float64 {
