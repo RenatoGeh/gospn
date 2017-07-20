@@ -10,8 +10,9 @@ import (
 // the learning rate; steps is the number of times GenerativeGD should iterate - the greater the
 // number of steps, the more will GenerativeGD try to fit data; data is the dataset; c is how we
 // should perform the graph search. If a stack is used, perform a DFS. If a queue is used, BFS. If
-// c is nil, we use a queue.
-func GenerativeGD(S spn.SPN, eta float64, steps int, data []map[int]int, c common.Collection) spn.SPN {
+// c is nil, we use a queue. Argument norm indicates whether GenerativeGD should normalize weights
+// at each node.
+func GenerativeGD(S spn.SPN, eta float64, steps int, data []map[int]int, c common.Collection, norm bool) spn.SPN {
 	if c == nil {
 		c = &common.Queue{}
 	}
@@ -27,7 +28,7 @@ func GenerativeGD(S spn.SPN, eta float64, steps int, data []map[int]int, c commo
 			// Store weights derivatives under T[wtk].
 			DeriveWeights(S, storage, wtk, stk, itk, c)
 			// Apply gradient descent.
-			applyGD(S, eta, wtk, storage, c)
+			applyGD(S, eta, wtk, storage, c, norm)
 			// Reset DP tables.
 			storage.Reset(wtk)
 			storage.Reset(stk)
@@ -38,8 +39,18 @@ func GenerativeGD(S spn.SPN, eta float64, steps int, data []map[int]int, c commo
 	return S
 }
 
+func normalize(v []float64) {
+	var norm float64
+	for i := range v {
+		norm += v[i]
+	}
+	for i := range v {
+		v[i] /= norm
+	}
+}
+
 // This is where the magic happens.
-func applyGD(S spn.SPN, eta float64, wtk int, storage *Storer, c common.Collection) {
+func applyGD(S spn.SPN, eta float64, wtk int, storage *Storer, c common.Collection, norm bool) {
 	visited := make(map[spn.SPN]bool)
 	wt, _ := storage.Table(wtk)
 	c.Give(S)
@@ -54,6 +65,9 @@ func applyGD(S spn.SPN, eta float64, wtk int, storage *Storer, c common.Collecti
 			for i := range W {
 				delta := eta * math.Exp(dW[i])
 				W[i] += delta
+			}
+			if norm {
+				normalize(W)
 			}
 		}
 		for _, cs := range ch {
