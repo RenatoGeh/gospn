@@ -18,7 +18,7 @@ var vmap map[int]spn.SPN
 // Computes surface area of rectangle (p, q) under the assumption the atomic unit is the rectangle
 // (k, k).
 func area(p, q point, k int) int {
-	return int(math.Ceil(float64(p.x-q.x) * float64(p.y-q.y) / float64(k)))
+	return int(math.Ceil(float64(q.x-p.x) * float64(q.y-p.y) / float64(k*k)))
 }
 
 // Creates a univariate distribution over pixels inside (p, q), where b is the number of possible
@@ -76,9 +76,9 @@ func genStructure(k, b int, p0, p1 point, data []map[int]int) spn.SPN {
 	q := point{p0.x, p1.y}
 	// x-axis
 	sys.Printf("genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
-		"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q.x, q.y)
+		"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
 	if n > 1 {
-		for i := 1; i < n; i++ {
+		for i := 1; i < n; i += k {
 			q.x = int(math.Min(float64(p1.x), float64(q.x+k)))
 			r := point{q.x, p0.y}
 			pi := spn.NewProduct()
@@ -150,7 +150,7 @@ func genStructure(k, b int, p0, p1 point, data []map[int]int) spn.SPN {
 	q.x, q.y = p1.x, p0.y
 	// y-axis
 	if m > 1 {
-		for j := 1; j < m; j++ {
+		for j := 1; j < m; j += k {
 			q.y = int(math.Min(float64(p1.y), float64(q.y+k)))
 			r := point{p0.x, q.y}
 			pi := spn.NewProduct()
