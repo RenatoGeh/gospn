@@ -224,8 +224,8 @@ cannot find package "github.com/gonum/stat" in any of
 Enter the following commands:
 
 ```
-go get -u github.com/gonum/stat
-go get -u github.com/gonum/mathext
+go get -u gonum.org/v1/gonum/stat
+go get -u gonum.org/v1/gonum/mathext
 ```
 
 #### graph-tool (optional)

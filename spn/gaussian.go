@@ -2,7 +2,7 @@ package spn
 
 import (
 	//"fmt"
-	"github.com/gonum/stat/distuv"
+	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 )
 
