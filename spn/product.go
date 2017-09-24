@@ -77,5 +77,4 @@ func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 // AddChild adds a child.
 func (p *Product) AddChild(c SPN) {
 	p.ch = append(p.ch, c)
-	c.AddParent(p)
 }

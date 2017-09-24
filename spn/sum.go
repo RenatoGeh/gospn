@@ -114,5 +114,4 @@ func (s *Sum) Weights() []float64 {
 // AddChild adds a child.
 func (s *Sum) AddChild(c SPN) {
 	s.ch = append(s.ch, c)
-	c.AddParent(s)
 }
