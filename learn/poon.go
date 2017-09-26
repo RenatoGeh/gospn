@@ -6,220 +6,166 @@ import (
 	"math"
 )
 
-// Point.
-type point struct {
-	x int
-	y int
+var (
+	w   = sys.Width
+	h   = sys.Height
+	max = sys.Max
+)
+
+const (
+	regionId = iota
+	gmixtureId
+	sumId
+)
+
+type region struct {
+	id    int
+	inner []spn.SPN
 }
 
-var width, height int
-var vmap map[int]spn.SPN
-
-// Computes surface area of rectangle (p, q) under the assumption the atomic unit is the rectangle
-// (k, k).
-func area(p, q point, k int) int {
-	return int(math.Ceil(float64(q.x-p.x) * float64(q.y-p.y) / float64(k*k)))
+func encode(x1, y1, x2, y2 int) uint64 {
+	return ((uint64(y1)*uint64(w)+uint64(x1))*uint64(w)+uint64(x2))*uint64(h) + uint64(y2)
 }
 
-// Creates a univariate distribution over pixels inside (p, q), where b is the number of possible
-// valuations of each pixel and data is the dataset.
-func createLeaf(p, q point, b int, data []map[int]int) spn.SPN {
-	id := p.x + p.y*width
-	if c, e := vmap[id]; e {
-		return c
+func decode(k uint64) (x1, y1, x2, y2 int) {
+	_w, _h := uint64(w), uint64(h)
+	y2 = int(k % _h)
+	c := (k - uint64(y2)) / _h
+	x2 = int(c % _w)
+	c = (c - uint64(x2)) / _w
+	x1 = int(c % _w)
+	y1 = int((c - uint64(x1)) / _w)
+	return
+}
+
+func createSum(x1, y1, x2, y2 int) (uint64, *region) {
+	return encode(x1, y1, x2, y2), &region{sumId, []spn.SPN{spn.NewSum()}}
+}
+
+func createRegion(m int) *region {
+	z := make([]spn.SPN, m)
+	for i := 0; i < m; i++ {
+		z[i] = spn.NewSum()
 	}
-
-	w, h := q.x-p.x, q.y-p.y
-	n := w * h
-
-	X := make([]int, n)
-
-	// Selects all variables inside rectangle area (p, q). X is equivalent to this leaf's scope.
-	var l int
-	for i := p.y; i < q.y; i++ {
-		for j := p.x; j < q.x; j++ {
-			k := j + i*width
-			X[l] = k
-			l++
-		}
-	}
-
-	// Computes the frequency of each pixel value.
-	f := make([]int, b)
-	for _, v := range data {
-		for _, i := range X {
-			f[v[i]]++
-		}
-	}
-
-	lambda := spn.NewScopedCountingMultinomial(id, X, f)
-	vmap[id] = lambda
-	return lambda
+	return &region{regionId, z}
 }
 
-// Poon is the Poon-Domingos generative SPN learning algorithm.
-func Poon(k, b, w, h int, data []map[int]int) spn.SPN {
-	width, height = w, h
-	vmap = make(map[int]spn.SPN)
-	return genStructure(k, b, point{0, 0}, point{w, h}, data)
-}
-
-// This function generates a dense SPN from a dataset of images. This function is an implementation
-// of the algorithm proposed in Poon and Domingos' SPN article, following the description found in
-// Dennis and Ventura's article on structural learning of SPNs through clustering of variables.
-// More information can be found at
-// https://github.com/RenatoGeh/spn_algos/blob/master/poon/poon.pdf
-func genStructure(k, b int, p0, p1 point, data []map[int]int) spn.SPN {
-	n := int(math.Ceil(float64(p1.x-p0.x) / float64(k)))
-	m := int(math.Ceil(float64(p1.y-p0.y) / float64(k)))
+func createGauss(x1, y1, x2, y2, m int, D spn.Dataset) *region {
 	S := spn.NewSum()
-	q := point{p0.x, p1.y}
-	// x-axis
-	sys.Printf("genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
-		"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
-	if n > 1 {
-		for i := 1; i < n; i += k {
-			q.x = int(math.Min(float64(p1.x), float64(q.x+k)))
-			r := point{q.x, p0.y}
-			pi := spn.NewProduct()
-			a1, a2 := area(p0, q, k), area(r, p1, k)
-			sys.Printf("i := %d -> n := %d\nq := %v\nr := %v\na1 := %d, a2 := %d\n", i, n, q, r, a1, a2)
-			var c1 spn.SPN
-			if a1 == 1 {
-				sys.Println("a1 = 1. Create single leaf.")
-				c1 = createLeaf(p0, q, b, data)
-				sys.Printf("Created leaf from region (p0=%v, q=%v).\n", p0, q)
-			} else if a1 == 2 {
-				c1 = spn.NewProduct()
-				s, t, u := point{p0.x + k, p0.y + k}, point{p0.x, p0.y + k}, point{p0.x + k, p0.y}
-				cc1 := createLeaf(p0, s, b, data)
-				sys.Printf("Created leaf cc1 from region (%v, %v).\n", p0, s)
-				var cc2 spn.SPN
-				if m > 1 {
-					sys.Println("Special case for n > 1, a1 = 2.")
-					cc2 = createLeaf(t, q, b, data)
-					sys.Printf("Created leaf cc2 from region (%v, %v).\n", t, q)
-				} else {
-					sys.Println("Special case for n = 1, a1 = 2.")
-					cc2 = createLeaf(u, q, b, data)
-					sys.Printf("Created leaf cc2 from region (%v, %v).\n", u, q)
-				}
-				c1.AddChild(cc1)
-				c1.AddChild(cc2)
-			} else {
-				sys.Printf("a1 > 2. Recurse: genStructure(k=%d, b=%d, p0=%v, q=%v, data)\n", k, b, p0, q)
-				c1 = genStructure(k, b, p0, q, data)
-				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
-					"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
-			}
-			pi.AddChild(c1)
-			var c2 spn.SPN
-			if a2 == 1 {
-				sys.Println("a2 = 1. Create single leaf.")
-				c2 = createLeaf(r, p1, b, data)
-				sys.Printf("Created leaf from region (r=%v, p1=%v).\n", r, p1)
-			} else if a2 == 2 {
-				sys.Println("a2 = 2. Create two leaves.")
-				c2 = spn.NewProduct()
-				s, t, u := point{r.x + k, r.y + k}, point{r.x, r.y + k}, point{r.x + k, r.y}
-				cc1 := createLeaf(r, s, b, data)
-				sys.Printf("Created leaf cc1 from region (%v, %v).\n", r, s)
-				var cc2 spn.SPN
-				if m > 1 {
-					sys.Println("Special case for n > 1, a2 = 2.")
-					cc2 = createLeaf(t, p1, b, data)
-					sys.Printf("Created leaf cc2 from region (%v, %v).\n", t, p1)
-				} else {
-					sys.Println("Special case for n = 1, a2 = 2.")
-					cc2 = createLeaf(u, p1, b, data)
-					sys.Printf("Created leaf cc2 from region (%v, %v).\n", u, p1)
-				}
-				c2.AddChild(cc1)
-				c2.AddChild(cc2)
-			} else {
-				sys.Printf("a2 > 2. Recurse: genStructure(k=%d, b=%d, r=%v, p1=%v, data)\n", k, b, r, p1)
-				c2 = genStructure(k, b, r, p1, data)
-				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
-					"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
-			}
-			pi.AddChild(c2)
-			sys.Printf("Creating new product node as child with weight w=1/n=%f.\n", 1.0/float64(n))
-			S.AddChildW(pi, 1.0/float64(n))
-		}
+	z := make([]*spn.Gaussian, m)
+	vals := make([][]int, m)
+	for i := range vals {
+		vals[i] = make([]int, max)
 	}
-	q.x, q.y = p1.x, p0.y
-	// y-axis
-	if m > 1 {
-		for j := 1; j < m; j += k {
-			q.y = int(math.Min(float64(p1.y), float64(q.y+k)))
-			r := point{p0.x, q.y}
-			pi := spn.NewProduct()
-			a1, a2 := area(p0, q, k), area(r, p1, k)
-			sys.Printf("j := %d -> m := %d\nq := %v\nr := %v\na1 := %d, a2 := %d\n", j, m, q, r, a1, a2)
-			var c1 spn.SPN
-			if a1 == 1 {
-				sys.Println("a1 = 1. Create single leaf.")
-				c1 = createLeaf(p0, q, b, data)
-				sys.Printf("Created leaf from region (p0=%v, q=%v).\n", p0, q)
-			} else if a1 == 2 {
-				sys.Println("a1 = 2. Create two leaves.")
-				c1 = spn.NewProduct()
-				s, t, u := point{p0.x + k, p0.y + k}, point{p0.x, p0.y + k}, point{p0.x + k, p0.y}
-				cc1 := createLeaf(p0, s, b, data)
-				sys.Printf("Created leaf cc1 from region (%v, %v).\n", p0, s)
-				var cc2 spn.SPN
-				if n > 1 {
-					sys.Println("Special case for m > 1, a1 = 2.")
-					cc2 = createLeaf(u, q, b, data)
-					sys.Printf("Created leaf cc2 from region (%v, %v).\n", u, q)
-				} else {
-					sys.Println("Special case for m = 1, a1 = 2.")
-					cc2 = createLeaf(t, q, b, data)
-					sys.Printf("Created leaf cc2 from region (%v, %v).\n", t, q)
-				}
-				c1.AddChild(cc1)
-				c1.AddChild(cc2)
-			} else {
-				sys.Printf("a1 > 2. Recurse: genStructure(k=%d, b=%d, p0=%v, q=%v, data)\n", k, b, p0, q)
-				c1 = genStructure(k, b, p0, q, data)
-				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
-					"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
+
+	for x := x1; x < x2; x++ {
+		for y := y1; y < y2; y++ {
+			p := x + y*w
+			// Partition pixel p dataset into m value slices
+			for i := range D {
+				k := i % m
+				vals[k][D[i][p]]++
 			}
-			pi.AddChild(c1)
-			var c2 spn.SPN
-			if a2 == 1 {
-				sys.Println("a2 = 1. Create single leaf.")
-				sys.Printf("Created leaf from region (r=%v, p1=%v).\n", r, p1)
-				c2 = createLeaf(r, p1, b, data)
-			} else if a2 == 2 {
-				sys.Println("a2 = 2. Create two leaves.")
-				c2 = spn.NewProduct()
-				s, t, u := point{r.x + k, r.y + k}, point{r.x, r.y + k}, point{r.x + k, r.y}
-				cc1 := createLeaf(r, s, b, data)
-				sys.Printf("Created leaf cc1 from region (%v, %v).\n", r, s)
-				var cc2 spn.SPN
-				if n > 1 {
-					sys.Println("Special case for m > 1, a2 = 2.")
-					cc2 = createLeaf(u, p1, b, data)
-					sys.Printf("Created leaf cc2 from region (%v, %v).\n", u, p1)
-				} else {
-					sys.Println("Special case for m = 1, a2 = 2.")
-					cc2 = createLeaf(t, p1, b, data)
-					sys.Printf("Created leaf cc2 from region (%v, %v).\n", t, p1)
-				}
-				c2.AddChild(cc1)
-				c2.AddChild(cc2)
-			} else {
-				sys.Printf("a2 > 2. Recurse: genStructure(k=%d, b=%d, r=%v, p1=%v, data)\n", k, b, r, p1)
-				c2 = genStructure(k, b, r, p1, data)
-				sys.Printf("End recursive call. genStrucure(k=%d, b=%d, p0=%v, p1=%v, data)\n"+
-					"m := %d, n := %d, q := %v\n", k, b, p0, p1, m, n, q)
-			}
-			pi.AddChild(c2)
-			sys.Printf("Creating new product node as child with weight w=1/m=%f.\n", 1.0/float64(m))
-			S.AddChildW(pi, 1.0/float64(m))
 		}
 	}
 
+	for i := 0; i < m; i++ {
+		z[i] = spn.NewGaussian(x1+y1*w, vals[i])
+		S.AddChildW(z[i], 1.0/float64(m))
+	}
+
+	return &region{gmixtureId, []spn.SPN{S}}
+}
+
+func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
+	L := make(map[uint64]*region)
+	n := w * h
+	for i := 0; i < n; i++ {
+		x1 := i % w
+		y1 := i / w
+		for x2 := w - 1; x2 >= x1; x2-- {
+			for y2 := h - 1; y2 >= y1; y2-- {
+				if x1 == 0 && y1 == 0 && x2 == w-1 && y2 == h-1 {
+					j, s := createSum(x1, y1, x2, y2)
+					L[j] = s
+					continue
+				}
+				var R *region
+				dx, dy := x2-x1, y2-y1
+				if dx < r || dy < r {
+					x := int(math.Max(float64(x1+r), float64(x2)))
+					y := int(math.Max(float64(y1+r), float64(y2)))
+					l := encode(x1, y1, x, y)
+					R = L[l]
+				} else if dx == r && dy == r {
+					R = createGauss(x1, y1, x2, y2, m, D)
+				} else {
+					R = createRegion(m)
+				}
+				k := encode(x1, y1, x2, y2)
+				L[k] = R
+			}
+		}
+	}
+	return L
+}
+
+func leftQuadrant(S *region, x1, y1, x2, y2, m int, L map[uint64]*region) {
+	// S equiv R1
+	// T equiv R2
+	// R equiv R
+	for x := 0; x < x1; x++ {
+		T := L[encode(x, y1, x1, y2)]
+		R := L[encode(x, y1, x2, y2)]
+		t, r, s := T.inner, R.inner, S.inner
+		for i := 0; i < m; i++ {
+			for j := 0; j < m; j++ {
+				pi := spn.NewProduct()
+				pi.AddChild(s[i])
+				pi.AddChild(t[j])
+				for l := range r {
+					r[l].AddChild(pi)
+				}
+			}
+		}
+	}
+}
+
+func bottomQuadrant(S *region, x1, y1, x2, y2, m int, L map[uint64]*region) {
+	for y := 0; y < y1; y++ {
+		T := L[encode(x1, y, x2, y1)]
+		R := L[encode(x1, y, x2, y2)]
+		t, r, s := T.inner, R.inner, S.inner
+		for i := 0; i < m; i++ {
+			for j := 0; j < m; j++ {
+				pi := spn.NewProduct()
+				pi.AddChild(s[i])
+				pi.AddChild(t[i])
+				for l := range r {
+					r[l].AddChild(pi)
+				}
+			}
+		}
+	}
+}
+
+func PoonStructure(w, h int, D spn.Dataset, m, r int) spn.SPN {
+	L := createRegions(D, m, r)
+	s := encode(0, 0, w-1, h-1)
+	for k, R := range L {
+		if k == s {
+			continue
+		}
+		x1, y1, x2, y2 := decode(k)
+		leftQuadrant(R, x1, y1, x2, y2, m, L)
+		bottomQuadrant(R, x1, y1, x2, y2, m, L)
+	}
+	S := L[s].inner[0]
+	return S
+}
+
+func PoonGD(w, h int, D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
+	S := PoonStructure(w, h, D, m, r)
+	S = GenerativeGD(S, eta, eps, D, nil, true)
 	return S
 }

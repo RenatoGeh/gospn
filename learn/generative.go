@@ -12,7 +12,7 @@ import (
 // GenerativeGD try to fit data; data is the dataset; c is how we should perform the graph search.
 // If a stack is used, perform a DFS. If a queue is used, BFS. If c is nil, we use a queue.
 // Argument norm indicates whether GenerativeGD should normalize weights at each node.
-func GenerativeGD(S spn.SPN, eta, eps float64, data []map[int]int, c common.Collection, norm bool) spn.SPN {
+func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collection, norm bool) spn.SPN {
 	if c == nil {
 		c = &common.Queue{}
 	}
