@@ -24,6 +24,12 @@ type Gaussian struct {
 	dist distuv.Normal
 }
 
+// NewGaussianParams constructs a new Gaussian from a mean and variance.
+func NewGaussianParams(varid int, mu float64, sigma float64) *Gaussian {
+	sd := math.Sqrt(sigma)
+	return &Gaussian{Node{sc: []int{varid}}, varid, mu, sd, distuv.Normal{mu, sd, nil}}
+}
+
 // NewGaussianRaw constructs a new Gaussian from a slice of values.
 func NewGaussianRaw(varid int, vals []float64) *Gaussian {
 	var mean, sd float64
@@ -32,13 +38,13 @@ func NewGaussianRaw(varid int, vals []float64) *Gaussian {
 	for i := 0; i < n; i++ {
 		mean += vals[i]
 	}
+	mean /= float64(n)
 
 	for i := 0; i < n; i++ {
 		d := vals[i] - mean
 		sd += d * d
 	}
 
-	mean /= float64(n)
 	sd = math.Sqrt(sd / float64(n))
 
 	return &Gaussian{Node{sc: []int{varid}}, varid, mean, sd, distuv.Normal{mean, sd, nil}}
@@ -50,26 +56,22 @@ func NewGaussian(varid int, counts []int) *Gaussian {
 	var N int
 	n := len(counts)
 
-	// Standardizing gaussian from N(mean, sd) to N(0, 1).
-
-	for i := 0; i < n; i++ {
-		mean += float64(counts[i] * i)
+	for i := range counts {
 		N += counts[i]
 	}
 
-	mean /= float64(N)
-	//fmt.Printf("Mean: %.5f, ", mean)
+	for i := 0; i < n; i++ {
+		mean += float64(counts[i]) / float64(N) * float64(i)
+	}
 
 	for i := 0; i < n; i++ {
 		d := float64(i) - mean
-		sd += float64(counts[i]) * d * d
+		sd += (float64(counts[i]) / float64(N)) * d * d
 	}
 	sd = math.Sqrt(sd)
 	if sd == 0 {
 		sd = 1
 	}
-
-	//fmt.Printf("StdDev: %.5f\n", sd)
 
 	return &Gaussian{Node{sc: []int{varid}}, varid, mean, sd, distuv.Normal{mean, sd, nil}}
 }

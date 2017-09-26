@@ -31,6 +31,9 @@ type SPN interface {
 // VarSet is a variable set specifying variables and their respective instantiations.
 type VarSet map[int]int
 
+// Dataset is a dataset indexed by instances.
+type Dataset []map[int]int
+
 // Value returns the value of this node given an instantiation. (virtual)
 func (n *Node) Value(val VarSet) float64 {
 	return -1
