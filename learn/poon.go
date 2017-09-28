@@ -3,7 +3,7 @@ package learn
 import (
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
-	"math"
+	"github.com/RenatoGeh/gospn/test"
 )
 
 var (
@@ -51,8 +51,7 @@ func createRegion(m int) *region {
 }
 
 func createGauss(x1, y1, x2, y2, m int, D spn.Dataset) *region {
-	S := spn.NewSum()
-	z := make([]*spn.Gaussian, m)
+	z := make([]spn.SPN, m)
 	vals := make([][]int, m)
 	for i := range vals {
 		vals[i] = make([]int, max)
@@ -71,20 +70,20 @@ func createGauss(x1, y1, x2, y2, m int, D spn.Dataset) *region {
 
 	for i := 0; i < m; i++ {
 		z[i] = spn.NewGaussian(x1+y1*w, vals[i])
-		S.AddChildW(z[i], 1.0/float64(m))
 	}
 
-	return &region{gmixtureId, []spn.SPN{S}}
+	return &region{gmixtureId, z}
 }
 
 func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
 	L := make(map[uint64]*region)
 	n := w * h
+	var sq int
 	for i := 0; i < n; i++ {
 		x1 := i % w
 		y1 := i / w
-		for x2 := w - 1; x2 >= x1; x2-- {
-			for y2 := h - 1; y2 >= y1; y2-- {
+		for x2 := w - 1; x2 > x1; x2-- {
+			for y2 := h - 1; y2 > y1; y2-- {
 				if x1 == 0 && y1 == 0 && x2 == w-1 && y2 == h-1 {
 					j, s := createSum(x1, y1, x2, y2)
 					L[j] = s
@@ -92,47 +91,57 @@ func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
 				}
 				var R *region
 				dx, dy := x2-x1, y2-y1
-				if dx < r || dy < r {
-					x := int(math.Max(float64(x1+r), float64(x2)))
-					y := int(math.Max(float64(y1+r), float64(y2)))
-					l := encode(x1, y1, x, y)
-					R = L[l]
-				} else if dx == r && dy == r {
+				//if dx < r || dy < r {
+				//l := encode(x1, y1, x1+r, y1+r)
+				//R = L[l]
+				//sys.Printf("R := %p\n", R)
+				//}
+				if dx <= r && dy <= r {
 					R = createGauss(x1, y1, x2, y2, m, D)
 				} else {
 					R = createRegion(m)
 				}
 				k := encode(x1, y1, x2, y2)
 				L[k] = R
+				sq++
 			}
 		}
 	}
 	return L
 }
 
-func leftQuadrant(S *region, x1, y1, x2, y2, m int, L map[uint64]*region) {
+func leftQuadrant(S *region, x1, y1, x2, y2, m, r int, L map[uint64]*region) {
 	// S equiv R1
 	// T equiv R2
 	// R equiv R
 	for x := 0; x < x1; x++ {
-		T := L[encode(x, y1, x1, y2)]
-		R := L[encode(x, y1, x2, y2)]
+		if x1-x < r {
+			continue
+		}
+		li, ri := encode(x, y1, x1, y2), encode(x, y1, x2, y2)
+		T := L[li]
+		R := L[ri]
 		t, r, s := T.inner, R.inner, S.inner
 		for i := 0; i < m; i++ {
 			for j := 0; j < m; j++ {
 				pi := spn.NewProduct()
 				pi.AddChild(s[i])
 				pi.AddChild(t[j])
+				w := 1.0 / float64(len(r))
 				for l := range r {
-					r[l].AddChild(pi)
+					Z := r[l].(*spn.Sum)
+					Z.AddChildW(pi, w)
 				}
 			}
 		}
 	}
 }
 
-func bottomQuadrant(S *region, x1, y1, x2, y2, m int, L map[uint64]*region) {
+func bottomQuadrant(S *region, x1, y1, x2, y2, m, r int, L map[uint64]*region) {
 	for y := 0; y < y1; y++ {
+		if y1-y < r {
+			continue
+		}
 		T := L[encode(x1, y, x2, y1)]
 		R := L[encode(x1, y, x2, y2)]
 		t, r, s := T.inner, R.inner, S.inner
@@ -141,31 +150,51 @@ func bottomQuadrant(S *region, x1, y1, x2, y2, m int, L map[uint64]*region) {
 				pi := spn.NewProduct()
 				pi.AddChild(s[i])
 				pi.AddChild(t[i])
+				w := 1.0 / float64(len(r))
 				for l := range r {
-					r[l].AddChild(pi)
+					Z := r[l].(*spn.Sum)
+					Z.AddChildW(pi, w)
 				}
 			}
 		}
 	}
 }
 
-func PoonStructure(w, h int, D spn.Dataset, m, r int) spn.SPN {
+func PoonStructure(D spn.Dataset, m, r int) spn.SPN {
+	w, h, max = sys.Width, sys.Height, sys.Max
+	sys.Println("Creating regions...")
 	L := createRegions(D, m, r)
 	s := encode(0, 0, w-1, h-1)
+	sys.Println("Joining regions...")
 	for k, R := range L {
 		if k == s {
 			continue
 		}
 		x1, y1, x2, y2 := decode(k)
-		leftQuadrant(R, x1, y1, x2, y2, m, L)
-		bottomQuadrant(R, x1, y1, x2, y2, m, L)
+		leftQuadrant(R, x1, y1, x2, y2, m, r, L)
+		bottomQuadrant(R, x1, y1, x2, y2, m, r, L)
 	}
 	S := L[s].inner[0]
 	return S
 }
 
-func PoonGD(w, h int, D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
-	S := PoonStructure(w, h, D, m, r)
+func PoonGD(D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
+	S := PoonStructure(D, m, r)
+	sys.Println("Counting nodes...")
+	var sums, prods, leaves int
+	test.DoBFS(S, func(s spn.SPN) bool {
+		t := s.Type()
+		if t == "sum" {
+			sums++
+		} else if t == "product" {
+			prods++
+		} else {
+			leaves++
+		}
+		return true
+	}, nil)
+	sys.Printf("Sums: %d, Prods: %d, Leaves: %d\nTotal:%d\n", sums, prods, leaves, sums+prods+leaves)
+	sys.Println("Maximizing the likelihood through gradient descent...")
 	S = GenerativeGD(S, eta, eps, D, nil, true)
 	return S
 }

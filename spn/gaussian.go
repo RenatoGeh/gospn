@@ -16,10 +16,6 @@ type Gaussian struct {
 	Node
 	// Variable ID
 	varid int
-	// Mean
-	mean float64
-	// Standard deviation
-	sd float64
 	// GoNum's normal distribution
 	dist distuv.Normal
 }
@@ -27,7 +23,7 @@ type Gaussian struct {
 // NewGaussianParams constructs a new Gaussian from a mean and variance.
 func NewGaussianParams(varid int, mu float64, sigma float64) *Gaussian {
 	sd := math.Sqrt(sigma)
-	return &Gaussian{Node{sc: []int{varid}}, varid, mu, sd, distuv.Normal{mu, sd, nil}}
+	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mu, sd, nil}}
 }
 
 // NewGaussianRaw constructs a new Gaussian from a slice of values.
@@ -47,7 +43,7 @@ func NewGaussianRaw(varid int, vals []float64) *Gaussian {
 
 	sd = math.Sqrt(sd / float64(n))
 
-	return &Gaussian{Node{sc: []int{varid}}, varid, mean, sd, distuv.Normal{mean, sd, nil}}
+	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mean, sd, nil}}
 }
 
 // NewGaussian constructs a new Gaussian from a counting slice.
@@ -73,7 +69,7 @@ func NewGaussian(varid int, counts []int) *Gaussian {
 		sd = 1
 	}
 
-	return &Gaussian{Node{sc: []int{varid}}, varid, mean, sd, distuv.Normal{mean, sd, nil}}
+	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mean, sd, nil}}
 }
 
 // Type returns the type of this node.
@@ -110,6 +106,6 @@ func (g *Gaussian) ArgMax(val VarSet) (VarSet, float64) {
 		return retval, z
 	}
 
-	retval[g.varid] = int(g.mean)
+	retval[g.varid] = int(g.dist.Mu)
 	return retval, math.Log(GaussMax)
 }

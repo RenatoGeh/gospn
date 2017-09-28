@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/sys"
 )
 
 // SampleSPN returns a sample SPN for testing.
@@ -64,4 +65,6 @@ func DoBFS(S spn.SPN, f func(spn.SPN) bool, c common.Collection) {
 			}
 		}
 	}
+	visited = nil
+	sys.Free()
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/sys"
 	"math"
 )
 
@@ -78,6 +79,9 @@ func DeriveSPN(S spn.SPN, storage *Storer, tk, itk int, c common.Collection) (sp
 		}
 	}
 
+	visited = nil
+	c = nil
+	sys.Free()
 	return S, tk
 }
 
@@ -126,7 +130,59 @@ func DeriveWeights(S spn.SPN, storage *Storer, tk, dtk, itk int, c common.Collec
 		}
 	}
 
+	visited = nil
+	c = nil
+	sys.Free()
 	return S, tk
+}
+
+func Normalize(v []float64) {
+	var norm float64
+	for i := range v {
+		norm += v[i]
+	}
+	for i := range v {
+		v[i] /= norm
+	}
+}
+
+// DeriveApplyWeights does not store the weight derivatives like DeriveWeights. Instead, it
+// computes and applies the gradient on the go.
+func DeriveApplyWeights(S spn.SPN, eta float64, storage *Storer, dtk, itk int, c common.Collection, norm bool) spn.SPN {
+	visited := make(map[spn.SPN]bool)
+	if c == nil {
+		c = &common.Queue{}
+	}
+	st, _ := storage.Table(dtk)
+	it, _ := storage.Table(itk)
+	c.Give(S)
+	visited[S] = true
+	for !c.Empty() {
+		s := c.Take().(spn.SPN)
+		ch := s.Ch()
+		pv, _ := st.Single(s)
+		if s.Type() == "sum" {
+			sum := s.(*spn.Sum)
+			W := sum.Weights()
+			for i, cs := range ch {
+				v, _ := it.Single(cs)
+				W[i] += eta * math.Exp(v+pv)
+			}
+			if norm {
+				Normalize(W)
+			}
+		}
+		for _, cs := range ch {
+			if cs.Type() != "leaf" && !visited[cs] {
+				c.Give(cs)
+				visited[cs] = true
+			}
+		}
+	}
+	visited = nil
+	c = nil
+	sys.Free()
+	return S
 }
 
 // StoreInference takes an SPN S and stores the values for an instance I on a DP table storage
@@ -156,6 +212,7 @@ func StoreInference(S spn.SPN, I spn.VarSet, tk int, storage *Storer) spn.SPN {
 	}
 
 	_c, visited = nil, nil // free memory as soon as soon as the garbage collector allows
+	sys.Free()
 	table, _ := storage.Table(tk)
 	for !c.Empty() {
 		s := c.Take().(spn.SPN)
@@ -188,6 +245,7 @@ func StoreInference(S spn.SPN, I spn.VarSet, tk int, storage *Storer) spn.SPN {
 			table.StoreSingle(s, prod.Compute(vals))
 		}
 	}
-
+	c = nil
+	sys.Free()
 	return S
 }

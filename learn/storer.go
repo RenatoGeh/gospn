@@ -2,6 +2,7 @@ package learn
 
 import (
 	"github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/sys"
 )
 
 // StorerTable is a DP table for Storer.
@@ -121,11 +122,14 @@ func (t StorerTable) StoreSingle(S spn.SPN, v float64) bool { return t.Store(S, 
 // using Reset. Prefer Reset over Delete + NewTicket.
 func (s *Storer) Delete(k int) {
 	s.tables[k] = nil
+	sys.Free()
 }
 
 // Reset resets the values at T[k], deleting the map and creating a new one over it. The ticket
 // remains the same. Reset returns the ticket k.
 func (s *Storer) Reset(k int) int {
+	s.tables[k] = nil
+	sys.Free()
 	s.tables[k] = make(StorerTable)
 	return k
 }

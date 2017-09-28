@@ -18,7 +18,7 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 	}
 
 	storage := NewStorer()
-	wtk, stk, itk := storage.NewTicket(), storage.NewTicket(), storage.NewTicket()
+	stk, itk := storage.NewTicket(), storage.NewTicket()
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
@@ -28,24 +28,25 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 			// Store inference values under T[itk].
 			sys.Println("Storing inference values...")
 			StoreInference(S, I, itk, storage)
+			lv, _ := storage.Single(itk, S)
 			// Store SPN derivatives under T[stk].
 			sys.Println("Computing dS(X)/dS...")
 			DeriveSPN(S, storage, stk, itk, c)
 			// Store weights derivatives under T[wtk].
-			sys.Println("Computing dS(X)/dW...")
-			DeriveWeights(S, storage, wtk, stk, itk, c)
+			//sys.Println("Computing dS(X)/dW...")
+			//DeriveWeights(S, storage, wtk, stk, itk, c)
 			// Apply gradient descent.
 			sys.Println("Applying gradient descent...")
-			applyGD(S, eta, wtk, storage, c, norm)
-			// Reset derivative DP tables.
-			storage.Reset(wtk)
+			DeriveApplyWeights(S, eta, storage, stk, itk, c, norm)
+			// Reset DP tables.
+			storage.Reset(itk)
 			storage.Reset(stk)
+			//applyGD(S, eta, wtk, storage, c, norm)
+			// Reset weight derivative DP table.
+			//storage.Reset(wtk)
 			// Add current log-value to log-likelihood.
-			lv, _ := storage.Single(itk, S)
 			sys.Printf("Log-value ln(S(X)) = %.3f\n", lv)
 			llh += lv
-			// Reset inference DP table.
-			storage.Reset(itk)
 		}
 		sys.Printf("Log-likelihood value at this iteration: llh = %.3f\n", llh)
 		if sys.Verbose {
@@ -55,16 +56,6 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 	}
 
 	return S
-}
-
-func normalize(v []float64) {
-	var norm float64
-	for i := range v {
-		norm += v[i]
-	}
-	for i := range v {
-		v[i] /= norm
-	}
 }
 
 // This is where the magic happens.
@@ -85,7 +76,7 @@ func applyGD(S spn.SPN, eta float64, wtk int, storage *Storer, c common.Collecti
 				W[i] += delta
 			}
 			if norm {
-				normalize(W)
+				Normalize(W)
 			}
 		}
 		for _, cs := range ch {
@@ -95,4 +86,7 @@ func applyGD(S spn.SPN, eta float64, wtk int, storage *Storer, c common.Collecti
 			}
 		}
 	}
+	visited = nil
+	c = nil
+	sys.Free()
 }

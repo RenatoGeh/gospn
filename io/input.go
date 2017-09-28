@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	learn "github.com/RenatoGeh/gospn/learn"
-	spn "github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/learn"
+	"github.com/RenatoGeh/gospn/spn"
 )
 
 // GetPath gets the absolute path relative to relpath.
