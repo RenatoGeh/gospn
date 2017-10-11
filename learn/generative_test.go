@@ -31,7 +31,7 @@ func applyGDTest(S spn.SPN, eta float64, wtk int, storage *Storer, c common.Coll
 				W[i] += delta
 				fmt.Printf("%.3f\n    Sc(Ch[%d])=%v\n    ==\n", W[i], i, ch[i].Sc())
 			}
-			normalize(W)
+			Normalize(W)
 		}
 		for _, cs := range ch {
 			if cs.Type() != "leaf" && !visited[cs] {

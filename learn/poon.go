@@ -4,6 +4,7 @@ import (
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
+	"math"
 )
 
 var (
@@ -23,12 +24,15 @@ type region struct {
 	inner []spn.SPN
 }
 
-func encode(x1, y1, x2, y2 int) uint64 {
-	return ((uint64(y1)*uint64(w)+uint64(x1))*uint64(w)+uint64(x2))*uint64(h) + uint64(y2)
+// Encode is encode.
+func Encode(x1, y1, x2, y2 int) uint64 {
+	_w, _h := uint64(w+1), uint64(h+1)
+	return ((uint64(y1)*_w+uint64(x1))*_w+uint64(x2))*_h + uint64(y2)
 }
 
-func decode(k uint64) (x1, y1, x2, y2 int) {
-	_w, _h := uint64(w), uint64(h)
+// Decode is decode.
+func Decode(k uint64) (x1, y1, x2, y2 int) {
+	_w, _h := uint64(w+1), uint64(h+1)
 	y2 = int(k % _h)
 	c := (k - uint64(y2)) / _h
 	x2 = int(c % _w)
@@ -39,7 +43,7 @@ func decode(k uint64) (x1, y1, x2, y2 int) {
 }
 
 func createSum(x1, y1, x2, y2 int) (uint64, *region) {
-	return encode(x1, y1, x2, y2), &region{sumId, []spn.SPN{spn.NewSum()}}
+	return Encode(x1, y1, x2, y2), &region{sumId, []spn.SPN{spn.NewSum()}}
 }
 
 func createRegion(m int) *region {
@@ -82,31 +86,39 @@ func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
 	for i := 0; i < n; i++ {
 		x1 := i % w
 		y1 := i / w
-		for x2 := w - 1; x2 > x1; x2-- {
-			for y2 := h - 1; y2 > y1; y2-- {
-				if x1 == 0 && y1 == 0 && x2 == w-1 && y2 == h-1 {
+		for y2 := h; y2 > y1; y2-- {
+			for x2 := w; x2 > x1; x2-- {
+				sys.Printf("(%d, %d, %d, %d)=(x1, y1, x2, y2)\n", x1, y1, x2, y2)
+				if x1 == 0 && y1 == 0 && x2 == w && y2 == h {
 					j, s := createSum(x1, y1, x2, y2)
 					L[j] = s
+					sq++
 					continue
 				}
 				var R *region
 				dx, dy := x2-x1, y2-y1
-				//if dx < r || dy < r {
-				//l := encode(x1, y1, x1+r, y1+r)
-				//R = L[l]
-				//sys.Printf("R := %p\n", R)
-				//}
-				if dx <= r && dy <= r {
+				if dx < r || dy < r {
+					x := int(math.Max(float64(x1+r), float64(x2)))
+					y := int(math.Max(float64(y1+r), float64(y2)))
+					l := Encode(x1, y1, x, y)
+					R = L[l]
+					if R == nil {
+						sys.Printf("(%d, %d, %d, %d)=(x1, x2, x, y) <--\n", x1, y1, x, y)
+						sys.Println("STOP IN THE NAME OF THE LAW!")
+					}
+				} else if dx == r && dy == r {
+					sys.Println("Perfect fit")
 					R = createGauss(x1, y1, x2, y2, m, D)
 				} else {
 					R = createRegion(m)
 				}
-				k := encode(x1, y1, x2, y2)
+				k := Encode(x1, y1, x2, y2)
 				L[k] = R
 				sq++
 			}
 		}
 	}
+	sys.Printf("sq=%d\n", sq)
 	return L
 }
 
@@ -114,13 +126,12 @@ func leftQuadrant(S *region, x1, y1, x2, y2, m, r int, L map[uint64]*region) {
 	// S equiv R1
 	// T equiv R2
 	// R equiv R
+	sys.Println("Horizontal quadrant")
 	for x := 0; x < x1; x++ {
-		if x1-x < r {
-			continue
-		}
-		li, ri := encode(x, y1, x1, y2), encode(x, y1, x2, y2)
+		li, ri := Encode(x, y1, x1, y2), Encode(x, y1, x2, y2)
 		T := L[li]
 		R := L[ri]
+		sys.Printf("(%d, %d, %d, %d)\nR=%p, S=%p, T=%p\n", x1, y1, x2, y2, R, S, T)
 		t, r, s := T.inner, R.inner, S.inner
 		for i := 0; i < m; i++ {
 			for j := 0; j < m; j++ {
@@ -138,12 +149,11 @@ func leftQuadrant(S *region, x1, y1, x2, y2, m, r int, L map[uint64]*region) {
 }
 
 func bottomQuadrant(S *region, x1, y1, x2, y2, m, r int, L map[uint64]*region) {
+	sys.Println("Vertical quadrant")
 	for y := 0; y < y1; y++ {
-		if y1-y < r {
-			continue
-		}
-		T := L[encode(x1, y, x2, y1)]
-		R := L[encode(x1, y, x2, y2)]
+		T := L[Encode(x1, y, x2, y1)]
+		R := L[Encode(x1, y, x2, y2)]
+		sys.Printf("(%d, %d, %d, %d)\nR=%p, S=%p, T=%p\n", x1, y1, x2, y2, R, S, T)
 		t, r, s := T.inner, R.inner, S.inner
 		for i := 0; i < m; i++ {
 			for j := 0; j < m; j++ {
@@ -164,17 +174,36 @@ func PoonStructure(D spn.Dataset, m, r int) spn.SPN {
 	w, h, max = sys.Width, sys.Height, sys.Max
 	sys.Println("Creating regions...")
 	L := createRegions(D, m, r)
-	s := encode(0, 0, w-1, h-1)
+	s := Encode(0, 0, w, h)
 	sys.Println("Joining regions...")
 	for k, R := range L {
 		if k == s {
 			continue
 		}
-		x1, y1, x2, y2 := decode(k)
+		x1, y1, x2, y2 := Decode(k)
 		leftQuadrant(R, x1, y1, x2, y2, m, r, L)
 		bottomQuadrant(R, x1, y1, x2, y2, m, r, L)
 	}
 	S := L[s].inner[0]
+	return S
+}
+
+func PoonTest(D spn.Dataset, m, r int) spn.SPN {
+	S := PoonStructure(D, m, r)
+	sys.Println("Counting nodes...")
+	var sums, prods, leaves int
+	test.DoBFS(S, func(s spn.SPN) bool {
+		t := s.Type()
+		if t == "sum" {
+			sums++
+		} else if t == "product" {
+			prods++
+		} else {
+			leaves++
+		}
+		return true
+	}, nil)
+	sys.Printf("Sums: %d, Prods: %d, Leaves: %d\nTotal:%d\n", sums, prods, leaves, sums+prods+leaves)
 	return S
 }
 
