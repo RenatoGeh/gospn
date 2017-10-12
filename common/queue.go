@@ -1,17 +1,20 @@
 package common
 
 import (
-	spn "github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/sys"
 )
 
 // Queue is a queue of interface{}s.
 type Queue struct {
 	data []interface{}
+	cap  int
 }
 
 // Enqueue inserts element e at the end of the queue.
 func (q *Queue) Enqueue(e interface{}) {
 	q.data = append(q.data, e)
+	q.cap++
 }
 
 // Dequeue removes and returns the first element of the queue.
@@ -20,6 +23,9 @@ func (q *Queue) Dequeue() interface{} {
 	e := q.data[0]
 	q.data[0] = nil
 	q.data = q.data[1:n]
+	if q.cap > sys.MemLowBoundShrink && q.cap >= (len(q.data)<<1) {
+		q.Shrink()
+	}
 	return e
 }
 
@@ -29,6 +35,9 @@ func (q *Queue) DequeueBack() interface{} {
 	e := q.data[n]
 	q.data[n] = nil
 	q.data = q.data[1:n]
+	if q.cap > sys.MemLowBoundShrink && q.cap >= (len(q.data)<<1) {
+		q.Shrink()
+	}
 	return e
 }
 
@@ -53,6 +62,12 @@ func (q *Queue) Give(e interface{}) { q.Enqueue(e) }
 
 // Take is equivalent to Dequeue.
 func (q *Queue) Take() interface{} { return q.Dequeue() }
+
+// Shrink shrinks the queue to fit.
+func (q *Queue) Shrink() {
+	sys.Free()
+	q.cap = len(q.data)
+}
 
 /*************************************************************************************************/
 

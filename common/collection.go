@@ -16,4 +16,6 @@ type Collection interface {
 	Size() int
 	// Empty returns whether the data type is empty or not.
 	Empty() bool
+	// Shrink shrinks to fit.
+	Shrink()
 }

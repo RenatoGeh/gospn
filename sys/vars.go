@@ -18,3 +18,8 @@ var (
 	Eps  = 4.0
 	Mp   = 4
 )
+
+// Memory variables
+var (
+	MemLowBoundShrink = 1024
+)
