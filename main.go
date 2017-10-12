@@ -3,230 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/rand"
 	"path/filepath"
-	"runtime"
-	"sync"
 
-	io "github.com/RenatoGeh/gospn/io"
-	learn "github.com/RenatoGeh/gospn/learn"
-	spn "github.com/RenatoGeh/gospn/spn"
-	sys "github.com/RenatoGeh/gospn/sys"
-	utils "github.com/RenatoGeh/gospn/utils"
+	"github.com/RenatoGeh/gospn/app"
+	"github.com/RenatoGeh/gospn/io"
+	"github.com/RenatoGeh/gospn/learn"
+	"github.com/RenatoGeh/gospn/sys"
+	"github.com/RenatoGeh/gospn/utils"
 	//profile "github.com/pkg/profile"
 )
 
 var dataset = "olivetti_3bit"
-
-func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, spn.VarSet) {
-	cmpl, half := make(spn.VarSet), make(spn.VarSet)
-	var criteria func(int) bool
-
-	switch typ {
-	case io.Top:
-		criteria = func(p int) bool {
-			return p < w*(h/2)
-		}
-	case io.Bottom:
-		criteria = func(p int) bool {
-			return p >= w*(h/2)
-		}
-	case io.Left:
-		criteria = func(p int) bool {
-			return p%w < w/2
-		}
-	case io.Right:
-		criteria = func(p int) bool {
-			return p%w >= w/2
-		}
-	}
-
-	for k, v := range set {
-		if !criteria(k) {
-			half[k] = v
-		}
-	}
-
-	cmpl, _ = s.ArgMax(half)
-
-	for k := range half {
-		delete(cmpl, k)
-	}
-
-	return cmpl, half
-}
-
-func classify(filename string, p float64, rseed int64, kclusters int) (spn.SPN, int, int) {
-	vars, train, test, lbls := io.ParsePartitionedData(filename, p, rseed)
-	s := learn.Gens(vars, train, kclusters, sys.Pval, sys.Eps, sys.Mp)
-
-	lines, n := len(test), len(vars)
-	nclass := vars[n-1].Categories
-
-	//fmt.Println("Drawing the MPE state of each class instance:")
-	//evclass := make(spn.VarSet)
-	//for i := 0; i < nclass; i++ {
-	//evclass[n-1] = i
-	//mpe, _ := s.ArgMax(evclass)
-	//filename := fmt.Sprintf("mpe_%d.pbm", i)
-	//delete(mpe, n-1)
-	//io.VarSetToPBM(filename, mpe, width, height)
-	//fmt.Printf("Class %d drawn to %s.\n", i, filename)
-	//}
-
-	corrects := 0
-	for i := 0; i < lines; i++ {
-		imax, max, prs := -1, -1.0, make([]float64, nclass)
-		pz := s.Value(test[i])
-		sys.Printf("Testing instance %d. Should be classified as %d.\n", i, lbls[i])
-		for j := 0; j < nclass; j++ {
-			test[i][n-1] = j
-			px := s.Value(test[i])
-			prs[j] = utils.AntiLog(px - pz)
-			sys.Printf("  Pr(X=%d|E) = antilog(%.10f) = %.10f\n", j, px-pz, prs[j])
-			if prs[j] > max {
-				max, imax = prs[j], j
-			}
-		}
-		sys.Printf("Instance %d should be classified as %d. SPN classified as %d.\n", i, lbls[i], imax)
-		if imax == lbls[i] {
-			corrects++
-		} else {
-			sys.Printf("--------> INCORRECT! <--------\n")
-		}
-		delete(test[i], n-1)
-	}
-
-	fmt.Printf("========= Iteration Results ========\n")
-	fmt.Printf("  Correct classifications: %d/%d\n", corrects, lines)
-	fmt.Printf("  Percentage of correct hits: %.2f%%\n", 100.0*(float64(corrects)/float64(lines)))
-	fmt.Printf("  Train set size: %d\n", len(train))
-	fmt.Printf("  Test set size: %d\n", len(test))
-	fmt.Println("======================================")
-
-	reps := make([]map[int]int, nclass)
-	for i := 0; i < lines; i++ {
-		if reps[lbls[i]] == nil {
-			reps[lbls[i]] = test[i]
-		}
-	}
-	/* for i := 0; i < nclass; i++ {*/
-	//for _, v := range io.Orientations {
-	//fmt.Printf("Drawing %s completion for digit %d.\n", v, i)
-	//cmpl, half := halfImg(s, reps[i], v, width, height)
-	////io.ImgCmplToPPM(fmt.Sprintf("cmpl_%d-%s.ppm", i, v), half, cmpl, v, width, height)
-	//io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", i, v), half, cmpl, v, width, height, max-1)
-	//}
-	/* }*/
-
-	return s, corrects, lines
-}
-
-func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
-	nsc := len(sc)
-	vs := make(spn.VarSet)
-
-	for i := 0; i < n; i++ {
-		r := rand.Intn(nsc)
-		id := sc[r]
-		v := int(rand.NormFloat64()*(float64(id.Categories)/6) + float64(id.Categories/2))
-		if v >= id.Categories {
-			v = id.Categories - 1
-		} else if v < 0 {
-			v = 0
-		}
-		vs[id.Varid] = v
-	}
-
-	mpe, _ := s.ArgMax(vs)
-	vs = nil
-	return mpe
-}
-
-func imageCompletion(filename string, kclusters int, concurrents int) {
-	fmt.Printf("Parsing data from [%s]...\n", filename)
-	sc, data, lbls := io.ParseDataNL(filename)
-	ndata := len(data)
-
-	// Concurrency control.
-	var wg sync.WaitGroup
-	var nprocs int
-	if concurrents <= 0 {
-		nprocs = runtime.NumCPU()
-	} else {
-		nprocs = concurrents
-	}
-	nrun := 0
-	cond := sync.NewCond(&sync.Mutex{})
-	cpmutex := &sync.Mutex{}
-
-	for i := 0; i < ndata; i++ {
-		cond.L.Lock()
-		for nrun >= nprocs {
-			cond.Wait()
-		}
-		nrun++
-		cond.L.Unlock()
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			var train []map[int]int
-			var ldata []map[int]int
-			lsc := make(map[int]learn.Variable)
-
-			cpmutex.Lock()
-			for k, v := range sc {
-				lsc[k] = v
-			}
-			for j := 0; j < ndata; j++ {
-				ldata = append(ldata, make(map[int]int))
-				for k, v := range data[j] {
-					ldata[j][k] = v
-				}
-			}
-			cpmutex.Unlock()
-
-			chosen := ldata[id]
-			for j := 0; j < ndata; j++ {
-				if id != j && lbls[j] != lbls[id] {
-					train = append(train, ldata[j])
-				}
-			}
-
-			fmt.Printf("P-%d: Training SPN with %d clusters against instance %d...\n", id, kclusters, id)
-			s := learn.Gens(lsc, train, kclusters, sys.Pval, sys.Eps, sys.Mp)
-
-			for _, v := range io.Orientations {
-				fmt.Printf("P-%d: Drawing %s image completion for instance %d.\n", id, v, id)
-				cmpl, half := halfImg(s, chosen, v, sys.Width, sys.Height)
-				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, sys.Width,
-					sys.Height, sys.Max-1)
-				cmpl, half = nil, nil
-			}
-			fmt.Printf("P-%d: Drawing MPE image for instance %d.\n", id, id)
-			io.VarSetToPGM(fmt.Sprintf("mpe_cmpl_%d.pgm", id), randVarSet(s, lsc, 100),
-				sys.Width, sys.Height, sys.Max-1)
-
-			//fmt.Printf("P-%d: Drawing feature maps for instance %d.\n", id, id)
-			//io.DrawRegions(s, fmt.Sprintf("featmap_%d", id), sys.Width, sys.Height, "product")
-
-			//out, _ := filepath.Abs("results/" + dataset + "/models")
-			//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
-
-			// Force garbage collection.
-			s = nil
-			train = nil
-			lsc = nil
-			ldata = nil
-
-			cond.L.Lock()
-			nrun--
-			cond.L.Unlock()
-			cond.Signal()
-		}(i)
-	}
-	wg.Wait()
-}
 
 func convertData() {
 	cmn, _ := filepath.Abs("data/" + dataset + "/")
@@ -234,6 +21,16 @@ func convertData() {
 }
 
 func main() {
+	/*_, data, _ := io.ParseDataNL("data/digits/compiled/all.data")*/
+	//sys.Width, sys.Height = 20, 30
+	////_, data, _ := io.ParseDataNL("data/test/compiled/all.data")
+	////sys.Width, sys.Height = 4, 4
+	//sys.Max = 2
+	//sys.Verbose = true
+	//learn.PoonGD(data, 4, 2, 0.05, 0.1)
+	////learn.PoonTest(data, 2, 2)
+	/*return*/
+
 	var p float64
 	var clusters int
 	var rseed int64
@@ -295,30 +92,11 @@ func main() {
 	}
 	if mode == "cmpl" {
 		fmt.Printf("Running image completion on dataset %s with %d threads...\n", dataset, concurrents)
-		imageCompletion(utils.StringConcat(in, "/all.data"), clusters, concurrents)
+		lf := learn.BindedGens(clusters, sys.Pval, sys.Eps, sys.Mp)
+		app.ImgCompletion(lf, utils.StringConcat(in, "/all.data"), concurrents)
 		return
 	}
 
-	fmt.Printf("Running cross-validation test with p = %.2f%%, random seed = %d and kclusters = %d "+
-		"on the dataset = %s.\n", 100.0*p, rseed, clusters, dataset)
-	fmt.Printf("Iterations to run: %d\n\n", iterations)
-
-	corrects, total := 0, 0
-	for i := 0; i < iterations; i++ {
-		fmt.Printf("+-----------------------------------------------+\n")
-		fmt.Printf("|================ Iteration %d ==================|\n", i+1)
-		fmt.Printf("+-----------------------------------------------+\n")
-		//s, c, t := classify(utils.StringConcat(in, "/all.data"), p, rseed, kclusters)
-		_, c, t := classify(utils.StringConcat(in, "/all.data"), p, rseed, clusters)
-		corrects, total = corrects+c, total+t
-		fmt.Printf("+-----------------------------------------------+\n")
-		fmt.Printf("|============= End of Iteration %d =============|\n", i+1)
-		fmt.Printf("+-----------------------------------------------+\n")
-		//io.DrawGraphTools(utils.StringConcat(out, "/all.py"), s)
-	}
-	fmt.Printf("---------------------------------\n")
-	fmt.Printf(">>>>>>>>> Final Results <<<<<<<<<\n")
-	fmt.Printf("  Correct classifications: %d/%d\n", corrects, total)
-	fmt.Printf("  Percentage of correct hits: %.2f%%\n", 100.0*(float64(corrects)/float64(total)))
-	fmt.Printf("---------------------------------\n")
+	lf := learn.BindedGens(clusters, sys.Pval, sys.Eps, sys.Mp)
+	app.ImgBatchClassify(lf, dataset, p, rseed, clusters, iterations)
 }

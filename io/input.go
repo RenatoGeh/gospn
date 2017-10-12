@@ -15,6 +15,11 @@ import (
 	"github.com/RenatoGeh/gospn/spn"
 )
 
+func GetDataPath(dataset string) string {
+	in, _ := filepath.Abs("data/" + dataset + "/compiled")
+	return in
+}
+
 // GetPath gets the absolute path relative to relpath.
 func GetPath(relpath string) string {
 	rp, err := filepath.Abs(relpath)

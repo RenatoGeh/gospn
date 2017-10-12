@@ -12,6 +12,13 @@ import (
 	indep "github.com/RenatoGeh/gospn/utils/indep"
 )
 
+// BindedGens is a binded version of Gens.
+func BindedGens(kclusters int, pval, eps float64, mp int) LearnFunc {
+	return func(sc map[int]Variable, data spn.Dataset) spn.SPN {
+		return Gens(sc, data, kclusters, pval, eps, mp)
+	}
+}
+
 // Gens Learning Algorithm
 // Based on the article
 //	Learning the Structure of Sum Product Networks
