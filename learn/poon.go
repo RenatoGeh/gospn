@@ -4,7 +4,6 @@ import (
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
-	"math"
 )
 
 var (
@@ -82,56 +81,54 @@ func createGauss(x1, y1, x2, y2, m int, D spn.Dataset) *region {
 func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
 	L := make(map[uint64]*region)
 	n := w * h
-	var sq int
-	for i := 0; i < n; i++ {
+	//var sq int
+	for i := 0; i < n; i += r {
+		if (i/w)%r != 0 {
+			i += w * (r - 1)
+		}
 		x1 := i % w
 		y1 := i / w
-		for y2 := h; y2 > y1; y2-- {
-			for x2 := w; x2 > x1; x2-- {
-				sys.Printf("(%d, %d, %d, %d)=(x1, y1, x2, y2)\n", x1, y1, x2, y2)
+		for y2 := h; y2 > y1; y2 -= r {
+			for x2 := w; x2 > x1; x2 -= r {
+				//sq++
+				//sys.Printf("(%d, %d, %d, %d)\n", x1, y1, x2, y2)
 				if x1 == 0 && y1 == 0 && x2 == w && y2 == h {
 					j, s := createSum(x1, y1, x2, y2)
 					L[j] = s
-					sq++
 					continue
 				}
 				var R *region
 				dx, dy := x2-x1, y2-y1
 				if dx < r || dy < r {
-					x := int(math.Max(float64(x1+r), float64(x2)))
-					y := int(math.Max(float64(y1+r), float64(y2)))
-					l := Encode(x1, y1, x, y)
-					R = L[l]
-					if R == nil {
-						sys.Printf("(%d, %d, %d, %d)=(x1, x2, x, y) <--\n", x1, y1, x, y)
-						sys.Println("STOP IN THE NAME OF THE LAW!")
-					}
+					//x := int(math.Max(float64(x1+r), float64(x2)))
+					//y := int(math.Max(float64(y1+r), float64(y2)))
+					//l := Encode(x1, y1, x, y)
+					//R = L[l]
+					continue
 				} else if dx == r && dy == r {
-					sys.Println("Perfect fit")
 					R = createGauss(x1, y1, x2, y2, m, D)
 				} else {
 					R = createRegion(m)
 				}
 				k := Encode(x1, y1, x2, y2)
 				L[k] = R
-				sq++
 			}
 		}
 	}
-	sys.Printf("sq=%d\n", sq)
+	//sys.Printf("sq=%d\n", sq)
 	return L
 }
 
-func leftQuadrant(S *region, x1, y1, x2, y2, m, r int, L map[uint64]*region) {
+func leftQuadrant(S *region, x1, y1, x2, y2, m, rs int, L map[uint64]*region) {
 	// S equiv R1
 	// T equiv R2
 	// R equiv R
-	sys.Println("Horizontal quadrant")
-	for x := 0; x < x1; x++ {
+	//sys.Printf("(%d, %d, %d, %d), S=%p\n", x1, y1, x2, y2, S)
+	for x := 0; x < x1; x += rs {
 		li, ri := Encode(x, y1, x1, y2), Encode(x, y1, x2, y2)
 		T := L[li]
 		R := L[ri]
-		sys.Printf("(%d, %d, %d, %d)\nR=%p, S=%p, T=%p\n", x1, y1, x2, y2, R, S, T)
+		//sys.Printf("T=%p, S=%p, R=%p\n", T, S, R)
 		t, r, s := T.inner, R.inner, S.inner
 		for i := 0; i < m; i++ {
 			for j := 0; j < m; j++ {
@@ -148,12 +145,12 @@ func leftQuadrant(S *region, x1, y1, x2, y2, m, r int, L map[uint64]*region) {
 	}
 }
 
-func bottomQuadrant(S *region, x1, y1, x2, y2, m, r int, L map[uint64]*region) {
-	sys.Println("Vertical quadrant")
-	for y := 0; y < y1; y++ {
+func bottomQuadrant(S *region, x1, y1, x2, y2, m, rs int, L map[uint64]*region) {
+	//sys.Printf("(%d, %d, %d, %d), S=%p\n", x1, y1, x2, y2, S)
+	for y := 0; y < y1; y += rs {
 		T := L[Encode(x1, y, x2, y1)]
 		R := L[Encode(x1, y, x2, y2)]
-		sys.Printf("(%d, %d, %d, %d)\nR=%p, S=%p, T=%p\n", x1, y1, x2, y2, R, S, T)
+		//sys.Printf("T=%p, S=%p, R=%p\n", T, S, R)
 		t, r, s := T.inner, R.inner, S.inner
 		for i := 0; i < m; i++ {
 			for j := 0; j < m; j++ {
