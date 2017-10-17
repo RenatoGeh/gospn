@@ -1,7 +1,6 @@
 package spn
 
 import (
-	//"fmt"
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 )
@@ -65,34 +64,56 @@ func NewGaussian(varid int, counts []int) *Gaussian {
 		sd += (float64(counts[i]) / float64(N)) * d * d
 	}
 	sd = math.Sqrt(sd)
-	if sd == 0 {
-		sd = 1
-	}
 
 	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mean, sd, nil}}
+}
+
+// NewGaussianFit constructs a new Gaussian from GoNum's Fit function.
+func NewGaussianFit(varid int, counts []float64) *Gaussian {
+	N := distuv.Normal{}
+	sample := make([]float64, len(counts))
+	for i := range sample {
+		sample[i] = float64(i)
+	}
+	N.Fit(sample, counts)
+	return &Gaussian{Node{sc: []int{varid}}, varid, N}
 }
 
 // Type returns the type of this node.
 func (g *Gaussian) Type() string { return "leaf" }
 
+func zeroSigma(v int, ok bool, mu float64) float64 {
+	if ok && v == int(mu) {
+		return 0
+	}
+	return math.Inf(-1)
+}
+
 // Value returns the probability of a certain valuation. That is Pr(X=val[varid]), where
 // Pr is a probability function over a gaussian distribution.
 func (g *Gaussian) Value(val VarSet) float64 {
 	v, ok := val[g.varid]
-	if ok {
+	var l float64
+	if g.dist.Sigma == 0 {
+		return zeroSigma(v, ok, g.dist.Mu)
+	} else if ok {
 		//fmt.Println("Yelloooo")
-		return g.dist.LogProb(float64(v))
+		l = g.dist.LogProb(float64(v))
+	} else {
+		l = 0.0 // ln(1.0) = 0.0
 	}
-	return 0.0 // ln(1.0) = 0.0
+	return l
 }
 
 // Max returns the MAP state given a valuation.
 func (g *Gaussian) Max(val VarSet) float64 {
 	v, ok := val[g.varid]
-	if ok {
+	if g.dist.Sigma == 0 {
+		return zeroSigma(v, ok, g.dist.Mu)
+	} else if ok {
 		return g.dist.LogProb(float64(v))
 	}
-	return math.Log(GaussMax)
+	return g.dist.LogProb(g.dist.Mu)
 }
 
 // ArgMax returns both the arguments and the value of the MAP state given a certain valuation.
@@ -100,12 +121,15 @@ func (g *Gaussian) ArgMax(val VarSet) (VarSet, float64) {
 	retval := make(VarSet)
 	v, ok := val[g.varid]
 
-	if ok {
+	if g.dist.Sigma == 0 {
+		retval[g.varid] = int(g.dist.Mu)
+		return retval, 0.0
+	} else if ok {
 		retval[g.varid] = v
 		z := g.dist.LogProb(float64(v))
 		return retval, z
 	}
 
 	retval[g.varid] = int(g.dist.Mu)
-	return retval, math.Log(GaussMax)
+	return retval, g.dist.LogProb(g.dist.Mu)
 }
