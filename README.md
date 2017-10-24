@@ -356,26 +356,26 @@ constraints. Read the analysis document (Experiments section) for more informati
 #### Image classifications
 
 ![Digits dataset correct
-classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/master/doc/analysis/imgs/digits_percs.png)
+classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/doc/analysis/imgs/digits_percs.png)
 
 ![Caltech dataset correct
-classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/master/doc/analysis/imgs/caltech_percs.png)
+classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/doc/analysis/imgs/caltech_percs.png)
 
 #### Image completions with prior face knowledge
 
 ![Olivetti faces dataset C1 39
-completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/olivetti_3bit/r1/face_cmpl_39.png)
+completions](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/results/olivetti_3bit/r1/face_cmpl_39.png)
 
 ![Olivetti faces dataset C1 9
-completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/olivetti_3bit/r1/face_cmpl_9.png)
+completions](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/results/olivetti_3bit/r1/face_cmpl_9.png)
 
 #### Image completions without prior face knowledge
 
 ![Olivetti faces dataset C2 39
-completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/olivetti_3bit/r2/face_cmpl_39.png)
+completions](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/results/olivetti_3bit/r2/face_cmpl_39.png)
 
 ![Olivetti faces dataset C2 9
-completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/olivetti_3bit/r2/face_cmpl_9.png)
+completions](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/results/olivetti_3bit/r2/face_cmpl_9.png)
 
 ### Acknowledgements
 
