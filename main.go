@@ -21,13 +21,15 @@ func convertData() {
 }
 
 func main() {
-	/*_, data, _ := io.ParseDataNL("data/digits/compiled/all.data")*/
+	/*//_, data, _ := io.ParseDataNL("data/digits/compiled/all.data")*/
 	//sys.Width, sys.Height = 20, 30
 	////_, data, _ := io.ParseDataNL("data/test/compiled/all.data")
 	////sys.Width, sys.Height = 4, 4
 	//sys.Max = 2
 	//sys.Verbose = true
-	//learn.PoonGD(data, 4, 2, 0.05, 0.1)
+	//sys.MemConservative = false
+	//lf := learn.BindedPoonGD(4, 2, 0.1, 0.1)
+	//app.ImgClassify(lf, "data/digits/compiled/all.data", 0.3, -1)
 	////learn.PoonTest(data, 2, 2)
 	/*return*/
 
@@ -89,14 +91,15 @@ func main() {
 		fmt.Printf("Converting dataset %s...\n", dataset)
 		convertData()
 		return
-	}
-	if mode == "cmpl" {
+	} else if mode == "cmpl" {
 		fmt.Printf("Running image completion on dataset %s with %d threads...\n", dataset, concurrents)
 		lf := learn.BindedGens(clusters, sys.Pval, sys.Eps, sys.Mp)
 		app.ImgCompletion(lf, utils.StringConcat(in, "/all.data"), concurrents)
 		return
+	} else if mode == "class" {
+		lf := learn.BindedGens(clusters, sys.Pval, sys.Eps, sys.Mp)
+		app.ImgBatchClassify(lf, dataset, p, rseed, clusters, iterations)
+	} else {
+		fmt.Printf("Mode %s not found. Possible mode options:\n  cmpl, class, data\n", mode)
 	}
-
-	lf := learn.BindedGens(clusters, sys.Pval, sys.Eps, sys.Mp)
-	app.ImgBatchClassify(lf, dataset, p, rseed, clusters, iterations)
 }

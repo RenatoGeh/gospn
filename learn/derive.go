@@ -1,7 +1,6 @@
 package learn
 
 import (
-	"fmt"
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
@@ -23,7 +22,7 @@ import (
 // graph search is a breadth-first, if a Stack is used, then it performs a depth-first search.
 // If tk < 0, then a new ticket will be created and returned alongside the SPN S.
 // Returns the SPN S and the ticket used.
-func DeriveSPN(S spn.SPN, storage *Storer, tk, itk int, c common.Collection) (spn.SPN, int) {
+func DeriveSPN(S spn.SPN, storage *spn.Storer, tk, itk int, c common.Collection) (spn.SPN, int) {
 	if tk < 0 {
 		tk = storage.NewTicket()
 	}
@@ -96,7 +95,7 @@ func DeriveSPN(S spn.SPN, storage *Storer, tk, itk int, c common.Collection) (sp
 // stack, then DeriveWeights performs a depth-first search. If c is a queue, then DeriveWeights's
 // graph search is a breadth-first search. The default value for c is Queue. DeriveWeights returns
 // the SPN S and a ticket if tk is a negative value.
-func DeriveWeights(S spn.SPN, storage *Storer, tk, dtk, itk int, c common.Collection) (spn.SPN, int) {
+func DeriveWeights(S spn.SPN, storage *spn.Storer, tk, dtk, itk int, c common.Collection) (spn.SPN, int) {
 	if tk < 0 {
 		tk = storage.NewTicket()
 	}
@@ -148,7 +147,7 @@ func Normalize(v []float64) {
 
 // DeriveApplyWeights does not store the weight derivatives like DeriveWeights. Instead, it
 // computes and applies the gradient on the go.
-func DeriveApplyWeights(S spn.SPN, eta float64, storage *Storer, dtk, itk int, c common.Collection, norm bool) spn.SPN {
+func DeriveApplyWeights(S spn.SPN, eta float64, storage *spn.Storer, dtk, itk int, c common.Collection, norm bool) spn.SPN {
 	visited := make(map[spn.SPN]bool)
 	if c == nil {
 		c = &common.Queue{}
@@ -180,71 +179,6 @@ func DeriveApplyWeights(S spn.SPN, eta float64, storage *Storer, dtk, itk int, c
 		}
 	}
 	visited = nil
-	c = nil
-	sys.Free()
-	return S
-}
-
-// StoreInference takes an SPN S and stores the values for an instance I on a DP table storage
-// at the position designated by the ticket tk. Returns S and the ticket used (if tk < 0,
-// StoreInference creates a new ticket).
-func StoreInference(S spn.SPN, I spn.VarSet, tk int, storage *Storer) spn.SPN {
-	if tk < 0 {
-		tk = storage.NewTicket()
-	}
-
-	visited := make(map[spn.SPN]bool)
-	c, _c := &common.Stack{}, &common.Queue{}
-	c.Give(S)
-	visited[S] = true
-	_c.Give(S)
-
-	for !_c.Empty() {
-		s := _c.Take().(spn.SPN)
-		ch := s.Ch()
-		for _, cs := range ch {
-			if !visited[cs] {
-				_c.Give(cs)
-				c.Give(cs)
-				visited[cs] = true
-			}
-		}
-	}
-
-	_c, visited = nil, nil // free memory as soon as soon as the garbage collector allows
-	sys.Free()
-	table, _ := storage.Table(tk)
-	for !c.Empty() {
-		s := c.Take().(spn.SPN)
-		switch t := s.Type(); t {
-		case "leaf":
-			table.StoreSingle(s, s.Value(I))
-		case "sum":
-			sum := s.(*spn.Sum)
-			ch := sum.Ch()
-			W := sum.Weights()
-			n := len(ch)
-			vals := make([]float64, n)
-			for i, cs := range ch {
-				v, e := table.Single(cs)
-				if !e {
-					// Should never occur. Just in case what I thought of is flawed.
-					fmt.Println("Something terrible has just happened. (StoreInference:learn/derive.go)")
-				}
-				vals[i] = v + math.Log(W[i])
-			}
-			table.StoreSingle(s, sum.Compute(vals))
-		case "product":
-			prod := s.(*spn.Product)
-			ch := prod.Ch()
-			n := len(ch)
-			vals := make([]float64, n)
-			for i, cs := range ch {
-				vals[i], _ = table.Single(cs)
-			}
-			table.StoreSingle(s, prod.Compute(vals))
-		}
-	}
 	c = nil
 	sys.Free()
 	return S

@@ -26,25 +26,57 @@ of hidden layers not only doesn't negatively impact the tractability of
 inference of SPNs but also augments the representability of this model,
 it is very much desirable to continue research on deep learning of SPNs.
 
-This project aims to provide a simple implementation of structural
-learning of SPNs. We seek to follow the paper *Learning the Structure of
-Sum-Product Networks* by Robert Gens and Pedro Domingos (ICML 2013) and
-implement our own version of structural learning based on the schema
-provided by the article.
+This project aims to provide a simple framework for Sum-Product
+Networks. Our objective is to provide inference tools and implement
+various learning algorithms present in literature.
 
-Our objective is not only educational - in the sense that we wish to
-learn more about the peculiarities of SPNs - but also documentational,
-as we also intend on documenting and recording what we have learned in a
-simpler, clearer way then how it is currently written in literature.
+### Features
 
-A thorough analysis on our implementation can be found at
-(<https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf>).
+**Completed**
+
+  - Soft inference (marginal probabilities)
+  - Hard inference (MAP)
+  - Gens-Domingos learning schema
+     * *Learning the Structure of Sum-Product Networks*, R. Gens & P.
+       Domingos, ICML 2013
+     * [pdf](http://spn.cs.washington.edu/papers/slspn.pdf)
+  - Generative gradient descent
+  - SPN derivatives
+
+**Under development**
+
+ - Poon-Domingos deep structure
+
+**To do (high priority)**
+
+  - Generative EM
+  - EM clustering
+  - Dennis-Ventura clustering structural learning algorithm
+     * *Learning the Architecture of Sum-Product Networks Using Clustering
+       on Variables*, A. Dennis & D. Ventura, NIPS 25 (2012)
+     * [pdf](http://papers.nips.cc/paper/4544-learning-the-architecture-of-sum-product-networks-using-clustering-on-variables.pdf)
+  - Mauro-Vergari structural learning algorithm
+     * *Simplifying, Regularizing and Strengthening Sum-Product Network
+      Structure Learning*, A. Vergari & N. Mauro & F. Esposito, ECMLPKDD
+      2015
+
+**To do (low priority)**
+
+ - EM and GD discriminative learning
+    * *Discriminative Learning of Sum-Product Networks*, R. Gens & P.
+      Domingos, NIPS 25 (2012)
+    * [pdf](http://spn.cs.washington.edu/papers/dspn.pdf)
+ - Language modelling SPN
+    * *Language Modelling with Sum-Product Networks*, Cheng *et al*,
+    INTERSPEECH 2014
+    * [pdf](http://spn.cs.washington.edu/papers/is14.pdf)
+ - Support for `.csv` dataset file format.
 
 ### Branches
 
-- `stable` contains a stable version of GoSPN. It should yield the same
-  results as documented on (<https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf>).
-- `master` contains the development version of GoSPN.
+- `dev` contains the development version of GoSPN.
+- `stable` contains a stable version of GoSPN.
+- `nlp` contains deprecated NLP model.
 
 ### Usage
 
@@ -218,7 +250,7 @@ In case this does not occur and something like this comes up on the
 screen:
 
 ```
-cannot find package "github.com/gonum/stat" in any of
+cannot find package "[...]/gonum/stat" in any of
 ```
 
 Enter the following commands:
@@ -247,6 +279,10 @@ that you do not install graph-tool.
 Subdependencies and installation instructions are listed at
 <https://graph-tool.skewed.de/download>.
 
+#### Graphviz
+
+GoSPN also supports graph drawing with Graphviz. See `io/output.go`.
+
 ### Compiling and Running GoSPN
 
 To get the source code through Go's `go get` command, run the following
@@ -263,13 +299,15 @@ is easy. First go to the GoSPN source dir.
 $ cd $GOPATH/src/github.com/RenatoGeh/gospn/
 ```
 
-To compile and run:
+To compile and run (the standalone version):
 
 ```
 $ go run main.go <args>
 ```
 
 Where `args` is a list of arguments. See Usage for more information.
+
+When using GoSPN as a library, simply run it as usual.
 
 ### Updating GoSPN
 
@@ -291,14 +329,14 @@ Code documentation can be found at <https://godoc.org/github.com/RenatoGeh/gospn
 
 #### Documentation
 
-An analysis on our implementation can be found at
+An analysis on our Gens-Domingos implementation can be found at
 <https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf>.
 
 ### Datasets
 
 We use the following datasets:
 
-* Custom hand drawn numerical digits dataset
+* Custom hand drawn numerical digits dataset (https://github.com/RenatoGeh/gospn/tree/stable/data/digits)
 * Olivetti Faces Dataset by AT&T Laboratories Cambridge
 * Caltech101: L. Fei-Fei, R. Fergus and P. Perona. *Learning generative visual models
   from few training examples: an incremental Bayesian approach tested on
@@ -339,12 +377,6 @@ completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/ol
 ![Olivetti faces dataset C2 9
 completions](https://raw.githubusercontent.com/RenatoGeh/gospn/master/results/olivetti_3bit/r2/face_cmpl_9.png)
 
-### Further work
+### Acknowledgements
 
-This is a TODO list:
-
-* Implement discriminative learning based on the paper *Discriminative
-  Learning of Sum-Product Networks* (R. Gens, P. Domingos) NIPS 2012
-* Implement language modelling SPN based on the paper *Language
-  Modelling with Sum-Product Networks* (Cheng *et al*) INTERSPEECH 2014
-* Add support for `.csv` dataset file format.
+This project has financial support from CNPq grant #800585/2016-0.

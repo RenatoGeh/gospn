@@ -17,27 +17,31 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 		c = &common.Queue{}
 	}
 
-	storage := NewStorer()
+	storage := spn.NewStorer()
 	stk, itk := storage.NewTicket(), storage.NewTicket()
+	wtk := storage.NewTicket()
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
 		ollh = llh
 		llh = 0.0
+		n := len(data)
+		var i int
 		for _, I := range data {
 			// Store inference values under T[itk].
 			sys.Println("Storing inference values...")
-			StoreInference(S, I, itk, storage)
+			spn.StoreInference(S, I, itk, storage)
 			lv, _ := storage.Single(itk, S)
 			// Store SPN derivatives under T[stk].
 			sys.Println("Computing dS(X)/dS...")
 			DeriveSPN(S, storage, stk, itk, c)
 			// Store weights derivatives under T[wtk].
 			//sys.Println("Computing dS(X)/dW...")
-			//DeriveWeights(S, storage, wtk, stk, itk, c)
+			DeriveWeights(S, storage, wtk, stk, itk, c)
 			// Apply gradient descent.
 			sys.Println("Applying gradient descent...")
-			DeriveApplyWeights(S, eta, storage, stk, itk, c, norm)
+			//DeriveApplyWeights(S, eta, storage, stk, itk, c, norm)
+			applyGD(S, eta, wtk, storage, c, norm)
 			// Reset DP tables.
 			storage.Reset(itk)
 			storage.Reset(stk)
@@ -47,6 +51,8 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 			// Add current log-value to log-likelihood.
 			sys.Printf("Log-value ln(S(X)) = %.3f\n", lv)
 			llh += lv
+			i++
+			sys.Printf("Instance %d/%d.\n", i, n)
 		}
 		sys.Printf("Log-likelihood value at this iteration: llh = %.3f\n", llh)
 		if sys.Verbose {
@@ -54,12 +60,13 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 			sys.Printf("Epsilon log-likelihood: eps = %.3f > %.3f ? %v \n", dllh, eps, dllh > eps)
 		}
 	}
+	sys.Println("Generative gradient descent done. Returning...")
 
 	return S
 }
 
 // This is where the magic happens.
-func applyGD(S spn.SPN, eta float64, wtk int, storage *Storer, c common.Collection, norm bool) {
+func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Collection, norm bool) {
 	visited := make(map[spn.SPN]bool)
 	wt, _ := storage.Table(wtk)
 	c.Give(S)

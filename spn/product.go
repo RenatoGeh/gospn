@@ -1,5 +1,10 @@
 package spn
 
+import (
+	"github.com/RenatoGeh/gospn/sys"
+	"math"
+)
+
 // Product represents a product node in an SPN.
 type Product struct {
 	Node
@@ -33,7 +38,9 @@ func (p *Product) Value(val VarSet) float64 {
 		vals[i] = ch[i].Value(val)
 	}
 
-	return p.Compute(vals)
+	l := p.Compute(vals)
+	sys.Printf("Product value: %f = ln(%f)\n", l, math.Exp(l))
+	return l
 }
 
 // Compute returns the soft value of this node's type given the children's values.

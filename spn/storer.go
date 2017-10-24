@@ -1,12 +1,11 @@
-package learn
+package spn
 
 import (
-	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 )
 
 // StorerTable is a DP table for Storer.
-type StorerTable map[spn.SPN]map[int]float64
+type StorerTable map[SPN]map[int]float64
 
 // Storer allows for a mapping of node -> value, storing values for later use without having to
 // recompute node values or derivatives (basically a Dynamic Programming table).
@@ -47,7 +46,7 @@ func (s *Storer) Table(k int) (StorerTable, bool) {
 
 // Value returns the value of the SPN S in table T[k], returning two values: its value and whether
 // the position T[k][S] exists.
-func (s *Storer) Value(k int, S spn.SPN) (map[int]float64, bool) {
+func (s *Storer) Value(k int, S SPN) (map[int]float64, bool) {
 	t, err := s.tables[k]
 	if !err {
 		return nil, err
@@ -57,14 +56,14 @@ func (s *Storer) Value(k int, S spn.SPN) (map[int]float64, bool) {
 
 // Value returns the value of the SPN S in this StorerTable, returning two values: its value and
 // whether the position exists.
-func (t StorerTable) Value(S spn.SPN) (map[int]float64, bool) {
+func (t StorerTable) Value(S SPN) (map[int]float64, bool) {
 	p, q := t[S]
 	return p, q
 }
 
 // Entry returns the entry at Table T[k][S], given an SPN S and a position l, returning two values:
 // the entry value and whether the position T[k][S][l] exists.
-func (s *Storer) Entry(k int, S spn.SPN, l int) (float64, bool) {
+func (s *Storer) Entry(k int, S SPN, l int) (float64, bool) {
 	t, err := s.tables[k]
 	if !err {
 		return 0, err
@@ -74,7 +73,7 @@ func (s *Storer) Entry(k int, S spn.SPN, l int) (float64, bool) {
 
 // Entry returns the entry at T[S][l], given an SPN S and a position l, returning two values:
 // the entry value and whether the position T[S][l] exists.
-func (s StorerTable) Entry(S spn.SPN, l int) (float64, bool) {
+func (s StorerTable) Entry(S SPN, l int) (float64, bool) {
 	v, err := s[S]
 	if !err {
 		return 0, err
@@ -84,13 +83,13 @@ func (s StorerTable) Entry(S spn.SPN, l int) (float64, bool) {
 }
 
 // Single returns the first entry at Table T[k][S]. Equivalent to Entry(k, S, 0).
-func (s *Storer) Single(k int, S spn.SPN) (float64, bool) { return s.Entry(k, S, 0) }
+func (s *Storer) Single(k int, S SPN) (float64, bool) { return s.Entry(k, S, 0) }
 
 // Single returns the first entry of this table. Equivalent to Entry(S, 0)
-func (t StorerTable) Single(S spn.SPN) (float64, bool) { return t.Entry(S, 0) }
+func (t StorerTable) Single(S SPN) (float64, bool) { return t.Entry(S, 0) }
 
 // Store stores entry e in position T[k][S][l]. Returns whether the operation was successful.
-func (s *Storer) Store(k int, S spn.SPN, l int, e float64) bool {
+func (s *Storer) Store(k int, S SPN, l int, e float64) bool {
 	t, err := s.Table(k)
 	if !err {
 		return false
@@ -99,7 +98,7 @@ func (s *Storer) Store(k int, S spn.SPN, l int, e float64) bool {
 }
 
 // Store stores entry e in position [S][l]. Returns whether the operation was successful.
-func (t StorerTable) Store(S spn.SPN, l int, e float64) bool {
+func (t StorerTable) Store(S SPN, l int, e float64) bool {
 	_, err := t[S]
 	if !err {
 		t[S] = make(map[int]float64)
@@ -112,11 +111,11 @@ func (t StorerTable) Store(S spn.SPN, l int, e float64) bool {
 
 // StoreSingle sets the first entry of Table T[k][S] to v. Returns whether the operation was
 // successful. Equivalent to Store(k, S, 0, v).
-func (s *Storer) StoreSingle(k int, S spn.SPN, v float64) bool { return s.Store(k, S, 0, v) }
+func (s *Storer) StoreSingle(k int, S SPN, v float64) bool { return s.Store(k, S, 0, v) }
 
 // StoreSingle sets the first entry of this table to v. Returns whether the operation was
 // successful. Equivalent to Store(S, 0, v)
-func (t StorerTable) StoreSingle(S spn.SPN, v float64) bool { return t.Store(S, 0, v) }
+func (t StorerTable) StoreSingle(S SPN, v float64) bool { return t.Store(S, 0, v) }
 
 // Delete frees the memory at T[k]. A combination of Delete and NewTicket is NOT equivalent to
 // using Reset. Prefer Reset over Delete + NewTicket.

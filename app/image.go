@@ -2,10 +2,12 @@ package app
 
 import (
 	"fmt"
+	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/io"
 	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
+	"github.com/RenatoGeh/gospn/test"
 	"github.com/RenatoGeh/gospn/utils"
 	"math/rand"
 	"runtime"
@@ -43,6 +45,34 @@ func ImgBatchClassify(lf learn.LearnFunc, dataset string, p float64, rseed int64
 	fmt.Printf("---------------------------------\n")
 }
 
+func getValue(st *spn.Storer, itk int, S spn.SPN, I spn.VarSet) float64 {
+	spn.StoreInference(S, I, itk, st)
+	p, _ := st.Single(itk, S)
+	st.Reset(itk)
+	return p
+}
+
+func testClassify(S spn.SPN, val spn.VarSet, storage *spn.Storer, itk int) {
+	//fmt.Println("Starting test...")
+	//fmt.Println("Calling StoreInference...")
+	spn.StoreInference(S, val, itk, storage)
+	//itab, _ := storage.Table(itk)
+	q := &common.Queue{}
+	//fmt.Println("Running BFS...")
+	test.DoBFS(S, func(s spn.SPN) bool {
+		//v, _ := itab.Single(s)
+		v, _ := storage.Single(itk, s)
+		u := s.Value(val)
+		if v != u {
+			fmt.Printf("Different values: v=%.5f vs u=%.5f\n", v, u)
+		}
+		return true
+	}, q)
+	//fmt.Println("Resetting...")
+	storage.Reset(itk)
+	//fmt.Println("Done.")
+}
+
 // ImgClassify takes an SPN S to be evaluated, a .data dataset filename to cross-evaluate, a p float
 // as the percentage of the dataset to be set as train/test and rseed as the pseudo-random seed for
 // data partitioning. ImgClassify returns two integers: the first is how many instances of test it
@@ -54,15 +84,18 @@ func ImgClassify(lf learn.LearnFunc, filename string, p float64, rseed int64) (i
 	nclass := vars[n-1].Categories
 
 	corrects := 0
+	st := spn.NewStorer()
+	itk := st.NewTicket()
+	sys.Println("Starting classification...")
 	for i := 0; i < lines; i++ {
 		imax, max, prs := -1, -1.0, make([]float64, nclass)
-		pz := S.Value(test[i])
+		pz := getValue(st, itk, S, test[i])
 		sys.Printf("Testing instance %d. Should be classified as %d.\n", i, lbls[i])
 		for j := 0; j < nclass; j++ {
 			test[i][n-1] = j
-			px := S.Value(test[i])
+			px := getValue(st, itk, S, test[i])
 			prs[j] = utils.AntiLog(px - pz)
-			sys.Printf("  Pr(X=%d|E) = antilog(%.10f) = %.10f\n", j, px-pz, prs[j])
+			sys.Printf("  Pr(X=%d|E) = antilog(%.10f) = %.10f - %.10f = %.10f\n", j, px, pz, px-pz, prs[j])
 			if prs[j] > max {
 				max, imax = prs[j], j
 			}

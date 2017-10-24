@@ -1,6 +1,7 @@
 package spn
 
 import (
+	//"github.com/RenatoGeh/gospn/sys"
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 )
@@ -65,6 +66,7 @@ func NewGaussian(varid int, counts []int) *Gaussian {
 	}
 	sd = math.Sqrt(sd)
 
+	//sys.Printf("Created new gaussian with Mu: %f and StdDev: %f\n", mean, sd)
 	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mean, sd, nil}}
 }
 
@@ -102,6 +104,7 @@ func (g *Gaussian) Value(val VarSet) float64 {
 	} else {
 		l = 0.0 // ln(1.0) = 0.0
 	}
+	//sys.Printf("Gaussian value: %f = ln(%f)\n", l, math.Exp(l))
 	return l
 }
 

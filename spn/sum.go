@@ -1,6 +1,7 @@
 package spn
 
 import (
+	"github.com/RenatoGeh/gospn/sys"
 	"math"
 )
 
@@ -46,7 +47,9 @@ func (s *Sum) Value(val VarSet) float64 {
 		vals[i] = v + w
 	}
 
-	return s.Compute(vals)
+	l := s.Compute(vals)
+	sys.Printf("Sum value: %f = ln(%f)\n", l, math.Exp(l))
+	return l
 }
 
 // Compute returns the soft value of this node's type given the children's values.

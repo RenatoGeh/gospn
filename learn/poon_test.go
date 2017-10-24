@@ -27,10 +27,10 @@ func TestPoonEncoding(t *testing.T) {
 		for l := h; l > y; l-- {
 			for j := w; j > x; j-- {
 				v := Encode(x, y, j, l)
-				fmt.Printf("Encoding: (%d, %d, %d, %d) -> %d\n", x, y, j, l, v)
+				//fmt.Printf("Encoding: (%d, %d, %d, %d) -> %d\n", x, y, j, l, v)
 				_, e := u[v]
 				p, q, r, s := Decode(v)
-				fmt.Printf("Decoding: %d -> (%d, %d, %d, %d)\n", v, p, q, r, s)
+				//fmt.Printf("Decoding: %d -> (%d, %d, %d, %d)\n", v, p, q, r, s)
 				if e || !cmp(uint64(x), uint64(y), uint64(j), uint64(l), uint64(p), uint64(q), uint64(r), uint64(s)) {
 					fmt.Printf("Conflict! (x1, y1, x2, y2) = (%d, %d, %d, %d) = %d <=> "+
 						"(%d, %d, %d, %d)\n", x, y, j, l, v, p, q, r, s)

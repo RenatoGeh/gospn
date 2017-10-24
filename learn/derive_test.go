@@ -9,9 +9,9 @@ import (
 	"testing"
 )
 
-func initSPN() (spn.SPN, spn.VarSet, *Storer) {
+func initSPN() (spn.SPN, spn.VarSet, *spn.Storer) {
 	R, val := test.SampleSPN()
-	return R, val, NewStorer()
+	return R, val, spn.NewStorer()
 }
 
 func testSPN(R spn.SPN, c common.Collection) {
@@ -33,9 +33,9 @@ func testSPN(R spn.SPN, c common.Collection) {
 	}, c)
 }
 
-func testStoreInference(R spn.SPN, val spn.VarSet, storage *Storer, c common.Collection) int {
+func testStoreInference(R spn.SPN, val spn.VarSet, storage *spn.Storer, c common.Collection) int {
 	itk := storage.NewTicket()
-	StoreInference(R, val, itk, storage)
+	spn.StoreInference(R, val, itk, storage)
 
 	fmt.Println("\n=== StoreInference Test ===\n")
 	itab, _ := storage.Table(itk)
@@ -49,7 +49,7 @@ func testStoreInference(R spn.SPN, val spn.VarSet, storage *Storer, c common.Col
 	return itk
 }
 
-func testDeriveSPN(R spn.SPN, storage *Storer, itk int, c common.Collection) int {
+func testDeriveSPN(R spn.SPN, storage *spn.Storer, itk int, c common.Collection) int {
 	dtk := storage.NewTicket()
 	DeriveSPN(R, storage, dtk, itk, c)
 
@@ -64,7 +64,7 @@ func testDeriveSPN(R spn.SPN, storage *Storer, itk int, c common.Collection) int
 	return dtk
 }
 
-func testDeriveWeights(R spn.SPN, storage *Storer, itk, dtk int, c common.Collection) {
+func testDeriveWeights(R spn.SPN, storage *spn.Storer, itk, dtk int, c common.Collection) {
 	wtk := storage.NewTicket()
 	DeriveWeights(R, storage, wtk, dtk, itk, c)
 

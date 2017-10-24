@@ -204,6 +204,12 @@ func PoonTest(D spn.Dataset, m, r int) spn.SPN {
 	return S
 }
 
+func BindedPoonGD(m, r int, eta, eps float64) LearnFunc {
+	return func(_ map[int]Variable, data spn.Dataset) spn.SPN {
+		return PoonGD(data, m, r, eta, eps)
+	}
+}
+
 func PoonGD(D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
 	S := PoonStructure(D, m, r)
 	sys.Println("Counting nodes...")

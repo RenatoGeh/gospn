@@ -1,9 +1,9 @@
 package cluster
 
 import (
-	common "github.com/RenatoGeh/gospn/common"
-	utils "github.com/RenatoGeh/gospn/utils"
-	metrics "github.com/RenatoGeh/gospn/utils/cluster/metrics"
+	"github.com/RenatoGeh/gospn/common"
+	"github.com/RenatoGeh/gospn/utils"
+	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
 )
 
 // DBSCAN Density-based spatial clustering of applications with noise.
@@ -34,13 +34,13 @@ func DBSCAN(data [][]int, eps float64, mp int) []map[int][]int {
 	// Visited points: 0 unvisited, 1 otherwise.
 	vst, vindex := make([]int, n), 0
 
-	queue := common.QueueInteger{}
+	queue := common.Queue{}
 	queue.Enqueue(0)
 	for !queue.Empty() {
-		p := queue.Dequeue()
+		p := queue.Dequeue().(int)
 
 		// Neighbourhood of p.
-		nbh := common.QueueInteger{}
+		nbh := common.Queue{}
 
 		for i := 0; i < n; i++ {
 			// Clause 1 (i != p):
@@ -57,7 +57,7 @@ func DBSCAN(data [][]int, eps float64, mp int) []map[int][]int {
 		// Found dense neighbourhood.
 		if nbh.Size() >= mp {
 			for !nbh.Empty() {
-				q := nbh.Dequeue()
+				q := nbh.Dequeue().(int)
 				utils.Union(rgs[p], rgs[q])
 				vst[p], vst[q] = 1, 1
 				queue.Enqueue(q)

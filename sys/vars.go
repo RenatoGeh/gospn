@@ -22,4 +22,5 @@ var (
 // Memory variables
 var (
 	MemLowBoundShrink = 1024
+	MemConservative   = false
 )

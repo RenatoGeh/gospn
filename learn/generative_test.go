@@ -10,7 +10,7 @@ import (
 )
 
 // Copy of applyGD, but for testing.
-func applyGDTest(S spn.SPN, eta float64, wtk int, storage *Storer, c common.Collection) {
+func applyGDTest(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Collection) {
 	visited := make(map[spn.SPN]bool)
 	wt, _ := storage.Table(wtk)
 	c.Give(S)
@@ -44,7 +44,7 @@ func applyGDTest(S spn.SPN, eta float64, wtk int, storage *Storer, c common.Coll
 
 func TestGenerativeGD(t *testing.T) {
 	R, _ := test.SampleSPN()
-	storage := NewStorer()
+	storage := spn.NewStorer()
 
 	fmt.Println("\n=== GenerativeGD Test ===\n")
 	data := make([]spn.VarSet, 16)
@@ -76,7 +76,7 @@ func TestGenerativeGD(t *testing.T) {
 	wtk, stk, itk := storage.NewTicket(), storage.NewTicket(), storage.NewTicket()
 	for _, I := range data {
 		// Store inference values under T[itk].
-		StoreInference(R, I, itk, storage)
+		spn.StoreInference(R, I, itk, storage)
 		// Store SPN derivatives under T[stk].
 		DeriveSPN(R, storage, stk, itk, c)
 		// Store weights derivatives under T[wtk].
