@@ -19,7 +19,7 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 
 	storage := spn.NewStorer()
 	stk, itk := storage.NewTicket(), storage.NewTicket()
-	wtk := storage.NewTicket()
+	//wtk := storage.NewTicket()
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
@@ -37,11 +37,11 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 			DeriveSPN(S, storage, stk, itk, c)
 			// Store weights derivatives under T[wtk].
 			//sys.Println("Computing dS(X)/dW...")
-			DeriveWeights(S, storage, wtk, stk, itk, c)
+			//DeriveWeights(S, storage, wtk, stk, itk, c)
 			// Apply gradient descent.
 			sys.Println("Applying gradient descent...")
-			//DeriveApplyWeights(S, eta, storage, stk, itk, c, norm)
-			applyGD(S, eta, wtk, storage, c, norm)
+			DeriveApplyWeights(S, eta, storage, stk, itk, c, norm)
+			//applyGD(S, eta, wtk, storage, c, norm)
 			// Reset DP tables.
 			storage.Reset(itk)
 			storage.Reset(stk)

@@ -21,18 +21,6 @@ func convertData() {
 }
 
 func main() {
-	/*//_, data, _ := io.ParseDataNL("data/digits/compiled/all.data")*/
-	//sys.Width, sys.Height = 20, 30
-	////_, data, _ := io.ParseDataNL("data/test/compiled/all.data")
-	////sys.Width, sys.Height = 4, 4
-	//sys.Max = 2
-	//sys.Verbose = true
-	//sys.MemConservative = false
-	//lf := learn.BindedPoonGD(4, 2, 0.1, 0.1)
-	//app.ImgClassify(lf, "data/digits/compiled/all.data", 0.3, -1)
-	////learn.PoonTest(data, 2, 2)
-	/*return*/
-
 	var p float64
 	var clusters int
 	var rseed int64
@@ -99,6 +87,18 @@ func main() {
 	} else if mode == "class" {
 		lf := learn.BindedGens(clusters, sys.Pval, sys.Eps, sys.Mp)
 		app.ImgBatchClassify(lf, dataset, p, rseed, clusters, iterations)
+	} else if mode == "test" {
+		//_, data, _ := io.ParseDataNL("data/digits/compiled/all.data")
+		sys.Width, sys.Height = 48, 56
+		//_, data, _ := io.ParseDataNL("data/test/compiled/all.data")
+		//sys.Width, sys.Height = 4, 4
+		sys.Max = 8
+		sys.Verbose = true
+		sys.MemConservative = true
+		lf := learn.BindedPoonGD(2, 4, 0.1, 0.1)
+		//app.ImgClassify(lf, "data/digits/compiled/all.data", 0.3, -1)
+		app.ImgCompletion(lf, "data/olivetti_padded/compiled/all.data", 1)
+		//learn.PoonTest(data, 2, 2)
 	} else {
 		fmt.Printf("Mode %s not found. Possible mode options:\n  cmpl, class, data\n", mode)
 	}
