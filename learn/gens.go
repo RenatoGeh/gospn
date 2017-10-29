@@ -1,15 +1,13 @@
 package learn
 
 import (
-	//"fmt"
-	//"math"
 	"sort"
 
-	spn "github.com/RenatoGeh/gospn/spn"
-	sys "github.com/RenatoGeh/gospn/sys"
-	utils "github.com/RenatoGeh/gospn/utils"
-	cluster "github.com/RenatoGeh/gospn/utils/cluster"
-	indep "github.com/RenatoGeh/gospn/utils/indep"
+	"github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/sys"
+	"github.com/RenatoGeh/gospn/utils"
+	"github.com/RenatoGeh/gospn/utils/cluster"
+	"github.com/RenatoGeh/gospn/utils/indep"
 )
 
 // BindedGens is a binded version of Gens.
@@ -82,6 +80,19 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 		prod, m, kset := spn.NewProduct(), len(igraph.Kset), &igraph.Kset
 		tn := len(data)
 		for i := 0; i < m; i++ {
+			//sort.Ints((*kset)[i])
+			//}
+			//nexti := 0
+			//for done := 0; done < m; done++ {
+			//i := 0
+			//for (*kset)[i][0] != nexti {
+			//i++
+			//if i >= m {
+			//i = 0
+			//nexti++
+			//}
+			//}
+			//nexti++
 			// Data slices of the relevant vectors.
 			tdata := make([]map[int]int, tn)
 			// Number of variables in set of variables kset[i].
@@ -148,7 +159,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 			}
 			return prod
 		}
-		clusters = cluster.KMeansV(kclusters, mdata)
+		clusters = cluster.KMedoid(kclusters, mdata)
 	} else if kclusters == -1 {
 		clusters = cluster.DBSCAN(mdata, eps, mp)
 	} else {

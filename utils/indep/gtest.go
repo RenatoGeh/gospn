@@ -44,7 +44,7 @@ func GTest(p, q int, data [][]int, n int, sigval float64) bool {
 	}
 
 	sum *= 2
-	cmp := ChiSquare(sum, df)
+	cmp := 1.0 - ChiSquare(sum, df)
 	//fmt.Printf("G: df: %d, g: %f, cmp: %.50f, sigval: %.50f\n", df, sum, cmp, sigval)
 
 	return cmp >= sigval

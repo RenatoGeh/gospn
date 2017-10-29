@@ -1,11 +1,12 @@
 package cluster
 
 import (
-	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
+	"fmt"
+	metrics "github.com/RenatoGeh/gospn/utils/cluster/metrics"
 	"math/rand"
 )
 
-func kMeansInsert(which int, means map[int][]int, clusters []map[int][]int, v []int) {
+func kModeInsert(which int, means map[int][]int, clusters []map[int][]int, v []int) {
 	l := len(means[which])
 	for k := 0; k < l; k++ {
 		//fmt.Printf("which %d k %d v[k] %d l %d len(clusters[which][k]) %d\n", which, k, v[k], l, len(clusters[which][k]))
@@ -16,7 +17,7 @@ func kMeansInsert(which int, means map[int][]int, clusters []map[int][]int, v []
 	}
 }
 
-func kMeansRemove(which int, means map[int][]int, clusters []map[int][]int, v []int) {
+func kModeRemove(which int, means map[int][]int, clusters []map[int][]int, v []int) {
 	l := len(means[which])
 	for k := 0; k < l; k++ {
 		clusters[which][k][v[k]]--
@@ -32,7 +33,7 @@ func kMeansRemove(which int, means map[int][]int, clusters []map[int][]int, v []
 	}
 }
 
-func KMeans(k int, data [][]int) []map[int][]int {
+func KMode(k int, data [][]int) []map[int][]int {
 	n := len(data)
 
 	// Initializes using the Forgy method.
@@ -64,7 +65,7 @@ func KMeans(k int, data [][]int) []map[int][]int {
 			//			}
 		}
 		chkrnd[r], chkdata[r] = true, i
-		kMeansInsert(i, means, clusters, data[r])
+		kModeInsert(i, means, clusters, data[r])
 	}
 
 	//fmt.Println("Starting K-means until convergence...")
@@ -88,15 +89,15 @@ func KMeans(k int, data [][]int) []map[int][]int {
 		// Instance i has no attached cluster.
 		if !ok {
 			chkdata[i] = which
-			//fmt.Println(data[i], " to cluster ", which)
-			kMeansInsert(which, means, clusters, data[i])
+			fmt.Println(data[i], " to cluster ", which)
+			kModeInsert(which, means, clusters, data[i])
 			nochange = 0
 		} else if v != which {
 			// If instance has an earlier attached cluster.
-			//fmt.Println(data[i], " from ", chkdata[i], " to cluster ", which)
-			kMeansRemove(chkdata[i], means, clusters, data[i])
+			fmt.Println(data[i], " from ", chkdata[i], " to cluster ", which)
+			kModeRemove(chkdata[i], means, clusters, data[i])
 			chkdata[i] = which
-			kMeansInsert(which, means, clusters, data[i])
+			kModeInsert(which, means, clusters, data[i])
 			nochange = 0
 		} else {
 			nochange++
@@ -105,7 +106,7 @@ func KMeans(k int, data [][]int) []map[int][]int {
 		if i >= n {
 			i = 0
 		}
-		//fmt.Println("0:", means[0], "  1:", means[1])
+		fmt.Println("0:", means[0], "  1:", means[1])
 	}
 	//fmt.Println("Converged. Returning clusters...")
 	clusters = make([]map[int][]int, k)

@@ -7,16 +7,42 @@ import (
 var (
 	// LogZero = ln(0) = -inf
 	LogZero float64
+	EpsZero float64
 )
 
 func init() {
 	LogZero = math.Inf(-1)
+	EpsZero = 0
+}
+
+// LogSumLog is a function to compute the log of sum of logs.
+func LogSumLog(v []float64, s []int) (float64, int) {
+	max, imax, simax := math.Inf(-1), -1, 1
+	n := len(v)
+	for i := 0; i < n; i++ {
+		if s[i] != 0 && v[i] > max {
+			max, imax, simax = v[i], i, s[i]
+		}
+	}
+	if imax == -1 {
+		return 0.0, 0
+	}
+	p, r := max, 0.0
+	for i := 0; i < n; i++ {
+		if i != imax && s[i] != 0 {
+			r += math.Exp(v[i]-p) * float64(s[i]) * float64(simax)
+		}
+	}
+	if r < -1.0 {
+		return p + math.Log(-1.0-r), -simax
+	}
+	return p + math.Log1p(r), simax
 }
 
 // LogSum is the log of the sum of probabilities given by
 // 	sum_i p_i -> P + ln(sum_i e^(ln(p_i) - P)), where P = max_i ln(p_i)
 // Returns a float64 with the resulting log operation. To convert back use utils.AntiLog.
-func LogSum(p ...float64) float64 {
+func LogSum(p []float64) float64 {
 	pi, n := math.Inf(-1), len(p)
 	for i := 0; i < n; i++ {
 		lp := math.Log(p[i])

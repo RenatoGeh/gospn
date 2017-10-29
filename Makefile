@@ -1,5 +1,5 @@
 OUT=out.put
-ARGS=-p=0.7 -rseed=123456 -clusters=-1 -iterations=1 -mode=class -dataset=digits
+ARGS=-p=0.7 -rseed=123456 -clusters=3 -iterations=1 -mode=class -dataset=digits
 
 completion:
 	go run main.go -mode=cmpl | tee $(OUT)

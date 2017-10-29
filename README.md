@@ -213,13 +213,13 @@ Example datasets are available at `$GOSPN/data` as credited on section
    `p=0.8`.
 2. Choose an `rseed` value. For instance, `rseed=-1`.
 3. Choose a `clusters` value (k-means with `clusters` clusters, DBSCAN
-   or OPTICS). For instance, `clusters=-1`.
+   or OPTICS). For instance, `clusters=3`.
 4. Choose the number of iterations `iterations`. For instance,
    `iterations=5`.
 5. Set your dataset name and image width, height and max value
    (`-dataset`, `-width`, `-height` and `-max`).
 6. Run GoSPN with `-mode=class`.
-7. Example: `go run main.go -p=0.8 -rseed=-1 -clusters=-1 -iterations=5
+7. Example: `go run main.go -p=0.8 -rseed=-1 -clusters=3 -iterations=5
    -dataset=caltech -width=150 -height=65 -max=256 -mode=class`.
 
 #### For step 3 to run an image completion job:
@@ -377,6 +377,23 @@ completions](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/results/olive
 ![Olivetti faces dataset C2 9
 completions](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/results/olivetti_3bit/r2/face_cmpl_9.png)
 
+### Literature
+
+The following are articles that used GoSPN.
+
+- *Credal Sum-Product Networks*, D. Mauá & F. Cozman & D. Conaty & C.
+  Campos, PMLR 2017
+    * [pdf](http://proceedings.mlr.press/v62/mau%C3%A117a/mau%C3%A117a.pdf)
+- *Approximation Complexity of Maximum A Posteriori Inference in
+  Sum-Product Networks*, D. Conaty & D. Mauá & C. Campos, UAI 2017
+    * [pdf](https://arxiv.org/pdf/1703.06045.pdf)
+
 ### Acknowledgements
 
-This project has financial support from CNPq grant #800585/2016-0.
+This project is part of my undergraduate research project supervised by
+Prof. [Denis Deratani Mauá](https://www.ime.usp.br/~ddm/). We currently
+have financial support from CNPq grant #800585/2016-0.
+
+We would like to greatly thank Diarmaid Conaty and Cassio P. de Campos, both
+from Queen's University Belfast, for finding and correcting several
+bugs.

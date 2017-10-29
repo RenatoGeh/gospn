@@ -26,6 +26,8 @@ type SPN interface {
 	Type() string
 	// AddChild adds a child to this node.
 	AddChild(c SPN)
+	// Returns the height of the graph.
+	Height() int
 }
 
 // VarSet is a variable set specifying variables and their respective instantiations.
@@ -72,4 +74,21 @@ func (n *Node) Type() string {
 // AddChild adds a child to this node.
 func (n *Node) AddChild(c SPN) {
 	n.ch = append(n.ch, c)
+}
+
+// Returns the height of the graph.
+func (n *Node) Height() int {
+	nc := len(n.ch)
+	if nc > 0 {
+		v := 0
+		for i := 0; i < nc; i++ {
+			t := n.ch[i].Height()
+			if t > v {
+				v = t
+			}
+		}
+		return (v + 1)
+	} else {
+		return 0
+	}
 }

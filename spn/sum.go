@@ -30,9 +30,7 @@ func (s *Sum) AddChildW(c SPN, w float64) {
 // Sc returns the scope of this node.
 func (s *Sum) Sc() []int {
 	if s.sc == nil {
-		sch := s.ch[0].Sc()
-		s.sc = make([]int, len(sch))
-		copy(s.sc, sch)
+		copy(s.sc, s.ch[0].Sc())
 	}
 	return s.sc
 }
@@ -95,7 +93,6 @@ func (s *Sum) ArgMax(val VarSet) (VarSet, float64) {
 
 	for i := 0; i < n; i++ {
 		ch := s.ch[i]
-		// Note to future self: use DP to avoid recomputations.
 		m := math.Log(s.w[i]) + ch.Max(val)
 		if m > max {
 			max, mch = m, ch
@@ -109,7 +106,7 @@ func (s *Sum) ArgMax(val VarSet) (VarSet, float64) {
 // Type returns the type of this node.
 func (s *Sum) Type() string { return "sum" }
 
-// Weights returns weights if sum product. Returns nil otherwise.
+// Weights returns weights if sum node. Returns nil otherwise.
 func (s *Sum) Weights() []float64 {
 	return s.w
 }

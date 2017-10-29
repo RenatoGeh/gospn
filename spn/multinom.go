@@ -2,6 +2,7 @@ package spn
 
 import (
 	"math"
+	"math/rand"
 )
 
 // Mode of a univariate distribution.
@@ -26,16 +27,26 @@ type Multinomial struct {
 // NewMultinomial constructs a new Multinomial.
 func NewMultinomial(varid int, dist []float64) *Multinomial {
 	n := len(dist)
-	var m float64
+	m := -1.0
+	miv := make([]int, n)
 	var mi int
-
+	nmi := 0
 	for i := 0; i < n; i++ {
 		if dist[i] > m {
 			m = dist[i]
+			miv[0] = i
 			mi = i
+			nmi = 1
+		} else {
+			if dist[i] == m {
+				miv[nmi] = i
+				nmi++
+			}
 		}
 	}
-
+	if nmi > 1 {
+		mi = miv[rand.Intn(nmi)]
+	}
 	return &Multinomial{Node{sc: []int{varid}}, varid, dist, Mode{mi, m}}
 }
 
@@ -54,14 +65,25 @@ func NewCountingMultinomial(varid int, counts []int) *Multinomial {
 		pr[i] /= float64(s)
 	}
 
-	var m float64
+	m := -1.0
 	var mi int
-
+	miv := make([]int, n)
+	nmi := 0
 	for i := 0; i < n; i++ {
 		if pr[i] > m {
 			m = pr[i]
+			miv[0] = i
 			mi = i
+			nmi = 1
+		} else {
+			if pr[i] == m {
+				miv[nmi] = i
+				nmi++
+			}
 		}
+	}
+	if nmi > 1 {
+		mi = miv[rand.Intn(nmi)]
 	}
 
 	return &Multinomial{Node{sc: []int{varid}}, varid, pr, Mode{mi, m}}

@@ -10,7 +10,7 @@ func Printf(str string, vals ...interface{}) {
 		return
 	}
 	if len(vals) == 0 {
-		fmt.Printf("%s", str)
+		fmt.Printf(str)
 	} else {
 		fmt.Printf(str, vals...)
 	}

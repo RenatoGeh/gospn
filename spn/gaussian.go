@@ -99,7 +99,6 @@ func (g *Gaussian) Value(val VarSet) float64 {
 	if g.dist.Sigma == 0 {
 		return zeroSigma(v, ok, g.dist.Mu)
 	} else if ok {
-		//fmt.Println("Yelloooo")
 		l = g.dist.LogProb(float64(v))
 	} else {
 		l = 0.0 // ln(1.0) = 0.0

@@ -4,10 +4,153 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/RenatoGeh/gospn/learn"
+	"github.com/RenatoGeh/gospn/utils"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
+
+// ARFFToData. Each class is in a subfolder of dirname. dname is the output file. Arg dirname must
+// be an absolute path. Arg dname must be the filename only.
+func ARFFToData(dirname, fname, dname string) {
+	// take in the file in a folder just as before
+	sdir, err := os.Open(dirname)
+
+	if err != nil {
+		fmt.Printf("Error. Could not open superdirectory [%s].\n", dirname)
+		panic(err)
+	}
+	defer sdir.Close()
+
+	// load in file
+	fpath := dirname + "/" + fname
+
+	input, err := os.Open(fpath)
+	if err != nil {
+		fmt.Printf("Error. Could not open file [%s].\n", fname)
+		panic(err)
+	}
+	defer input.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(input)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	var dataflag bool = false
+	attributes := 0
+	var classes [][]string
+	var classrange []int
+	var instances [][]string
+
+	// go through lines and use flags to decide how to parse
+	for _, line := range lines {
+		if dataflag != true {
+			// start splitting for words
+			header := strings.Split(line, " ")
+
+			if len(header) != 1 {
+
+				switch header[0] {
+				case "@relation":
+					fmt.Println("Ignoring @relation line")
+				case "@attribute":
+					fmt.Println("attribute")
+					temp1 := strings.Split(line, "{")
+					temp2 := strings.Split(temp1[1], "}")
+					temp := temp2[0]
+					attributes++
+					classes = append(classes, strings.Split(temp, ","))
+					classrange = append(classrange, len(classes[attributes-1]))
+
+					// do stuff
+
+					//case "@data":
+					//	fmt.Println("data")
+					//	dataflag = true
+				}
+			} else {
+				if header[0] == "@data" {
+					fmt.Println("data")
+					dataflag = true
+				} else {
+					fmt.Println("Ignoring empty line")
+				}
+			}
+
+		} else {
+			// start saving your instances
+			instance := strings.Split(line, ",")
+			for i, att := range instance {
+				// iterate through the attributes in the instance and map them
+				for j, class := range classes[i] {
+					if att == class {
+						instance[i] = strconv.Itoa(j)
+						//fmt.Println("Conversion to string")
+					}
+				}
+			}
+			//fmt.Println("instance at point of reading: ")
+			//fmt.Println(instance)
+			instances = append(instances, instance)
+
+		}
+	}
+
+	// Output to file
+
+	cmpname, err := filepath.Abs(dirname)
+
+	if err != nil {
+		fmt.Printf("Error retrieving path [%s].\n", dirname)
+		panic(err)
+	}
+
+	cmpname = utils.StringConcat(cmpname, "/compiled")
+	if _, err := os.Stat(cmpname); os.IsNotExist(err) {
+		os.Mkdir(cmpname, 0777)
+	}
+
+	cmpname = utils.StringConcat(cmpname, "/")
+	output, err := os.Create(utils.StringConcat(cmpname, dname))
+
+	if err != nil {
+		fmt.Printf("Error creating output file [%s/%s].\n", cmpname, dname)
+		panic(err)
+	}
+	defer output.Close()
+
+	write := bufio.NewWriter(output)
+	for i := 0; i < len(classrange); i++ {
+		fmt.Fprintf(write, "var %d %d\n", i, classrange[i])
+	}
+
+	fmt.Println("Attributes written")
+
+	for _, inst := range instances {
+		//fmt.Println("Instance line:")
+		//fmt.Println(inst)
+		for _, val := range inst {
+
+			fmt.Fprintf(write, "%s ", val)
+		}
+		fmt.Fprintf(write, "%s ", inst[len(inst)-1])
+		fmt.Fprintf(write, "\n")
+		fmt.Println("Instance written")
+	}
+
+	write.Flush()
+
+	// Rough output
+	//write := bufio.NewWriter(output)
+	//for _, line := range lines {
+	//	fmt.Fprintln(write, line)
+	//}
+	//write.Flush()
+
+}
 
 // ParseArff takes an ARFF dataset file and returns three structures.
 //
