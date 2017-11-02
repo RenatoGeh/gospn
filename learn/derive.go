@@ -166,6 +166,7 @@ func DeriveApplyWeights(S spn.SPN, eta float64, storage *spn.Storer, dtk, itk in
 			for i, cs := range ch {
 				v, _ := it.Single(cs)
 				W[i] += eta * math.Exp(v+pv)
+				//sys.Printf("%.5f, %.5f, %.5f, %.5f\n", v, pv, math.Exp(v+pv), eta)
 			}
 			if norm {
 				Normalize(W)

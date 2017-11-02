@@ -540,7 +540,9 @@ func VarSetToPGM(filename string, state spn.VarSet, w, h, max int) {
 
 	n := len(state)
 	pixels := make([]int, n)
+	//fmt.Printf("len(pixels)=%d\n", n)
 	for varid, val := range state {
+		//fmt.Printf("[%d] = %d\n", varid, val)
 		pixels[varid] = val
 	}
 

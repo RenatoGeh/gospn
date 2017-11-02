@@ -89,15 +89,20 @@ func main() {
 		app.ImgBatchClassify(lf, dataset, p, rseed, clusters, iterations)
 	} else if mode == "test" {
 		//_, data, _ := io.ParseDataNL("data/digits/compiled/all.data")
-		sys.Width, sys.Height = 48, 56
 		//_, data, _ := io.ParseDataNL("data/test/compiled/all.data")
 		//sys.Width, sys.Height = 4, 4
-		sys.Max = 8
+		sys.Max = 256
+		sys.Width, sys.Height = 48, 56
+		//sys.Max = 2
+		//sys.Width, sys.Height = 4, 4
 		sys.Verbose = true
-		sys.MemConservative = true
-		lf := learn.BindedPoonGD(2, 4, 0.1, 0.1)
+		//sys.MemConservative = true
+		app.ImgTest("data/olivetti_padded/compiled/all.data", 2, 4, 0.01, 1.0)
+		//lf := learn.BindedPoonGD(2, 4, 0.1, 0.1)
+		//sc, data, _ := io.ParseDataNL(filename)
+		//S := lf(sc, data)
 		//app.ImgClassify(lf, "data/digits/compiled/all.data", 0.3, -1)
-		app.ImgCompletion(lf, "data/olivetti_padded/compiled/all.data", 1)
+		//app.ImgCompletion(lf, "data/olivetti_padded/compiled/all.data", 1)
 		//learn.PoonTest(data, 2, 2)
 	} else {
 		fmt.Printf("Mode %s not found. Possible mode options:\n  cmpl, class, data\n", mode)

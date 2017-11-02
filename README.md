@@ -42,6 +42,7 @@ various learning algorithms present in literature.
      * [pdf](http://spn.cs.washington.edu/papers/slspn.pdf)
   - Generative gradient descent
   - SPN derivatives
+  - Support for `.arff` dataset format (discrete variables for now)
 
 **Under development**
 
@@ -49,16 +50,17 @@ various learning algorithms present in literature.
 
 **To do (high priority)**
 
-  - Generative EM
-  - EM clustering
-  - Dennis-Ventura clustering structural learning algorithm
-     * *Learning the Architecture of Sum-Product Networks Using Clustering
-       on Variables*, A. Dennis & D. Ventura, NIPS 25 (2012)
-     * [pdf](http://papers.nips.cc/paper/4544-learning-the-architecture-of-sum-product-networks-using-clustering-on-variables.pdf)
-  - Mauro-Vergari structural learning algorithm
-     * *Simplifying, Regularizing and Strengthening Sum-Product Network
-      Structure Learning*, A. Vergari & N. Mauro & F. Esposito, ECMLPKDD
-      2015
+- Generative EM
+- EM clustering
+- Dennis-Ventura clustering structural learning algorithm
+    * *Learning the Architecture of Sum-Product Networks Using Clustering
+     on Variables*, A. Dennis & D. Ventura, NIPS 25 (2012)
+    * [pdf](http://papers.nips.cc/paper/4544-learning-the-architecture-of-sum-product-networks-using-clustering-on-variables.pdf)
+- Mauro-Vergari structural learning algorithm
+    * *Simplifying, Regularizing and Strengthening Sum-Product Network
+    Structure Learning*, A. Vergari & N. Mauro & F. Esposito, ECMLPKDD
+    2015
+    * [pdf](http://www.di.uniba.it/~vergari/papers/Simplifying,%20Regularizing%20and%20Strengthening%20Sum-Product%20Network%20Structure%20Learning.pdf)
 
 **To do (low priority)**
 
@@ -237,9 +239,6 @@ efficiency in mind. Installing Go is easy. Pre-compiled packages are
 available for FreeBSD, Linux, Mac OS X and Windows for both 32 and
 64-bit processors. For more information see <https://golang.org/doc/install>.
 
-The dependencies below can be considered "optional", in that the user
-can avoid using using them if one wishes so.
-
 #### GoNum
 
 We have deprecated GNU GSL in favor of GoNum (<https://github.com/gonum/>).
@@ -260,13 +259,20 @@ go get -u gonum.org/v1/gonum/stat
 go get -u gonum.org/v1/gonum/mathext
 ```
 
+We have deprecated functions that made GoSPN independent of GoNum or GNU
+GSL, so we recommend installing GoNum.
+
+The dependencies below can be considered "optional", in that the user
+can avoid using them if one wishes so.
+
 #### graph-tool (optional)
 
 Graph-tool is a Python module for graph manipulation and drawing. Since
-the SPNs we'll generate with this algorithm may have thousands of nodes
-and hundreds of layers, we need a fast and efficient graph drawing tool
-for displaying our graphs. Since graph-tool uses C++ metaprogramming
-extensively, its performance is comparable to a C++ library.
+the SPNs we'll generate with most learning algorithms may have hundreads
+of thousands of nodes and hundreds of layers, we need a fast and
+efficient graph drawing tool for displaying our graphs. Since graph-tool
+uses C++ metaprogramming extensively, its performance is comparable to a
+C++ library.
 
 Graph-tool uses the C++ Boost Library and can be compiled with OpenMP, a
 library for parallel programming on multiple cores architecture that may
@@ -292,8 +298,15 @@ command:
 $ go get github.com/RenatoGeh/gospn
 ```
 
-This should install GoSPN to your $GOPATH directory. Compiling the code
-is easy. First go to the GoSPN source dir.
+This should install GoSPN to your $GOPATH directory. Note that this will
+download the repo's default branch (namely `dev`). To get to the
+`stable` branch, after downloading the repo as described above, run:
+
+```
+git checkout stable
+```
+
+Compiling the code is easy. First go to the GoSPN source dir.
 
 ```
 $ cd $GOPATH/src/github.com/RenatoGeh/gospn/
@@ -307,7 +320,7 @@ $ go run main.go <args>
 
 Where `args` is a list of arguments. See Usage for more information.
 
-When using GoSPN as a library, simply run it as usual.
+When using GoSPN as a library, simply run your code as usual.
 
 ### Updating GoSPN
 
@@ -391,7 +404,8 @@ The following are articles that used GoSPN.
 ### Acknowledgements
 
 This project is part of my undergraduate research project supervised by
-Prof. [Denis Deratani Mauá](https://www.ime.usp.br/~ddm/). We currently
+Prof. [Denis Deratani Mauá](https://www.ime.usp.br/~ddm/) at the
+Institute of Mathematics and Statistics - University of São Paulo. We currently
 have financial support from CNPq grant #800585/2016-0.
 
 We would like to greatly thank Diarmaid Conaty and Cassio P. de Campos, both

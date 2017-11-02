@@ -126,7 +126,7 @@ func ImgClassify(lf learn.LearnFunc, filename string, p float64, rseed int64) (i
 	return corrects, lines
 }
 
-func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, spn.VarSet) {
+func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h, r int) (spn.VarSet, spn.VarSet) {
 	cmpl, half := make(spn.VarSet), make(spn.VarSet)
 	var criteria func(int) bool
 
@@ -155,7 +155,13 @@ func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, 
 		}
 	}
 
-	cmpl, _ = s.ArgMax(half)
+	//cmpl, _ = s.ArgMax(half)
+	st := spn.NewStorer()
+	_, tk, cmpl := spn.StoreMAP(s, half, -1, st)
+	//if r > 1 {
+	//cmpl = learn.PoonUnwrap(cmpl, r, sys.Width)
+	//}
+	st.Delete(tk)
 
 	for k := range half {
 		delete(cmpl, k)
@@ -180,9 +186,60 @@ func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
 		vs[id.Varid] = v
 	}
 
-	mpe, _ := s.ArgMax(vs)
+	//mpe, _ := s.ArgMax(vs)
+	st := spn.NewStorer()
+	_, tk, mpe := spn.StoreMAP(s, vs, -1, st)
+	st.Delete(tk)
+
 	vs = nil
 	return mpe
+}
+
+func ImgTest(filename string, m, r int, eta, eps float64) {
+	_, D, _ := io.ParseDataNL(filename)
+	for i := range D {
+		I := D[i]
+		D[i] = nil
+		//S := spn.NormalizeSPN(learn.PoonStructure(D, m, r))
+		S := learn.PoonGD(D, m, r, eta, eps)
+		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height, r)
+		fmt.Printf("len(I)=%d, len(cmpl)=%d, len(half)=%d\n", len(I), len(cmpl), len(half))
+		sys.Println("Counting nodes...")
+		var sums, prods, leaves int
+		test.DoBFS(S, func(s spn.SPN) bool {
+			t := s.Type()
+			if t == "sum" {
+				sums++
+			} else if t == "product" {
+				prods++
+			} else {
+				leaves++
+			}
+			return true
+		}, nil)
+		sys.Printf("Sums: %d, Prods: %d, Leaves: %d\nTotal:%d\n", sums, prods, leaves, sums+prods+leaves)
+		set := make(spn.VarSet)
+		sys.Println("Left half")
+		w := sys.Width / 2
+		for k, v := range cmpl {
+			l := k - k/sys.Width*w
+			//sys.Printf("k := %d -> %d, v := %d\n", k, l, v)
+			set[l] = v
+		}
+		fmt.Printf("len(set)=%d\n", len(set))
+		io.VarSetToPGM(fmt.Sprintf("left_%d.pgm", i), set, sys.Width/2, sys.Height, sys.Max-1)
+		set = make(spn.VarSet)
+		sys.Println("Right half")
+		for k, v := range half {
+			l := (k - w)
+			l -= l / sys.Width * w
+			set[l] = v
+		}
+		fmt.Printf("len(set)=%d\n", len(set))
+		io.VarSetToPGM(fmt.Sprintf("right_%d.pgm", i), set, sys.Width/2, sys.Height, sys.Max-1)
+		io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d.pgm", i), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max-1)
+		D[i] = I
+	}
 }
 
 // ImgCompletion takes a LearnFunc, a dataset filename and the number of concurrent threads and
@@ -242,14 +299,14 @@ func ImgCompletion(lf learn.LearnFunc, filename string, concurrents int) {
 
 			for _, v := range io.Orientations {
 				fmt.Printf("P-%d: Drawing %s image completion for instance %d.\n", id, v, id)
-				cmpl, half := halfImg(s, chosen, v, sys.Width, sys.Height)
+				cmpl, half := halfImg(s, chosen, v, sys.Width, sys.Height, -1)
 				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, sys.Width,
 					sys.Height, sys.Max-1)
 				cmpl, half = nil, nil
 			}
-			fmt.Printf("P-%d: Drawing MPE image for instance %d.\n", id, id)
-			io.VarSetToPGM(fmt.Sprintf("mpe_cmpl_%d.pgm", id), randVarSet(s, lsc, 100),
-				sys.Width, sys.Height, sys.Max-1)
+			//fmt.Printf("P-%d: Drawing MPE image for instance %d.\n", id, id)
+			//io.VarSetToPGM(fmt.Sprintf("mpe_cmpl_%d.pgm", id), randVarSet(s, lsc, 100),
+			//sys.Width, sys.Height, sys.Max-1)
 
 			// Force garbage collection.
 			s = nil
