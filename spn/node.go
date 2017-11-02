@@ -28,6 +28,17 @@ type SPN interface {
 	AddChild(c SPN)
 	// Returns the height of the graph.
 	Height() int
+
+	rawSc() []int
+	setRawSc([]int)
+}
+
+func (n *Node) rawSc() []int {
+	return n.sc
+}
+
+func (n *Node) setRawSc(sc []int) {
+	n.sc = sc
 }
 
 // VarSet is a variable set specifying variables and their respective instantiations.

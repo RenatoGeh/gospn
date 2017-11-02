@@ -81,21 +81,16 @@ func TestStoreMAP(t *testing.T) {
 	I[0], I[2] = 1, 0
 	st := NewStorer()
 	_, tk, M := StoreMAP(S, I, -1, st)
-	//doBFS(S, func(s SPN) bool {
-	//v := s.Max(I)
-	//u, _ := st.Single(tk, s)
-	//if v != u {
-	//t.Errorf("Expected (Max) %f == %f (StoreMAP) ? true, got false.", v, u)
-	//return false
-	//}
-	//return true
-	//})
-	//N, _ := S.ArgMax(I)
-	N, v := S.ArgMax(I)
-	u, _ := st.Single(tk, S)
-	if v != u {
-		t.Errorf("Expected (Max) %f == %f (StoreMAP) ? true, got false.", v, u)
-	}
+	doBFS(S, func(s SPN) bool {
+		v := s.Max(I)
+		u, _ := st.Single(tk, s)
+		if v != u {
+			t.Errorf("Expected (Max) %f == %f (StoreMAP) ? true, got false.", v, u)
+			return false
+		}
+		return true
+	})
+	N, _ := S.ArgMax(I)
 	if !reflect.DeepEqual(M, N) {
 		t.Errorf("Expected MAP states to be equal, got different.\n  M=%v\n  N=%v", M, N)
 	}
