@@ -25,30 +25,13 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 		tk = storage.NewTicket()
 	}
 
-	visited := make(map[SPN]bool)
-	c, _c := &common.Stack{}, &common.Queue{}
-	c.Give(S)
-	visited[S] = true
-	_c.Give(S)
-
 	// Get topological order.
-	for !_c.Empty() {
-		s := _c.Take().(SPN)
-		ch := s.Ch()
-		for _, cs := range ch {
-			if !visited[cs] {
-				_c.Give(cs)
-				c.Give(cs)
-				visited[cs] = true
-			}
-		}
-	}
-
-	_c, visited = nil, nil // free memory as soon as soon as the garbage collector allows
+	O := TopSortTarjan(S)
 	sys.Free()
+
 	table, _ := storage.Table(tk)
-	for !c.Empty() {
-		s := c.Take().(SPN)
+	for !O.Empty() {
+		s := O.Dequeue().(SPN)
 		switch t := s.Type(); t {
 		case "leaf":
 			table.StoreSingle(s, s.Value(I))
@@ -78,7 +61,6 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 			table.StoreSingle(s, prod.Compute(vals))
 		}
 	}
-	c = nil
 	sys.Free()
 	return S, tk
 }
@@ -91,30 +73,13 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 		tk = storage.NewTicket()
 	}
 
-	Q, T := common.Queue{}, common.Stack{}
-	V := make(map[SPN]bool)
-	tab, _ := storage.Table(tk)
-
-	Q.Enqueue(S)
-	T.Push(S)
-	V[S] = true
-
 	// Get topological order.
-	for !Q.Empty() {
-		s := Q.Dequeue().(SPN)
-		ch := s.Ch()
-		for _, c := range ch {
-			if !V[c] {
-				Q.Enqueue(c)
-				T.Push(c)
-				V[c] = true
-			}
-		}
-	}
+	T := TopSortTarjan(S)
 
+	tab, _ := storage.Table(tk)
 	// Find max values.
 	for !T.Empty() {
-		s := T.Pop().(SPN)
+		s := T.Dequeue().(SPN)
 		switch t := s.Type(); t {
 		case "leaf":
 			m := s.Max(I)
@@ -143,7 +108,8 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 		}
 	}
 
-	V = make(map[SPN]bool)
+	Q := common.Queue{}
+	V := make(map[SPN]bool)
 	Q.Enqueue(S)
 	V[S] = true
 	M := make(VarSet)
@@ -254,31 +220,20 @@ func ComputeScope(S SPN) []int {
 		return _sc
 	}
 
-	Q, T := common.Queue{}, common.Stack{}
-	V := make(map[SPN]bool)
+	T := TopSortTarjan(S)
 
-	Q.Enqueue(S)
-	T.Push(S)
-	V[S] = true
-
-	for !Q.Empty() {
-		s := Q.Dequeue().(SPN)
-		ch := s.Ch()
-		for _, c := range ch {
-			if !V[c] && c.Type() != "leaf" {
-				Q.Enqueue(c)
-				T.Push(c)
-				V[c] = true
-			}
-		}
-	}
-
+	U := make(map[SPN]bool)
 	for !T.Empty() {
-		s := T.Pop().(SPN)
+		s := T.Dequeue().(SPN)
+		U[s] = true
 		ch := s.Ch()
 		sc := make(map[int]bool)
 		for _, c := range ch {
 			csc := c.rawSc()
+			if csc == nil {
+				u, v := U[c]
+				sys.Printf(">>> %v %v\n", u, v)
+			}
 			for _, v := range csc {
 				sc[v] = true
 			}

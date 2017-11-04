@@ -92,6 +92,7 @@ func createGMix(x1, y1, x2, y2, m, r int, D spn.Dataset) *region {
 		}
 		S.AddChildW(p, w)
 	}
+
 	return &region{gmixtureId, []spn.SPN{S}}
 }
 
@@ -275,7 +276,7 @@ func PoonGD(D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
 	sys.Printf("Height: %d\n", h)
 	sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
 	sys.Println("Maximizing the likelihood through gradient descent...")
-	S = GenerativeGD(S, eta, eps, D, nil, false)
+	S = GenerativeGD(S, eta, eps, D, nil, true)
 	return S
 }
 
