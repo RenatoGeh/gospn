@@ -168,3 +168,36 @@ func (m *Multinomial) ArgMax(val VarSet) (VarSet, float64) {
 	retval[m.varid] = m.mode.index
 	return retval, math.Log(m.mode.val)
 }
+
+// Mean returns the mean of the distribution.
+func (m *Multinomial) Mean() float64 {
+	var mu float64
+	for i, p := range m.pr {
+		mu += p * float64(i)
+	}
+	return mu
+}
+
+// StdDev returns the standard deviation of the distribution.
+func (m *Multinomial) StdDev() float64 {
+	mu := m.Mean()
+	var sd float64
+	for i, _ := range m.pr {
+		d := float64(i) - mu
+		sd += d * d
+	}
+	sd = math.Sqrt(sd / float64(len(m.pr)))
+	return sd
+}
+
+// MuSigma returns the mean and standard deviation of the distribution.
+func (m *Multinomial) MuSigma() (float64, float64) {
+	mu := m.Mean()
+	var sd float64
+	for i, _ := range m.pr {
+		d := float64(i) - mu
+		sd += d * d
+	}
+	sd = math.Sqrt(sd / float64(len(m.pr)))
+	return mu, sd
+}
