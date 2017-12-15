@@ -18,4 +18,6 @@ type Collection interface {
 	Empty() bool
 	// Shrink shrinks to fit.
 	Shrink()
+	// Reset empties this collection.
+	Reset()
 }

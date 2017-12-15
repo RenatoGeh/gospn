@@ -202,6 +202,8 @@ func ImgTest(filename string, m, r int, eta, eps float64) {
 		D[i] = nil
 		//S := spn.NormalizeSPN(learn.PoonStructure(D, m, r))
 		S := learn.PoonGD(D, m, r, eta, eps)
+		//S := learn.PoonStructure(D, m, r)
+		//return
 		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height, r)
 		fmt.Printf("len(I)=%d, len(cmpl)=%d, len(half)=%d\n", len(I), len(cmpl), len(half))
 		sys.Println("Counting nodes...")

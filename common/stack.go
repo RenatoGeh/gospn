@@ -55,3 +55,6 @@ func (s *Stack) Shrink() {
 	sys.Free()
 	s.cap = len(s.data)
 }
+
+// Reset empties this queue.
+func (s *Stack) Reset() { s.data, s.cap = nil, 0 }

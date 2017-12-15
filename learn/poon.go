@@ -258,7 +258,7 @@ func BindedPoonGD(m, r int, eta, eps float64) LearnFunc {
 func PoonGD(D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
 	S := PoonStructure(D, m, r)
 	sys.Println("Counting nodes...")
-	spn.NormalizeSPN(S)
+	//spn.NormalizeSPN(S)
 	var sums, prods, leaves int
 	test.DoBFS(S, func(s spn.SPN) bool {
 		t := s.Type()
@@ -276,7 +276,9 @@ func PoonGD(D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
 	sys.Printf("Height: %d\n", h)
 	sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
 	sys.Println("Maximizing the likelihood through gradient descent...")
+	//spn.PrintSPN(S, "test_before.spn")
 	S = GenerativeGD(S, eta, eps, D, nil, true)
+	//spn.PrintSPN(S, "test_after.spn")
 	return S
 }
 

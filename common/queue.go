@@ -67,3 +67,6 @@ func (q *Queue) Shrink() {
 	sys.Free()
 	q.cap = len(q.data)
 }
+
+// Reset empties this queue.
+func (q *Queue) Reset() { q.data, q.cap = nil, 0 }
