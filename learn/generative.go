@@ -65,6 +65,72 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 	return S
 }
 
+// GenerativeBGD performs a generative batch gradient descent parameter learning on SPN S. Argument
+// eta is the learning rate; eps is the likelihood difference to consider convergence, the more
+// will GenerativeGD try to fit data; data is the dataset; c is how we should perform the graph
+// search.  If a stack is used, perform a DFS. If a queue is used, BFS. If c is nil, we use a
+// queue.  Argument norm indicates whether GenerativeGD should normalize weights at each node.
+// bSize is the size of the batch.
+//
+// Batch means that all derivatives will be computed with the same structure and weights. Once we
+// have completed a full iteration on the dataset, we then add all delta weights and apply them
+// through gradient descent.
+func GenerativeBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collection, norm bool, bSize int) spn.SPN {
+	if c == nil {
+		c = &common.Queue{}
+	}
+
+	storage := spn.NewStorer()
+	stk, itk, wtk := storage.NewTicket(), storage.NewTicket(), storage.NewTicket()
+	var ollh, llh float64
+	sys.Println("Initiating Generative Gradient Descent...")
+	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+		ollh = llh
+		llh = 0.0
+		n := len(data)
+		var i int
+		for _, I := range data {
+			// Store inference values under T[itk].
+			sys.Println("Storing inference values...")
+			spn.StoreInference(S, I, itk, storage)
+			lv, _ := storage.Single(itk, S)
+			// Store SPN derivatives under T[stk].
+			sys.Println("Computing dS(X)/dS...")
+			DeriveSPN(S, storage, stk, itk, c)
+			// Store weights derivatives under T[wtk].
+			sys.Println("Computing dS(X)/dW...")
+			DeriveWeightsBatch(S, storage, wtk, stk, itk, c)
+			// Reset DP tables.
+			storage.Reset(itk)
+			storage.Reset(stk)
+			// Add current log-value to log-likelihood.
+			sys.Printf("Log-value ln(S(X)) = %.3f\n", lv)
+			llh += lv
+			i++
+			if i%bSize == 0 {
+				sys.Println("Applying gradient descent...")
+				applyGD(S, eta, wtk, storage, c, norm)
+				storage.Reset(wtk)
+			}
+			sys.Printf("Instance %d/%d.\n", i, n)
+		}
+		// Apply gradient descent.
+		if i%bSize != 0 {
+			sys.Println("Applying gradient descent...")
+			applyGD(S, eta, wtk, storage, c, norm)
+			storage.Reset(wtk)
+		}
+		sys.Printf("Log-likelihood value at this iteration: llh = %.3f\n", llh)
+		if sys.Verbose {
+			dllh := math.Abs(ollh - llh)
+			sys.Printf("Epsilon log-likelihood: eps = %.3f > %.3f ? %v \n", dllh, eps, dllh > eps)
+		}
+	}
+	sys.Println("Generative gradient descent done. Returning...")
+
+	return S
+}
+
 // This is where the magic happens.
 func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Collection, norm bool) {
 	visited := make(map[spn.SPN]bool)

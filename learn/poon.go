@@ -277,7 +277,7 @@ func PoonGD(D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
 	sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
 	sys.Println("Maximizing the likelihood through gradient descent...")
 	//spn.PrintSPN(S, "test_before.spn")
-	S = GenerativeGD(S, eta, eps, D, nil, true)
+	S = GenerativeBGD(S, eta, eps, D, nil, true, 100)
 	//spn.PrintSPN(S, "test_after.spn")
 	return S
 }

@@ -10,6 +10,6 @@ install:
   - sudo apt-get -qq update
   - go get -u gonum.org/v1/gonum/stat
   - go get -u gonum.org/v1/gonum/mathext
-  - go get -u golang.org/x/exp/
+  - go get -u golang.org/x/exp/rand
 
 script: make build
