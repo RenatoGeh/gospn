@@ -137,15 +137,16 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 				}
 			}
 			Q.Enqueue(mvc)
+			V[mvc] = true
 		case "product":
 			ch := s.Ch()
 			for _, c := range ch {
 				if !V[c] {
 					Q.Enqueue(c)
+					V[c] = true
 				}
 			}
 		}
-		V[s] = true
 	}
 
 	return S, tk, M
@@ -348,4 +349,43 @@ func Decomposable(S SPN) bool {
 	}
 
 	return true
+}
+
+// TraceMAP returns the max child index of each sum node in a map.
+func TraceMAP(S SPN, I VarSet) map[SPN]int {
+	st := NewStorer()
+	_, itk, _ := StoreMAP(S, I, -1, st)
+	T, _ := st.Table(itk)
+	trace := make(map[SPN]int)
+
+	V := make(map[SPN]bool)
+	Q := common.Queue{}
+	Q.Enqueue(S)
+	V[S] = true
+
+	for !Q.Empty() {
+		s := Q.Dequeue().(SPN)
+		ch := s.Ch()
+		if s.Type() == "sum" {
+			sum := s.(*Sum)
+			W := sum.Weights()
+			mi, m := -1, math.Inf(-1)
+			for i, c := range ch {
+				v, _ := T.Single(c)
+				u := math.Log(W[i]) + v
+				if u > m {
+					m, mi = u, i
+				}
+				trace[s] = mi
+			}
+		}
+		for _, c := range ch {
+			if !V[c] && c.Type() != "leaf" {
+				Q.Enqueue(c)
+				V[c] = true
+			}
+		}
+	}
+
+	return trace
 }

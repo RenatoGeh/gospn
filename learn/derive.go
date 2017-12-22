@@ -241,3 +241,39 @@ func DeriveApplyWeights(S spn.SPN, eta float64, storage *spn.Storer, dtk, itk in
 	sys.Free()
 	return S
 }
+
+// DeriveHard performs hard inference (MAP) derivation on the SPN. The hard derivative is the
+// number of times MAP states pass a certain weight. The delta weight is then computed as
+//  eta*c/w
+// where eta is the learning rate, c is the number of times hard inference passed through weight w
+// and w is the weight of the current edge.
+func DeriveHard(S spn.SPN, st *spn.Storer, tk int, I spn.VarSet) int {
+	if tk < 0 {
+		tk = st.NewTicket()
+	}
+	tab, _ := st.Table(tk)
+
+	T := spn.TraceMAP(S, I)
+	Q := common.Queue{}
+	Q.Enqueue(S)
+
+	for !Q.Empty() {
+		s := Q.Dequeue().(spn.SPN)
+		ch := s.Ch()
+		switch t := s.Type(); t {
+		case "product":
+			for _, c := range ch {
+				if c.Type() != "leaf" {
+					Q.Enqueue(c)
+				}
+			}
+		case "sum":
+			mi := T[s]
+			v, _ := tab.Entry(s, mi)
+			tab.Store(s, mi, v+1)
+			Q.Enqueue(ch[mi])
+		}
+	}
+
+	return tk
+}

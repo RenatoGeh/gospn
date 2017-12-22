@@ -65,6 +65,49 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 	return S
 }
 
+// GenerativeHardGD performs a generative gradient descent using hard inference.
+func GenerativeHardGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collection, norm bool) spn.SPN {
+	if c == nil {
+		c = &common.Queue{}
+	}
+
+	storage := spn.NewStorer()
+	dtk, itk := storage.NewTicket(), storage.NewTicket()
+	var ollh, llh float64
+	sys.Println("Initiating Generative Gradient Descent...")
+	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+		ollh = llh
+		llh = 0.0
+		n := len(data)
+		var i int
+		for _, I := range data {
+			sys.Println("Storing inference values...")
+			spn.StoreInference(S, I, itk, storage)
+			lv, _ := storage.Single(itk, S)
+			sys.Println("Computing hard derivatives...")
+			DeriveHard(S, storage, dtk, I)
+			sys.Println("Applying gradient descent...")
+			applyHGD(S, eta, dtk, storage, norm)
+			// Reset DP tables.
+			storage.Reset(itk)
+			storage.Reset(dtk)
+			// Add current log-value to log-likelihood.
+			sys.Printf("Log-value ln(S(X)) = %.3f\n", lv)
+			llh += lv
+			i++
+			sys.Printf("Instance %d/%d.\n", i, n)
+		}
+		sys.Printf("Log-likelihood value at this iteration: llh = %.3f\n", llh)
+		if sys.Verbose {
+			dllh := math.Abs(ollh - llh)
+			sys.Printf("Epsilon log-likelihood: eps = %.3f > %.3f ? %v \n", dllh, eps, dllh > eps)
+		}
+	}
+	sys.Println("Generative gradient descent done. Returning...")
+
+	return S
+}
+
 // GenerativeBGD performs a generative batch gradient descent parameter learning on SPN S. Argument
 // eta is the learning rate; eps is the likelihood difference to consider convergence, the more
 // will GenerativeGD try to fit data; data is the dataset; c is how we should perform the graph
@@ -131,6 +174,55 @@ func GenerativeBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Colle
 	return S
 }
 
+// GenerativeHardBGD performs a batch generative gradient descent using hard inference.
+func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collection, norm bool, bSize int) spn.SPN {
+	if c == nil {
+		c = &common.Queue{}
+	}
+
+	storage := spn.NewStorer()
+	dtk, itk := storage.NewTicket(), storage.NewTicket()
+	var ollh, llh float64
+	sys.Println("Initiating Generative Gradient Descent...")
+	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+		ollh = llh
+		llh = 0.0
+		n := len(data)
+		var i int
+		for _, I := range data {
+			sys.Println("Storing inference values...")
+			spn.StoreInference(S, I, itk, storage)
+			lv, _ := storage.Single(itk, S)
+			sys.Println("Computing hard derivatives...")
+			DeriveHard(S, storage, dtk, I)
+			storage.Reset(itk)
+			if i%bSize == 0 {
+				sys.Println("Applying gradient descent...")
+				applyHGD(S, eta, dtk, storage, norm)
+				storage.Reset(dtk)
+			}
+			// Add current log-value to log-likelihood.
+			sys.Printf("Log-value ln(S(X)) = %.3f\n", lv)
+			llh += lv
+			i++
+			sys.Printf("Instance %d/%d.\n", i, n)
+		}
+		if i%bSize == 0 {
+			sys.Println("Applying gradient descent...")
+			applyHGD(S, eta, dtk, storage, norm)
+			storage.Reset(dtk)
+		}
+		sys.Printf("Log-likelihood value at this iteration: llh = %.3f\n", llh)
+		if sys.Verbose {
+			dllh := math.Abs(ollh - llh)
+			sys.Printf("Epsilon log-likelihood: eps = %.3f > %.3f ? %v \n", dllh, eps, dllh > eps)
+		}
+	}
+	sys.Println("Generative gradient descent done. Returning...")
+
+	return S
+}
+
 // This is where the magic happens.
 func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Collection, norm bool) {
 	visited := make(map[spn.SPN]bool)
@@ -162,4 +254,33 @@ func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Coll
 	visited = nil
 	c = nil
 	sys.Free()
+}
+
+func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
+	tab, _ := st.Table(tk)
+	Q := common.Queue{}
+	V := make(map[spn.SPN]bool)
+	Q.Enqueue(S)
+	V[S] = true
+	for !Q.Empty() {
+		s := Q.Dequeue().(spn.SPN)
+		ch := s.Ch()
+		if s.Type() == "sum" {
+			v, _ := tab.Value(s)
+			W := s.(*spn.Sum).Weights()
+			for i, d := range v {
+				w := W[i]
+				W[i] = w + eta*d/w
+			}
+			if norm {
+				Normalize(W)
+			}
+		}
+		for _, c := range ch {
+			if !V[c] && c.Type() != "leaf" {
+				Q.Enqueue(c)
+				V[c] = true
+			}
+		}
+	}
 }
