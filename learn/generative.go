@@ -128,6 +128,7 @@ func GenerativeBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Colle
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+		//for _l := 0; _l < 0; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -196,6 +197,7 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 			sys.Println("Computing hard derivatives...")
 			DeriveHard(S, storage, dtk, I)
 			storage.Reset(itk)
+			i++
 			if i%bSize == 0 {
 				sys.Println("Applying gradient descent...")
 				applyHGD(S, eta, dtk, storage, norm)
@@ -204,10 +206,9 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 			// Add current log-value to log-likelihood.
 			sys.Printf("Log-value ln(S(X)) = %.3f\n", lv)
 			llh += lv
-			i++
 			sys.Printf("Instance %d/%d.\n", i, n)
 		}
-		if i%bSize == 0 {
+		if i%bSize != 0 {
 			sys.Println("Applying gradient descent...")
 			applyHGD(S, eta, dtk, storage, norm)
 			storage.Reset(dtk)
@@ -266,14 +267,16 @@ func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 		s := Q.Dequeue().(spn.SPN)
 		ch := s.Ch()
 		if s.Type() == "sum" {
-			v, _ := tab.Value(s)
-			W := s.(*spn.Sum).Weights()
-			for i, d := range v {
-				w := W[i]
-				W[i] = w + eta*d/w
-			}
-			if norm {
-				Normalize(W)
+			v, e := tab.Value(s)
+			if e {
+				W := s.(*spn.Sum).Weights()
+				for i, d := range v {
+					w := W[i]
+					W[i] = w + eta*d/w
+				}
+				if norm {
+					Normalize(W)
+				}
 			}
 		}
 		for _, c := range ch {

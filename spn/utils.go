@@ -132,12 +132,14 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 			for i, c := range ch {
 				v, _ := tab.Single(c)
 				u := math.Log(W[i]) + v
-				if u > m && !V[c] {
+				if u > m {
 					m, mvc = u, c
 				}
 			}
-			Q.Enqueue(mvc)
-			V[mvc] = true
+			if mvc != nil && !V[mvc] {
+				Q.Enqueue(mvc)
+				V[mvc] = true
+			}
 		case "product":
 			ch := s.Ch()
 			for _, c := range ch {
@@ -376,8 +378,11 @@ func TraceMAP(S SPN, I VarSet) map[SPN]int {
 				if u > m {
 					m, mi = u, i
 				}
-				trace[s] = mi
 			}
+			if mi < 0 {
+				sys.Printf("mi=%d, m=%.5f, SPN={\n%v\n}\n", mi, m, s)
+			}
+			trace[s] = mi
 		}
 		for _, c := range ch {
 			if !V[c] && c.Type() != "leaf" {

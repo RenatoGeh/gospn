@@ -197,9 +197,20 @@ func Normalize(v []float64) {
 	for i := range v {
 		norm += v[i]
 	}
+	//var c float64
 	for i := range v {
 		v[i] /= norm
+		//c += v[i]
 	}
+	//max := math.Inf(-1)
+	//for i := range v {
+	//if v[i] > max {
+	//max = v[i]
+	//}
+	//}
+	//for i := range v {
+	//v[i] /= max
+	//}
 }
 
 // DeriveApplyWeights does not store the weight derivatives like DeriveWeights. Instead, it

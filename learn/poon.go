@@ -5,6 +5,7 @@ import (
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
 	"github.com/RenatoGeh/gospn/utils"
+	"math"
 )
 
 var (
@@ -79,6 +80,13 @@ func createGMix(x1, y1, x2, y2, m, r int, D spn.Dataset) *region {
 				v[q[p]]++
 			}
 			Mu[l], Sigma[l] = utils.MuSigma(v)
+			// This is tricky. If the standard deviation is zero, then the probability is undefined,
+			// which can cause problems. We alleviate this problem by setting it to 1 in such cases.
+			// Since we're dealing with a discrete problem, it is fine to just set it to 1. But this
+			// shouldn't be done for the continous or general case.
+			if Sigma[l] == 0 {
+				Sigma[l] = 1
+			}
 			V[l] = p
 			l++
 		}
@@ -96,33 +104,52 @@ func createGMix(x1, y1, x2, y2, m, r int, D spn.Dataset) *region {
 	return &region{gmixtureId, []spn.SPN{S}}
 }
 
-func createGauss(x1, y1, x2, y2, m int, D spn.Dataset) *region {
+func createGauss(x1, y1, x2, y2, m int, A map[int]*spn.Gaussian, D spn.Dataset) *region {
+	p := x1 + y1*w
 	z := make([]spn.SPN, m)
-	vals := make([][]int, m)
-	for i := range vals {
-		vals[i] = make([]int, max)
+	for i := 0; i < m; i++ {
+		z[i] = A[p]
 	}
+	return &region{gmixtureId, z}
+}
 
-	for x := x1; x < x2; x++ {
-		for y := y1; y < y2; y++ {
+func createAtom(x, y, r, m int, D spn.Dataset) *spn.Gaussian {
+	vals := make([]int, max)
+	var mu, sigma, n float64
+	for i := x; i < x+r; i++ {
+		for j := y; j < x+r; j++ {
 			p := x + y*w
-			// Partition pixel p dataset into m value slices
 			for i := range D {
-				k := i % m
-				vals[k][D[i][p]]++
+				vals[D[i][p]]++
+				n++
 			}
 		}
 	}
-
-	for i := 0; i < m; i++ {
-		z[i] = spn.NewGaussian(x1+y1*w, vals[i])
+	for i := range vals {
+		mu += float64(i) * (float64(vals[i]) / float64(n))
 	}
+	for i := range vals {
+		dx := float64(i) - mu
+		sigma += float64(vals[i]) * dx * dx
+	}
+	sigma = math.Sqrt(sigma / float64(n))
+	return spn.NewGaussianParams(x+y*w, mu, sigma)
+}
 
-	return &region{gmixtureId, z}
+func createAtoms(m, r int, D spn.Dataset) map[int]*spn.Gaussian {
+	G := make(map[int]*spn.Gaussian)
+	for x := 0; x < w; x += r {
+		for y := 0; y < h; y += r {
+			p := x + y*w
+			G[p] = createAtom(x, y, r, m, D)
+		}
+	}
+	return G
 }
 
 func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
 	L := make(map[uint64]*region)
+	//atoms := createAtoms(m, r, D)
 	n := w * h
 	//var sq int
 	for i := 0; i < n; i += r {
@@ -149,7 +176,7 @@ func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
 					continue
 				} else if dx == r && dy == r {
 					R = createGMix(x1, y1, x2, y2, m, r, D)
-					//R = createGauss(x1, y1, x2, y2, m, D)
+					//R = createGauss(x1, y1, x2, y2, m, atoms, D)
 				} else {
 					R = createRegion(m)
 				}
@@ -277,7 +304,7 @@ func PoonGD(D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
 	sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
 	sys.Println("Maximizing the likelihood through gradient descent...")
 	//spn.PrintSPN(S, "test_before.spn")
-	S = GenerativeHardGD(S, eta, eps, D, nil, true)
+	S = GenerativeBGD(S, eta, eps, D, nil, true, 100)
 	//spn.PrintSPN(S, "test_after.spn")
 	return S
 }

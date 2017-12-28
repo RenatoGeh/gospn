@@ -1,5 +1,7 @@
 package sys
 
+import "math"
+
 // Global config
 var (
 	Verbose = false
@@ -19,8 +21,18 @@ var (
 	Mp   = 4
 )
 
+// Math
+var (
+	EqualEpsilon    = 1e-5
+	LogEqualEpsilon float64
+)
+
 // Memory variables
 var (
 	MemLowBoundShrink = 1024
 	MemConservative   = false
 )
+
+func init() {
+	LogEqualEpsilon = math.Log(EqualEpsilon)
+}

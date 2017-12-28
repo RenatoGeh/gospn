@@ -199,9 +199,16 @@ func ImgTest(filename string, m, r int, eta, eps float64) {
 	_, D, _ := io.ParseDataNL(filename)
 	for i := range D {
 		I := D[i]
-		D[i] = nil
+		tD := make(spn.Dataset, len(D)-1)
+		var q int
+		for j := range D {
+			if i != j {
+				tD[q] = D[j]
+				q++
+			}
+		}
 		//S := spn.NormalizeSPN(learn.PoonStructure(D, m, r))
-		S := learn.PoonGD(D, m, r, eta, eps)
+		S := learn.PoonGD(tD, m, r, eta, eps)
 		//S := learn.PoonStructure(D, m, r)
 		//return
 		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height, r)
