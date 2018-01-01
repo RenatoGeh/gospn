@@ -67,7 +67,7 @@ func PrintSPN(S SPN, filename string) {
 				cc := s.(*Gaussian)
 				mu, sigma = cc.dist.Mu, cc.dist.Sigma
 			}
-			fmt.Printf("%.5f %.5f\n", mu, sigma)
+			//fmt.Printf("%.5f %.5f\n", mu, sigma)
 			fmt.Fprintf(f, "  %.5f %.5f\n", mu, sigma)
 		} else {
 			for i, c := range ch {

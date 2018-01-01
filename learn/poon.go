@@ -5,7 +5,9 @@ import (
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
 	"github.com/RenatoGeh/gospn/utils"
+	"gonum.org/v1/gonum/floats"
 	"math"
+	"sort"
 )
 
 var (
@@ -67,36 +69,122 @@ func createRegion(m int) *region {
 	return &region{regionId, z}
 }
 
-func createGMix(x1, y1, x2, y2, m, r int, D spn.Dataset) *region {
+func partitionQuantiles(X []int, m int) [][]float64 {
+	k := len(X)
+	var l int
+	if k/m <= 1 {
+		l = 1
+	} else {
+		l = int(floats.Round(float64(k)/float64(m), 0))
+	}
+	P := make([][]float64, m)
+	for i := 0; i < m; i++ {
+		q := (i + 1) * l
+		if i == m-1 {
+			q = k
+		}
+		var Q []int
+		for j := i * l; j < q && j < k; j++ {
+			Q = append(Q, X[j])
+		}
+		// Compute mean and standard deviation.
+		var mu, sigma float64
+		n := float64(len(Q))
+		for _, x := range Q {
+			mu += float64(x)
+		}
+		mu /= n
+		for _, x := range Q {
+			d := float64(x) - mu
+			sigma += d * d
+		}
+		sigma = math.Sqrt(sigma / n)
+		if sigma == 0 {
+			sigma = 1
+		}
+		P[i] = []float64{mu, sigma, n}
+	}
+	return P
+}
+
+func createUnitRegion(x1, y1, x2, y2, m, r int, G map[int]*spn.Gaussian, D spn.Dataset) *region {
+	n := r * r
+	S := make([]spn.SPN, m)
+	P := make([]*spn.Product, m)
+	Z := make([]*spn.Sum, n)
+	for i := range S {
+		S[i] = spn.NewSum()
+		P[i] = spn.NewProduct()
+	}
+	for i := range S {
+		for j := range P {
+			S[i].(*spn.Sum).AddChildW(P[j], 1.0/float64(m))
+		}
+	}
+	px := make([]int, n) // pixels
+	for i, x := 0, x1; x < x2; x++ {
+		for y := y1; y < y2; y, i = y+1, i+1 {
+			p := x + y*w
+			px[i] = p
+		}
+	}
+	for i := range Z {
+		// Create each gaussian g_i that is responsible for the i-th quantile out of m total.
+		p := px[i]
+		var X []int
+		for _, d := range D {
+			X = append(X, d[p])
+		}
+		sort.Ints(X)
+		Q := partitionQuantiles(X, m)
+		k := float64(len(X))
+		Z[i] = spn.NewSum()
+		for j := range P {
+			P[j].AddChild(Z[i])
+		}
+		for _, q := range Q {
+			//sys.Printf("p: %d, Mu: %f, Sigma: %f, Sample size: %d\n", p, q[0], q[1], int(q[2]))
+			g := spn.NewGaussianParams(p, q[0], q[1])
+			Z[i].AddChildW(g, q[2]/k)
+		}
+	}
+	return &region{gmixtureId, S}
+}
+
+func createGMix(x1, y1, x2, y2, m, r int, G map[int]*spn.Gaussian, D spn.Dataset) *region {
 	S := spn.NewSum()
 	n := r * r
-	Mu, Sigma, V := make([]float64, n), make([]float64, n), make([]int, n)
+	Z := make([]*spn.Gaussian, n)
 	var l int
 	for x := x1; x < x2; x++ {
 		for y := y1; y < y2; y++ {
 			p := x + y*w
-			v := make([]int, max)
-			for _, q := range D {
-				v[q[p]]++
+			if g, e := G[p]; e {
+				Z[l] = g
+			} else {
+				v := make([]int, max)
+				for _, q := range D {
+					v[q[p]]++
+				}
+				mu, sigma := utils.MuSigma(v)
+				// This is tricky. If the standard deviation is zero, then the probability is undefined,
+				// which can cause problems. We alleviate this problem by setting it to 1 in such cases.
+				// Since we're dealing with a discrete problem, it is fine to just set it to 1. But this
+				// shouldn't be done for the continous or general case.
+				if sigma == 0 {
+					sigma = 1
+				}
+				Z[l] = spn.NewGaussianParams(p, mu, sigma)
+				G[p] = Z[l]
+				l++
 			}
-			Mu[l], Sigma[l] = utils.MuSigma(v)
-			// This is tricky. If the standard deviation is zero, then the probability is undefined,
-			// which can cause problems. We alleviate this problem by setting it to 1 in such cases.
-			// Since we're dealing with a discrete problem, it is fine to just set it to 1. But this
-			// shouldn't be done for the continous or general case.
-			if Sigma[l] == 0 {
-				Sigma[l] = 1
-			}
-			V[l] = p
-			l++
 		}
 	}
 	w := 1.0 / float64(m)
 	for i := 0; i < m; i++ {
 		p := spn.NewProduct()
 		for j := 0; j < n; j++ {
-			z := spn.NewGaussianParams(V[j], Mu[j], Sigma[j])
-			p.AddChild(z)
+			p.AddChild(Z[j])
 		}
 		S.AddChildW(p, w)
 	}
@@ -150,6 +238,7 @@ func createAtoms(m, r int, D spn.Dataset) map[int]*spn.Gaussian {
 func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
 	L := make(map[uint64]*region)
 	//atoms := createAtoms(m, r, D)
+	atoms := make(map[int]*spn.Gaussian)
 	n := w * h
 	//var sq int
 	for i := 0; i < n; i += r {
@@ -175,7 +264,8 @@ func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
 					//R = L[l]
 					continue
 				} else if dx == r && dy == r {
-					R = createGMix(x1, y1, x2, y2, m, r, D)
+					//R = createGMix(x1, y1, x2, y2, m, r, atoms, D)
+					R = createUnitRegion(x1, y1, x2, y2, m, r, atoms, D)
 					//R = createGauss(x1, y1, x2, y2, m, atoms, D)
 				} else {
 					R = createRegion(m)
@@ -307,22 +397,4 @@ func PoonGD(D spn.Dataset, m, r int, eta, eps float64) spn.SPN {
 	S = GenerativeBGD(S, eta, eps, D, nil, true, 100)
 	//spn.PrintSPN(S, "test_after.spn")
 	return S
-}
-
-// PoonUnwrap takes a VarSet product of MAP extraction from a Poon structure SPN and converts it
-// back into a regular VarSet. The Poon structure allows for a lower resolution r to be applied to
-// the image. This way, we compress the processed image, meaning the new atomic unit is a r x r
-// "pixel". Each pixel is a gaussian mixture that represents the atomic unit, meaning a MAP
-// extraction will yield a compressed VarSet. Applying the PoonUnwrap transformation decompresses
-// the VarSet by simply applying the same value at the atomic unit P to each pixel in P.
-func PoonUnwrap(set spn.VarSet, r, w int) spn.VarSet {
-	dset := make(spn.VarSet)
-	for k, v := range set {
-		for i := 0; i < r; i++ {
-			for j := 0; j < r; j++ {
-				dset[k+i+j*w] = v
-			}
-		}
-	}
-	return dset
 }
