@@ -135,3 +135,8 @@ func (g *Gaussian) ArgMax(val VarSet) (VarSet, float64) {
 	retval[g.varid] = int(g.dist.Mu)
 	return retval, g.dist.LogProb(g.dist.Mu)
 }
+
+// Params returns mean and standard deviation.
+func (g *Gaussian) Params() (float64, float64) {
+	return g.dist.Mu, g.dist.Sigma
+}

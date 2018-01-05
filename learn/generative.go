@@ -22,7 +22,8 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 	//wtk := storage.NewTicket()
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
-	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+	for _l := 0; _l < 1; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -75,7 +76,8 @@ func GenerativeHardGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Co
 	dtk, itk := storage.NewTicket(), storage.NewTicket()
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
-	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+	for _l := 0; _l < 4; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -127,8 +129,8 @@ func GenerativeBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Colle
 	stk, itk, wtk := storage.NewTicket(), storage.NewTicket(), storage.NewTicket()
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
-	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-		//for _l := 0; _l < 0; _l++ {
+	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+	for _l := 0; _l < 2; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -185,7 +187,8 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 	dtk, itk := storage.NewTicket(), storage.NewTicket()
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
-	for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
+	for _l := 0; _l < 4; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
