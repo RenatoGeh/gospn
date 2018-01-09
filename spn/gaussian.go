@@ -22,8 +22,7 @@ type Gaussian struct {
 
 // NewGaussianParams constructs a new Gaussian from a mean and variance.
 func NewGaussianParams(varid int, mu float64, sigma float64) *Gaussian {
-	sd := math.Sqrt(sigma)
-	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mu, sd, nil}}
+	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mu, sigma, nil}}
 }
 
 // NewGaussianRaw constructs a new Gaussian from a slice of values.
