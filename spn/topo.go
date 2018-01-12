@@ -85,3 +85,39 @@ func TopSortTarjanFunc(G SPN, f func(SPN) bool) *common.Queue {
 	}
 	return Q
 }
+
+// TopSortDFS finds a topological sort using a DFS.
+func TopSortDFS(G SPN) *common.Queue {
+	S := common.Stack{}
+	V := make(map[SPN]bool)
+	Q := &common.Queue{}
+
+	S.Push(G)
+	V[G] = true
+
+	for !S.Empty() {
+		s := S.Pop().(SPN)
+		ch := s.Ch()
+		if len(ch) == 0 {
+			Q.Enqueue(s)
+		} else {
+			var m []SPN
+			for _, c := range ch {
+				if !V[c] {
+					m = append(m, c)
+				}
+			}
+			if len(m) == 0 {
+				Q.Enqueue(s)
+			} else {
+				S.Push(s)
+				for _, c := range m {
+					S.Push(c)
+					V[c] = true
+				}
+			}
+		}
+	}
+
+	return Q
+}

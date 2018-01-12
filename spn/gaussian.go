@@ -22,7 +22,7 @@ type Gaussian struct {
 
 // NewGaussianParams constructs a new Gaussian from a mean and variance.
 func NewGaussianParams(varid int, mu float64, sigma float64) *Gaussian {
-	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mu, sigma, nil}}
+	return &Gaussian{Node{nil, []int{varid}}, varid, distuv.Normal{mu, sigma, nil}}
 }
 
 // NewGaussianRaw constructs a new Gaussian from a slice of values.
@@ -138,4 +138,12 @@ func (g *Gaussian) ArgMax(val VarSet) (VarSet, float64) {
 // Params returns mean and standard deviation.
 func (g *Gaussian) Params() (float64, float64) {
 	return g.dist.Mu, g.dist.Sigma
+}
+
+// Sc returns the scope of this node.
+func (g *Gaussian) Sc() []int {
+	if len(g.sc) == 0 {
+		g.sc = []int{g.varid}
+	}
+	return g.sc
 }

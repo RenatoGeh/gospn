@@ -291,14 +291,14 @@ func cmpMarginal(px int, R *region, T spn.StorerTable) float64 {
 	var t, d float64
 	m := math.Inf(1)
 	for _, s := range R.inner {
-		l, e := T.Single(s)
+		l, _ := T.Single(s)
 		if l == math.Inf(-1) {
 			continue
 		}
 		if m == math.Inf(1) || l > m {
 			m = l
 		}
-		sys.Printf("m: %f, l: %f, e: %v\n", m, l, e)
+		//sys.Printf("m: %f, l: %f, e: %v\n", m, l, e)
 	}
 	for _, s := range R.inner {
 		l, _ := T.Single(s)
@@ -311,7 +311,7 @@ func cmpMarginal(px int, R *region, T spn.StorerTable) float64 {
 		t += p
 	}
 	d /= t
-	sys.Printf("m: %f, d: %f, t: %f\n", m, d, t)
+	//sys.Printf("m: %f, d: %f, t: %f\n", m, d, t)
 	return d
 }
 
@@ -363,7 +363,6 @@ func PoonTest(D spn.Dataset, I spn.VarSet, m, r int) (spn.SPN, spn.VarSet) {
 	S, L := PoonStructure(D, m, r)
 	J := PoonCmpl(S, I, L)
 	//sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
-	sys.Printf("%v\n", spn.ComputeScope(S))
 	//test.DoBFS(S, func(s spn.SPN) bool {
 	//sys.Printf("S: %p -> %v, Sc: %v\n", s, s, s.Sc())
 	//return true
@@ -372,11 +371,32 @@ func PoonTest(D spn.Dataset, I spn.VarSet, m, r int) (spn.SPN, spn.VarSet) {
 	var sums, prods, leaves int
 	test.DoBFS(S, func(s spn.SPN) bool {
 		t := s.Type()
+		//if t != "leaf" && len(s.Ch()) == 0 {
+		//sys.Printf("s: %v, type: %s, Ch: %v\n", s, t, s.Ch())
+		//}
+		//var m bool
+		//for _, c := range s.Ch() {
+		//if c.Type() == "leaf" {
+		//m = true
+		//}
+		//}
+		//if len(s.Sc()) == 0 {
+		//sys.Printf("Sc: %v, Ch: %v\n", s.Sc(), s.Ch())
+		//for i, c := range s.Ch() {
+		//sys.Printf("  Ch[%d] = %v\n  Sc(Ch[%d]) = %v\n  Type: %s\n", i, c, i, c.Sc(), c.Type())
+		//sys.Println("  ===")
+		//}
+		//}
 		if t == "sum" {
 			sums++
 		} else if t == "product" {
 			prods++
-			sys.Printf("Sc: %v\n", s.Sc())
+			//if s.Ch()[0].Type() == "leaf" {
+			//sys.Printf("Sc: %v, Ch: %v\n", s.Sc(), s.Ch())
+			//for i, c := range s.Ch() {
+			//sys.Printf("  Ch[%d] = %v\n  Sc(Ch[%d]) = %v\n  Type: %s\n", i, c, i, c.Sc(), c.Type())
+			//}
+			//}
 		} else {
 			leaves++
 		}

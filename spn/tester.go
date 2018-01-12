@@ -9,6 +9,7 @@ type graphTest struct {
 func (g *graphTest) Add(n ...SPN) {
 	g.ch = append(g.ch, n...)
 }
+
 func (g *graphTest) Type() string {
 	if g.ch == nil {
 		return "leaf"

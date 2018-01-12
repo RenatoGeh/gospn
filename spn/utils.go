@@ -219,35 +219,25 @@ func ComputeHeight(S SPN) int {
 
 // ComputeScope computes the scope of a certain SPN S.
 func ComputeScope(S SPN) []int {
-	if _sc := S.rawSc(); _sc != nil {
-		return _sc
-	}
-
 	T := TopSortTarjan(S)
 
-	U := make(map[SPN]bool)
 	for !T.Empty() {
 		s := T.Dequeue().(SPN)
-		U[s] = true
 		ch := s.Ch()
-		sc := make(map[int]bool)
-		for _, c := range ch {
-			csc := c.rawSc()
-			if csc == nil {
-				u, v := U[c]
-				sys.Printf(">>> %v %v\n", u, v)
+		if len(ch) > 0 {
+			msc := make(map[int]bool)
+			for _, c := range ch {
+				csc := c.rawSc()
+				for _, v := range csc {
+					msc[v] = true
+				}
 			}
-			for _, v := range csc {
-				sc[v] = true
+			var sc []int
+			for k, _ := range msc {
+				sc = append(sc, k)
 			}
+			s.setRawSc(sc)
 		}
-		nsc := make([]int, len(sc))
-		var i int
-		for k, _ := range sc {
-			nsc[i] = k
-			i++
-		}
-		s.setRawSc(nsc)
 	}
 
 	return S.rawSc()
