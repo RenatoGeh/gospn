@@ -20,4 +20,6 @@ type Collection interface {
 	Shrink()
 	// Reset empties this collection.
 	Reset()
+	// Invert inverts a collection (i.e. first becomes last, second becomes second last, etc.).
+	Invert() Collection
 }

@@ -58,3 +58,14 @@ func (s *Stack) Shrink() {
 
 // Reset empties this queue.
 func (s *Stack) Reset() { s.data, s.cap = nil, 0 }
+
+// Invert inverts this Stack.
+func (s *Stack) Invert() Collection {
+	n := len(s.data)
+	l := make([]interface{}, n)
+	for i, v := range s.data {
+		l[n-i-1] = v
+	}
+	s.cap, s.data = n, l
+	return s
+}

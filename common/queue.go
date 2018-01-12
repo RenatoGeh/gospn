@@ -70,3 +70,14 @@ func (q *Queue) Shrink() {
 
 // Reset empties this queue.
 func (q *Queue) Reset() { q.data, q.cap = nil, 0 }
+
+// Invert inverts this Queue.
+func (q *Queue) Invert() Collection {
+	n := len(q.data)
+	l := make([]interface{}, n)
+	for i, v := range q.data {
+		l[n-i-1] = v
+	}
+	q.cap, q.data = n, l
+	return q
+}
