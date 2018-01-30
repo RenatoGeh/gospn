@@ -23,7 +23,7 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 1; _l++ {
+	for _l := 0; _l < 2; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -130,7 +130,7 @@ func GenerativeBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Colle
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 2; _l++ {
+	for _l := 0; _l < 3; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)

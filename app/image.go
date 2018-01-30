@@ -195,7 +195,7 @@ func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
 	return mpe
 }
 
-func ImgTest(filename string, m, r int, eta, eps float64) {
+func ImgTest(filename string, m, g, r int, eta, eps float64) {
 	_, D, _ := io.ParseDataNL(filename)
 	for i := range D {
 		i = 50
@@ -209,47 +209,30 @@ func ImgTest(filename string, m, r int, eta, eps float64) {
 			}
 		}
 		//S := spn.NormalizeSPN(learn.PoonStructure(D, m, r))
-		//S, _, _ := learn.PoonGD(tD, m, r, eta, eps)
-		_, J := learn.PoonTest(tD, I, m, r)
-		io.VarSetToPGM("test.pgm", J, sys.Width, sys.Height, sys.Max-1)
-		//S := learn.PoonStructure(D, m, r)
-		//return
-		//cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height, r)
-		//fmt.Printf("len(I)=%d, len(cmpl)=%d, len(half)=%d\n", len(I), len(cmpl), len(half))
-		//sys.Println("Counting nodes...")
-		//var sums, prods, leaves int
-		//test.DoBFS(S, func(s spn.SPN) bool {
-		//t := s.Type()
-		//if t == "sum" {
-		//sums++
-		//} else if t == "product" {
-		//prods++
-		//} else {
-		//leaves++
-		//}
-		//return true
-		//}, nil)
-		//sys.Printf("Sums: %d, Prods: %d, Leaves: %d\nTotal:%d\n", sums, prods, leaves, sums+prods+leaves)
-		//set := make(spn.VarSet)
-		//sys.Println("Left half")
-		//w := sys.Width / 2
-		//for k, v := range cmpl {
-		//l := k - k/sys.Width*w
-		////sys.Printf("k := %d -> %d, v := %d\n", k, l, v)
-		//set[l] = v
-		//}
-		//fmt.Printf("len(set)=%d\n", len(set))
-		//io.VarSetToPGM(fmt.Sprintf("left_%d.pgm", i), set, sys.Width/2, sys.Height, sys.Max-1)
-		//set = make(spn.VarSet)
-		//sys.Println("Right half")
-		//for k, v := range half {
-		//l := (k - w)
-		//l -= l / sys.Width * w
-		//set[l] = v
-		//}
-		//fmt.Printf("len(set)=%d\n", len(set))
-		//io.VarSetToPGM(fmt.Sprintf("right_%d.pgm", i), set, sys.Width/2, sys.Height, sys.Max-1)
-		//io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d.pgm", i), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max-1)
+		S := learn.PoonGD(tD, m, g, r, eta, eps)
+		//spn.NormalizeSPN(S)
+		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height, r)
+		fmt.Printf("len(I)=%d, len(cmpl)=%d, len(half)=%d\n", len(I), len(cmpl), len(half))
+		set := make(spn.VarSet)
+		sys.Println("Left half")
+		w := sys.Width / 2
+		for k, v := range cmpl {
+			l := k - k/sys.Width*w
+			//sys.Printf("k := %d -> %d, v := %d\n", k, l, v)
+			set[l] = v
+		}
+		fmt.Printf("len(set)=%d\n", len(set))
+		io.VarSetToPGM(fmt.Sprintf("left_%d.pgm", i), set, sys.Width/2, sys.Height, sys.Max-1)
+		set = make(spn.VarSet)
+		sys.Println("Right half")
+		for k, v := range half {
+			l := (k - w)
+			l -= l / sys.Width * w
+			set[l] = v
+		}
+		fmt.Printf("len(set)=%d\n", len(set))
+		io.VarSetToPGM(fmt.Sprintf("right_%d.pgm", i), set, sys.Width/2, sys.Height, sys.Max-1)
+		io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d.pgm", i), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max-1)
 		return
 	}
 }

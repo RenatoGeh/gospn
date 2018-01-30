@@ -140,5 +140,5 @@ func LogSumExpPair(l, r float64) float64 {
 		// When min=LogZero=-inf (i.e. exp(min)=0), ln(exp(max) + exp(min))=ln(exp(max))=max.
 		return max
 	}
-	return math.Log(1.0+math.Exp(min-max)) + max
+	return math.Log(math.Exp(min-max)) + max
 }

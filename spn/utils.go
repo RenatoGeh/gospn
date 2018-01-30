@@ -3,6 +3,7 @@ package spn
 import (
 	"fmt"
 	"math"
+	"math/rand"
 
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/sys"
@@ -25,10 +26,14 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 		tk = storage.NewTicket()
 	}
 
+	sys.Println("Finding topological sort...")
 	// Get topological order.
-	O := TopSortTarjan(S)
+	O := common.Queue{}
+	TopSortTarjanRec(S, &O)
+	sys.Println("Found topological sort.")
 	sys.Free()
 
+	sys.Println("Starting inference computations...")
 	table, _ := storage.Table(tk)
 	for !O.Empty() {
 		s := O.Dequeue().(SPN)
@@ -74,7 +79,8 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 	}
 
 	// Get topological order.
-	T := TopSortTarjan(S)
+	T := common.Queue{}
+	TopSortTarjanRec(S, &T)
 
 	tab, _ := storage.Table(tk)
 	// Find max values.
@@ -128,14 +134,18 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 			W := sum.Weights()
 			ch := s.Ch()
 			m := math.Inf(-1)
-			var mvc SPN
+			var mv []SPN
 			for i, c := range ch {
 				v, _ := tab.Single(c)
 				u := math.Log(W[i]) + v
 				if u > m {
-					m, mvc = u, c
+					mv, m = []SPN{c}, u
+				} else if u == m {
+					mv = append(mv, c)
 				}
 			}
+			// Randomly break tie.
+			mvc := mv[rand.Intn(len(mv))]
 			if mvc != nil && !V[mvc] {
 				Q.Enqueue(mvc)
 				V[mvc] = true
@@ -219,7 +229,8 @@ func ComputeHeight(S SPN) int {
 
 // ComputeScope computes the scope of a certain SPN S.
 func ComputeScope(S SPN) []int {
-	T := TopSortTarjan(S)
+	T := common.Queue{}
+	TopSortTarjanRec(S, &T)
 
 	for !T.Empty() {
 		s := T.Dequeue().(SPN)
@@ -343,7 +354,13 @@ func Decomposable(S SPN) bool {
 	return true
 }
 
-// TraceMAP returns the max child index of each sum node in a map.
+// TraceMAP returns the max child index of each sum node in a map. We assume decomposability and
+// completeness. When this condition is not met, one arbitrary MAP state is chosen. When the SPN is
+// both decomposable and complete, it is easy to see that the induced MAP trace of the SPN's graph
+// is a tree, and thus no two paths from the root to a leaf intersect. For the negative case, there
+// can be two paths that do intersect, and thus we could have randomly chosen different max
+// children in case of ties. In this case, TraceMAP chooses the first child it finds to meet the
+// criteria.
 func TraceMAP(S SPN, I VarSet) map[SPN]int {
 	st := NewStorer()
 	_, itk, _ := StoreMAP(S, I, -1, st)
@@ -359,20 +376,21 @@ func TraceMAP(S SPN, I VarSet) map[SPN]int {
 		s := Q.Dequeue().(SPN)
 		ch := s.Ch()
 		if s.Type() == "sum" {
-			sum := s.(*Sum)
-			W := sum.Weights()
-			mi, m := -1, math.Inf(-1)
+			mi := -1
 			for i, c := range ch {
-				v, _ := T.Single(c)
-				u := math.Log(W[i]) + v
-				if u > m {
-					m, mi = u, i
+				if T.ExistsSPN(c) && !V[c] {
+					mi = i
 				}
 			}
-			if mi < 0 {
-				sys.Printf("mi=%d, m=%.5f, SPN={\n%v\n}\n", mi, m, s)
+			//if mi < 0 {
+			//sys.Printf("mi=%d, SPN={\n%v\n}\n", mi, s)
+			//} else {
+			if mi >= 0 {
+				trace[s] = mi
+				c := ch[mi]
+				Q.Enqueue(c)
+				V[c] = true
 			}
-			trace[s] = mi
 		}
 		for _, c := range ch {
 			if !V[c] && c.Type() != "leaf" {

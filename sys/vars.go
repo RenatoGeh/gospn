@@ -30,7 +30,7 @@ var (
 // Memory variables
 var (
 	MemLowBoundShrink = 1024
-	MemConservative   = false
+	MemConservative   = true
 )
 
 func init() {

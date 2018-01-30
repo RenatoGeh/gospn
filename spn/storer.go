@@ -117,6 +117,30 @@ func (s *Storer) StoreSingle(k int, S SPN, v float64) bool { return s.Store(k, S
 // successful. Equivalent to Store(S, 0, v)
 func (t StorerTable) StoreSingle(S SPN, v float64) bool { return t.Store(S, 0, v) }
 
+// ExistsSPN returns whether a certain (key, value) pair exists in a Storer at first level.
+func (s *Storer) ExistsSPN(k int, S SPN) bool {
+	_, e := s.tables[k][S]
+	return e
+}
+
+// ExistsSPN returns whether a certain (key, value) pair exists in a StorerTable at first level.
+func (t StorerTable) ExistsSPN(S SPN) bool {
+	_, e := t[S]
+	return e
+}
+
+// Exists returns whether a certain (key, value) pair exists in a Storer at second level.
+func (s *Storer) Exists(k int, S SPN, i int) bool {
+	_, e := s.tables[k][S][i]
+	return e
+}
+
+// Exists returns whether a certain (key, value) pair exists in a StorerTable at second level.
+func (t StorerTable) Exists(S SPN, i int) bool {
+	_, e := t[S][i]
+	return e
+}
+
 // Delete frees the memory at T[k]. A combination of Delete and NewTicket is NOT equivalent to
 // using Reset. Prefer Reset over Delete + NewTicket.
 func (s *Storer) Delete(k int) {

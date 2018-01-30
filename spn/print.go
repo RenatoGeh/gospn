@@ -25,7 +25,7 @@ func PrintSPN(S SPN, filename string) {
 	L := make(map[SPN]string)
 	T := []int{0, 0, 0}
 
-	TopSortTarjanFunc(S, func(Z SPN) bool {
+	TopSortTarjanFunc(S, &common.Queue{}, func(Z SPN) bool {
 		t := Z.Type()
 		var c rune
 		var p int

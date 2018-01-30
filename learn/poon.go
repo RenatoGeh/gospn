@@ -106,7 +106,7 @@ func partitionQuantiles(X []int, m int) [][]float64 {
 	return P
 }
 
-func createUnitRegion(x, y, m int, D spn.Dataset) *region {
+func createUnitRegion(x, y, n int, D spn.Dataset) *region {
 	p := x + y*w
 	V := make([]int, len(D))
 	for i := range D {
@@ -115,8 +115,8 @@ func createUnitRegion(x, y, m int, D spn.Dataset) *region {
 	sort.Ints(V)
 
 	//sys.Printf("p: %d\n", p)
-	S := make([]spn.SPN, m)
-	Q := partitionQuantiles(V, m)
+	S := make([]spn.SPN, n)
+	Q := partitionQuantiles(V, n)
 	for i, q := range Q {
 		g := spn.NewGaussianParams(p, q[0], q[1])
 		S[i] = g
@@ -125,7 +125,7 @@ func createUnitRegion(x, y, m int, D spn.Dataset) *region {
 	return &region{gmixtureId, S}
 }
 
-func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
+func createRegions(D spn.Dataset, m, g, r int) map[uint64]*region {
 	L := make(map[uint64]*region)
 
 	// Coarse regions (i.e. regions that have area > r*r).
@@ -164,7 +164,7 @@ func createRegions(D spn.Dataset, m, r int) map[uint64]*region {
 							k := Encode(x1, y1, x2, y2)
 							var R *region
 							if x == 1 && y == 1 {
-								R = createUnitRegion(x1, y1, m, D)
+								R = createUnitRegion(x1, y1, g, D)
 							} else {
 								R = createRegion(m)
 							}
@@ -280,143 +280,41 @@ func connectRegions(r int, L map[uint64]*region) spn.SPN {
 	return Z
 }
 
-func PoonStructure(D spn.Dataset, m, r int) (spn.SPN, map[uint64]*region) {
+func PoonStructure(D spn.Dataset, m, g, r int) spn.SPN {
 	w, h, max = sys.Width, sys.Height, sys.Max
-	L := createRegions(D, m, r)
+	L := createRegions(D, m, g, r)
 	S := connectRegions(r, L)
-	return S, L
+	return S
 }
 
-func cmpMarginal(px int, R *region, T spn.StorerTable) float64 {
-	var t, d float64
-	m := math.Inf(1)
-	for _, s := range R.inner {
-		l, _ := T.Single(s)
-		if l == math.Inf(-1) {
-			continue
-		}
-		if m == math.Inf(1) || l > m {
-			m = l
-		}
-		//sys.Printf("m: %f, l: %f, e: %v\n", m, l, e)
-	}
-	for _, s := range R.inner {
-		l, _ := T.Single(s)
-		if l == math.Inf(-1) {
-			continue
-		}
-		p := math.Exp(l - m)
-		mu, _ := s.(*spn.Gaussian).Params()
-		d += mu * p
-		t += p
-	}
-	d /= t
-	//sys.Printf("m: %f, d: %f, t: %f\n", m, d, t)
-	return d
-}
-
-func imageParams(I spn.VarSet) (float64, float64) {
-	var mu, sigma float64
-	n := float64(len(I))
-	for p := range I {
-		mu += float64(p)
-	}
-	mu /= n
-	for p := range I {
-		d := mu - float64(p)
-		sigma += d * d
-	}
-	sigma = math.Sqrt(sigma / n)
-	return mu, sigma
-}
-
-func pixelValue(mu, sigma, p float64) int {
-	return int(p*sigma + mu)
-}
-
-func PoonCmpl(S spn.SPN, I spn.VarSet, L map[uint64]*region) spn.VarSet {
-	st := spn.NewStorer()
-	_, itk := spn.StoreInference(S, I, -1, st)
-	_, dtk := DeriveSPN(S, st, -1, itk, nil)
-	dT, _ := st.Table(dtk)
-	mu, sigma := imageParams(I)
-	J := make(spn.VarSet)
-
-	for k, v := range I {
-		J[k] = v
-	}
-
-	for x := 0; x < w/2; x++ {
-		for y := 0; y < h; y++ {
-			p := x + y*w
-			k := Encode(x, y, x+1, y+1)
-			pr := cmpMarginal(p, L[k], dT)
-			v := pixelValue(mu, sigma, pr)
-			J[p] = v
-		}
-	}
-
-	return J
-}
-
-func PoonTest(D spn.Dataset, I spn.VarSet, m, r int) (spn.SPN, spn.VarSet) {
-	S, L := PoonStructure(D, m, r)
-	J := PoonCmpl(S, I, L)
-	//sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
-	//test.DoBFS(S, func(s spn.SPN) bool {
-	//sys.Printf("S: %p -> %v, Sc: %v\n", s, s, s.Sc())
-	//return true
-	//}, nil)
-	//spn.PrintSPN(S, "test.spn")
+func PoonTest(D spn.Dataset, I spn.VarSet, m, g, r int) spn.SPN {
+	S := PoonStructure(D, m, g, r)
 	var sums, prods, leaves int
 	test.DoBFS(S, func(s spn.SPN) bool {
 		t := s.Type()
-		//if t != "leaf" && len(s.Ch()) == 0 {
-		//sys.Printf("s: %v, type: %s, Ch: %v\n", s, t, s.Ch())
-		//}
-		//var m bool
-		//for _, c := range s.Ch() {
-		//if c.Type() == "leaf" {
-		//m = true
-		//}
-		//}
-		//if len(s.Sc()) == 0 {
-		//sys.Printf("Sc: %v, Ch: %v\n", s.Sc(), s.Ch())
-		//for i, c := range s.Ch() {
-		//sys.Printf("  Ch[%d] = %v\n  Sc(Ch[%d]) = %v\n  Type: %s\n", i, c, i, c.Sc(), c.Type())
-		//sys.Println("  ===")
-		//}
-		//}
 		if t == "sum" {
 			sums++
 		} else if t == "product" {
 			prods++
-			//if s.Ch()[0].Type() == "leaf" {
-			//sys.Printf("Sc: %v, Ch: %v\n", s.Sc(), s.Ch())
-			//for i, c := range s.Ch() {
-			//sys.Printf("  Ch[%d] = %v\n  Sc(Ch[%d]) = %v\n  Type: %s\n", i, c, i, c.Sc(), c.Type())
-			//}
-			//}
 		} else {
 			leaves++
 		}
 		return true
 	}, nil)
 	sys.Printf("Sums: %d, Prods: %d, Leaves: %d\nTotal:%d\n", sums, prods, leaves, sums+prods+leaves)
-	return S, J
+	return S
 }
 
-func BindedPoonGD(m, r int, eta, eps float64) LearnFunc {
+func BindedPoonGD(m, g, r int, eta, eps float64) LearnFunc {
 	return func(_ map[int]Variable, data spn.Dataset) spn.SPN {
-		S, _ := PoonGD(data, m, r, eta, eps)
-		return S
+		return PoonGD(data, m, g, r, eta, eps)
 	}
 }
 
-func PoonGD(D spn.Dataset, m, r int, eta, eps float64) (spn.SPN, map[uint64]*region) {
-	S, L := PoonStructure(D, m, r)
+func PoonGD(D spn.Dataset, m, g, r int, eta, eps float64) spn.SPN {
+	S := PoonStructure(D, m, g, r)
 	sys.Println("Counting nodes...")
-	//spn.NormalizeSPN(S)
+	spn.NormalizeSPN(S)
 	var sums, prods, leaves int
 	test.DoBFS(S, func(s spn.SPN) bool {
 		t := s.Type()
@@ -430,12 +328,14 @@ func PoonGD(D spn.Dataset, m, r int, eta, eps float64) (spn.SPN, map[uint64]*reg
 		return true
 	}, nil)
 	sys.Printf("Sums: %d, Prods: %d, Leaves: %d\nTotal:%d\n", sums, prods, leaves, sums+prods+leaves)
-	h := spn.ComputeHeight(S)
-	sys.Printf("Height: %d\n", h)
-	sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
-	sys.Println("Maximizing the likelihood through gradient descent...")
-	spn.PrintSPN(S, "test_before.spn")
-	S = GenerativeGD(S, eta, eps, D, nil, true)
+	//h := spn.ComputeHeight(S)
+	//sys.Printf("Height: %d\n", h)
+	//sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
+	//sys.Println("Maximizing the likelihood through gradient descent...")
+	//spn.PrintSPN(S, "test_before.spn")
+	spn.NormalizeSPN(S)
+	GenerativeBGD(S, eta, eps, D, nil, false, 50)
+	spn.NormalizeSPN(S)
 	spn.PrintSPN(S, "test_after.spn")
-	return S, L
+	return S
 }

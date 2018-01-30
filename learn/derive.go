@@ -4,6 +4,7 @@ import (
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
+	"github.com/RenatoGeh/gospn/utils"
 	"math"
 )
 
@@ -41,6 +42,7 @@ func DeriveSPN(S spn.SPN, storage *spn.Storer, tk, itk int, c common.Collection)
 		s := c.Take().(spn.SPN)
 		ch := s.Ch()
 		pv, _ := table.Single(s)
+		//sys.Printf("pv=%f, parent: %s\n", pv, s.Type())
 		if s.Type() == "sum" {
 			sum := s.(*spn.Sum)
 			W := sum.Weights()
@@ -49,7 +51,7 @@ func DeriveSPN(S spn.SPN, storage *spn.Storer, tk, itk int, c common.Collection)
 				if !e {
 					table.StoreSingle(cs, math.Log(W[i])+pv)
 				} else {
-					table.StoreSingle(cs, math.Log(math.Exp(v)+math.Exp(math.Log(W[i])+pv)))
+					table.StoreSingle(cs, utils.LogSumExpPair(v, math.Log(W[i])+pv))
 				}
 			}
 		} else /* there can never be a case where s is a leaf, therefore s is a product */ {
@@ -62,10 +64,12 @@ func DeriveSPN(S spn.SPN, storage *spn.Storer, tk, itk int, c common.Collection)
 						t += _v
 					}
 				}
+				//sys.Printf("  i: %d, v: %f, e: %v, t: %f, ch: %p\n", i, v, e, t, cs)
 				if !e {
 					table.StoreSingle(cs, t)
 				} else {
-					table.StoreSingle(cs, math.Log(math.Exp(v)+math.Exp(t)))
+					//table.StoreSingle(cs, math.Log(math.Exp(v)+math.Exp(t)))
+					table.StoreSingle(cs, utils.LogSumExpPair(v, t))
 				}
 			}
 		}
