@@ -1,7 +1,7 @@
 package spn
 
 import (
-	"fmt"
+	//"fmt"
 	"github.com/RenatoGeh/gospn/common"
 	"math/rand"
 	"testing"
@@ -29,6 +29,7 @@ func initGraph() []*graphTest {
 	return G
 }
 
+// Topological sorting may not exist in this graph.
 func createRandomGraph(seed int64) []*graphTest {
 	R := rand.New(rand.NewSource(seed))
 	n := R.Intn(maxInt) + 1
@@ -52,10 +53,47 @@ func createRandomGraph(seed int64) []*graphTest {
 	return G
 }
 
+// There is always at least one topological sorting in a DAG.
+func generateDAG(seed int64) []*graphTest {
+	const (
+		maxNodesPerLayer = 20
+		maxLayers        = 30
+	)
+	R := rand.New(rand.NewSource(seed))
+	h := R.Intn(maxLayers) + 1
+	L := make([][]*graphTest, h)
+	var G []*graphTest
+	var c int
+	for i := 0; i < h; i++ {
+		n := R.Intn(maxNodesPerLayer) + 1
+		L[i] = make([]*graphTest, n)
+		for j := 0; j < n; j++ {
+			v := &graphTest{}
+			L[i][j] = v
+			v.i = c
+			c++
+			G = append(G, v)
+		}
+	}
+	for i := 0; i < h-1; i++ {
+		k := len(L[i+1])
+		n := len(L[i])
+		for j := 0; j < n; j++ {
+			l := R.Intn(k) + 1
+			U := R.Perm(k)
+			for t := 0; t < l; t++ {
+				L[i][j].Add(L[i+1][U[t]])
+			}
+		}
+	}
+	return G
+}
+
 func TestTopSortTarjanSmall(t *testing.T) {
 	G := initGraph()
 	tSort := []int{9, 8, 5, 4, 3, 2, 7, 6, 1, 0}
-	Q := TopSortTarjan(G[0])
+	Q := common.Queue{}
+	TopSortTarjan(G[0], &Q)
 	var i int
 	for !Q.Empty() {
 		u := Q.Dequeue().(*graphTest)
@@ -69,7 +107,8 @@ func TestTopSortTarjanSmall(t *testing.T) {
 func TestTopSortTarjanRecSmall(t *testing.T) {
 	G := initGraph()
 	tSort := []int{9, 8, 5, 7, 6, 1, 4, 2, 3, 0}
-	Q := TopSortTarjanRec(G[0])
+	Q := common.Queue{}
+	TopSortTarjanRec(G[0], &Q)
 	var i int
 	for !Q.Empty() {
 		u := Q.Dequeue().(*graphTest)
@@ -123,16 +162,17 @@ func reachable(u *graphTest) *common.Queue {
 	return R
 }
 
-func unitTest(seed int64, sort func(SPN) *common.Queue) bool {
-	//G := createRandomGraph(seed)
-	G := initGraph()
-	Q := sort(G[0])
+func unitTest(seed int64, sort func(SPN, common.Collection) common.Collection) bool {
+	G := generateDAG(seed)
+	//G := initGraph()
+	Q := common.Queue{}
+	sort(G[0], &Q)
 	V := make(map[*graphTest]bool)
 
-	fmt.Println("Topo sort:")
+	//fmt.Println("Topo sort:")
 	for !Q.Empty() {
 		u := Q.Dequeue().(*graphTest)
-		fmt.Printf("  %d\n", u.i)
+		//fmt.Printf("  %d\n", u.i)
 		V[u] = true
 		R := reachable(u)
 		for !R.Empty() {
@@ -142,7 +182,7 @@ func unitTest(seed int64, sort func(SPN) *common.Queue) bool {
 			}
 		}
 	}
-	fmt.Println("")
+	//fmt.Println("")
 
 	return true
 }
