@@ -176,8 +176,9 @@ func DeriveWeightsBatch(S spn.SPN, storage *spn.Storer, tk, dtk, itk int, c comm
 				dw, e := wt.Entry(s, i)
 				ndw := v + pv
 				if e {
-					ndw = math.Log(math.Exp(ndw) + math.Exp(dw))
+					ndw = utils.LogSumExpPair(ndw, dw)
 				}
+				//sys.Printf("ndw: %.10f, v: %.10f, pv: %.10f, dw: %.10f\n", ndw, v, pv, dw)
 				wt.Store(s, i, ndw)
 			}
 		}
@@ -197,6 +198,19 @@ func DeriveWeightsBatch(S spn.SPN, storage *spn.Storer, tk, dtk, itk int, c comm
 }
 
 func Normalize(v []float64) {
+	var min float64
+	for _, u := range v {
+		if u < min {
+			min = u
+		}
+	}
+	if min < 0 {
+		sys.Println("!")
+		for i := range v {
+			v[i] += min
+		}
+	}
+
 	var norm float64
 	for i := range v {
 		norm += v[i]

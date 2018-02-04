@@ -4,6 +4,7 @@ import (
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
+	"github.com/RenatoGeh/gospn/utils"
 	"gonum.org/v1/gonum/floats"
 	"math"
 	"sort"
@@ -19,6 +20,8 @@ const (
 	regionId = iota
 	gmixtureId
 	sumId
+
+	smoothWeight = 1.0
 )
 
 func getRegionType(t int) string {
@@ -99,7 +102,7 @@ func partitionQuantiles(X []int, m int) [][]float64 {
 		}
 		sigma = math.Sqrt(sigma / n)
 		if sigma == 0 {
-			sigma = 1
+			sigma = 0.4
 		}
 		P[i] = []float64{mu, sigma, n}
 	}
@@ -112,16 +115,24 @@ func createUnitRegion(x, y, n int, D spn.Dataset) *region {
 	for i := range D {
 		V[i] = D[i][p]
 	}
-	sort.Ints(V)
 
+	if n == 1 {
+		mu, sigma := utils.MuSigma(V)
+		return &region{gmixtureId, []spn.SPN{spn.NewGaussianParams(p, mu, sigma)}}
+	}
+
+	sort.Ints(V)
 	//sys.Printf("p: %d\n", p)
-	S := make([]spn.SPN, n)
 	Q := partitionQuantiles(V, n)
+	S := make([]spn.SPN, n)
+	//s := spn.NewSum()
 	for i, q := range Q {
 		g := spn.NewGaussianParams(p, q[0], q[1])
+		//s.AddChildW(g, smoothWeight/float64(n))
 		S[i] = g
 	}
 
+	//return &region{gmixtureId, []spn.SPN{s}}
 	return &region{gmixtureId, S}
 }
 
@@ -142,11 +153,11 @@ func createRegions(D spn.Dataset, m, g, r int) map[uint64]*region {
 					if ca == cw && cb == ch {
 						k, R := createSum(x1, y1, x2, y2)
 						L[k] = R
-						continue
+					} else {
+						k := Encode(x1, y1, x2, y2)
+						R := createRegion(m)
+						L[k] = R
 					}
-					k := Encode(x1, y1, x2, y2)
-					R := createRegion(m)
-					L[k] = R
 				}
 			}
 		}
@@ -188,7 +199,7 @@ func linkRegions(R, S, T *region) {
 			pi.AddChild(T.inner[j])
 			for n := range R.inner {
 				s := R.inner[n].(*spn.Sum)
-				s.AddChildW(pi, 1.0/float64(m))
+				s.AddChildW(pi, smoothWeight/float64(m))
 			}
 		}
 	}
@@ -314,7 +325,7 @@ func BindedPoonGD(m, g, r int, eta, eps float64) LearnFunc {
 func PoonGD(D spn.Dataset, m, g, r int, eta, eps float64) spn.SPN {
 	S := PoonStructure(D, m, g, r)
 	sys.Println("Counting nodes...")
-	spn.NormalizeSPN(S)
+	//spn.NormalizeSPN(S)
 	var sums, prods, leaves int
 	test.DoBFS(S, func(s spn.SPN) bool {
 		t := s.Type()
@@ -333,9 +344,9 @@ func PoonGD(D spn.Dataset, m, g, r int, eta, eps float64) spn.SPN {
 	//sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
 	//sys.Println("Maximizing the likelihood through gradient descent...")
 	//spn.PrintSPN(S, "test_before.spn")
-	spn.NormalizeSPN(S)
-	GenerativeBGD(S, eta, eps, D, nil, false, 50)
-	spn.NormalizeSPN(S)
+	//spn.NormalizeSPN(S)
+	GenerativeGD(S, eta, eps, D, nil, false)
+	//spn.NormalizeSPN(S)
 	spn.PrintSPN(S, "test_after.spn")
 	return S
 }

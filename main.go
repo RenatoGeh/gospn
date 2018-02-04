@@ -97,7 +97,7 @@ func main() {
 		//sys.Width, sys.Height = 4, 4
 		sys.Verbose = true
 		//sys.MemConservative = true
-		app.ImgTest("data/olivetti_padded/compiled/all.data", 2, 4, 4, 0.2, 1)
+		app.ImgTest("data/olivetti_padded/compiled/all.data", 2, 4, 4, 0.1, 1)
 		//app.ImgTest("data/fourbyfour/compiled/all.data", 2, 1, 1, 0.1)
 		//lf := learn.BindedPoonGD(2, 4, 0.1, 1)
 		//sc, data, _ := io.ParseDataNL(filename)

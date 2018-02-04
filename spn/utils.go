@@ -29,7 +29,7 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 	sys.Println("Finding topological sort...")
 	// Get topological order.
 	O := common.Queue{}
-	TopSortTarjanRec(S, &O)
+	TopSortTarjan(S, &O)
 	sys.Println("Found topological sort.")
 	sys.Free()
 
@@ -80,7 +80,7 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 
 	// Get topological order.
 	T := common.Queue{}
-	TopSortTarjanRec(S, &T)
+	TopSortTarjan(S, &T)
 
 	tab, _ := storage.Table(tk)
 	// Find max values.
@@ -230,7 +230,7 @@ func ComputeHeight(S SPN) int {
 // ComputeScope computes the scope of a certain SPN S.
 func ComputeScope(S SPN) []int {
 	T := common.Queue{}
-	TopSortTarjanRec(S, &T)
+	TopSortTarjan(S, &T)
 
 	for !T.Empty() {
 		s := T.Dequeue().(SPN)
@@ -326,6 +326,7 @@ func Decomposable(S SPN) bool {
 			for _, u := range sc {
 				v[u]++
 			}
+			n := len(sc)
 			for _, c := range ch {
 				csc := c.rawSc()
 				// Invariant: ComputeScope guarantees that there will be no duplicates.
@@ -336,11 +337,15 @@ func Decomposable(S SPN) bool {
 					}
 					v[u]++
 				}
+				n -= len(csc)
 			}
 			for _, u := range v {
 				if u != 2 {
 					return false
 				}
+			}
+			if n != 0 {
+				return false
 			}
 		}
 		for _, c := range ch {

@@ -109,7 +109,7 @@ func Trim(a []float64, c float64) []float64 {
 
 // LogSumExp takes a slice of floats a={a_1,...,a_n} and computes ln(exp(a_1)+...+exp(a_n)).
 func LogSumExp(a []float64) float64 {
-	a = Trim(a, LogZero)
+	//a = Trim(a, LogZero)
 	max := a[0]
 	for _, v := range a {
 		if v > max {
@@ -140,5 +140,5 @@ func LogSumExpPair(l, r float64) float64 {
 		// When min=LogZero=-inf (i.e. exp(min)=0), ln(exp(max) + exp(min))=ln(exp(max))=max.
 		return max
 	}
-	return math.Log(math.Exp(min-max)) + max
+	return math.Log(1.0+math.Exp(min-max)) + max
 }

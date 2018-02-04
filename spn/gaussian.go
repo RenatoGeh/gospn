@@ -102,7 +102,7 @@ func (g *Gaussian) Value(val VarSet) float64 {
 	} else {
 		l = 0.0 // ln(1.0) = 0.0
 	}
-	//sys.Printf("Gaussian value: %f = ln(%f)\n", l, math.Exp(l))
+	//sys.Printf("Gaussian value (mu=%f, sigma=%f) for value %d (pixel %d): %f = ln(%f)\n", g.dist.Mu, g.dist.Sigma, v, g.varid, l, math.Exp(l))
 	return l
 }
 

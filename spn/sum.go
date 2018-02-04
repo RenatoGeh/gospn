@@ -2,6 +2,7 @@ package spn
 
 import (
 	"github.com/RenatoGeh/gospn/sys"
+	"github.com/RenatoGeh/gospn/utils"
 	"math"
 )
 
@@ -52,23 +53,7 @@ func (s *Sum) Value(val VarSet) float64 {
 
 // Compute returns the soft value of this node's type given the children's values.
 func (s *Sum) Compute(cv []float64) float64 {
-	max, imax := math.Inf(-1), -1
-
-	for i, v := range cv {
-		if v > max {
-			max, imax = v, i
-		}
-	}
-
-	p, r := max, 0.0
-	for i := range cv {
-		if i != imax {
-			r += math.Exp(cv[i] - p)
-		}
-	}
-
-	r = p + math.Log1p(r)
-	return r
+	return utils.LogSumExp(cv)
 }
 
 // Max returns the MAP value of this node given an evidence.
