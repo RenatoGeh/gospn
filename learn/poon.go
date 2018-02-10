@@ -102,7 +102,7 @@ func partitionQuantiles(X []int, m int) [][]float64 {
 		}
 		sigma = math.Sqrt(sigma / n)
 		if sigma == 0 {
-			sigma = 0.4
+			sigma = 1
 		}
 		P[i] = []float64{mu, sigma, n}
 	}
@@ -191,7 +191,7 @@ func createRegions(D spn.Dataset, m, g, r int) map[uint64]*region {
 }
 
 func linkRegions(R, S, T *region) {
-	m := len(S.inner) * len(T.inner)
+	//m := len(S.inner) * len(T.inner)
 	for i := range S.inner {
 		for j := range T.inner {
 			pi := spn.NewProduct()
@@ -199,7 +199,7 @@ func linkRegions(R, S, T *region) {
 			pi.AddChild(T.inner[j])
 			for n := range R.inner {
 				s := R.inner[n].(*spn.Sum)
-				s.AddChildW(pi, smoothWeight/float64(m))
+				s.AddChildW(pi, float64(sys.Random.Intn(10)+1))
 			}
 		}
 	}
@@ -231,28 +231,28 @@ func connectRegions(r int, L map[uint64]*region) spn.SPN {
 						}
 					}
 				}
-				continue
-			}
-			for x1 := 0; x1 <= w-ca*r; x1 += r {
-				x2 := x1 + ca*r
-				for y1 := 0; y1 <= h-cb*r; y1 += r {
-					y2 := y1 + cb*r
-					k := Encode(x1, y1, x2, y2)
-					R := L[k]
-					if ca == cw && cb == ch {
-						Z = R.inner[0]
-					}
-					//sys.Printf("R pos: (%d, %d, %d, %d)=%d, R=%v\n", x1, y1, x2, y2, k, R)
-					for x := x1 + r; x < x2; x += r {
-						p, q := Encode(x1, y1, x, y2), Encode(x, y1, x2, y2)
-						S, T := L[p], L[q]
-						//sys.Printf("p=%d=(%d, %d, %d, %d), q=%d=(%d, %d, %d, %d), S=%v, T=%v\n", p, x1, y1, x, y2, q, x, y1, x2, y2, S, T)
-						linkRegions(R, S, T)
-					}
-					for y := y1 + r; y < y2; y += r {
-						p, q := Encode(x1, y, x2, y2), Encode(x1, y1, x2, y)
-						S, T := L[p], L[q]
-						linkRegions(R, S, T)
+			} else {
+				for x1 := 0; x1 <= w-ca*r; x1 += r {
+					x2 := x1 + ca*r
+					for y1 := 0; y1 <= h-cb*r; y1 += r {
+						y2 := y1 + cb*r
+						k := Encode(x1, y1, x2, y2)
+						R := L[k]
+						if ca == cw && cb == ch {
+							Z = R.inner[0]
+						}
+						//sys.Printf("R pos: (%d, %d, %d, %d)=%d, R=%v\n", x1, y1, x2, y2, k, R)
+						for x := x1 + r; x < x2; x += r {
+							p, q := Encode(x1, y1, x, y2), Encode(x, y1, x2, y2)
+							S, T := L[p], L[q]
+							//sys.Printf("p=%d=(%d, %d, %d, %d), q=%d=(%d, %d, %d, %d), S=%v, T=%v\n", p, x1, y1, x, y2, q, x, y1, x2, y2, S, T)
+							linkRegions(R, S, T)
+						}
+						for y := y1 + r; y < y2; y += r {
+							p, q := Encode(x1, y, x2, y2), Encode(x1, y1, x2, y)
+							S, T := L[p], L[q]
+							linkRegions(R, S, T)
+						}
 					}
 				}
 			}
@@ -324,8 +324,16 @@ func BindedPoonGD(m, g, r int, eta, eps float64) LearnFunc {
 
 func PoonGD(D spn.Dataset, m, g, r int, eta, eps float64) spn.SPN {
 	S := PoonStructure(D, m, g, r)
+
+	spn.ComputeScope(S)
+	for i, c := range S.Ch() {
+		sc := c.Sc()
+		sys.Printf("c[%d] has scope (size %d):\n  %v\n", i, len(sc), sc)
+	}
+	sys.Printf("Number of children: %d\n", len(S.Ch()))
+
 	sys.Println("Counting nodes...")
-	//spn.NormalizeSPN(S)
+	spn.NormalizeSPN(S)
 	var sums, prods, leaves int
 	test.DoBFS(S, func(s spn.SPN) bool {
 		t := s.Type()
@@ -345,7 +353,7 @@ func PoonGD(D spn.Dataset, m, g, r int, eta, eps float64) spn.SPN {
 	//sys.Println("Maximizing the likelihood through gradient descent...")
 	//spn.PrintSPN(S, "test_before.spn")
 	//spn.NormalizeSPN(S)
-	GenerativeGD(S, eta, eps, D, nil, false)
+	GenerativeHardBGD(S, eta, eps, D, nil, true, 50)
 	//spn.NormalizeSPN(S)
 	spn.PrintSPN(S, "test_after.spn")
 	return S

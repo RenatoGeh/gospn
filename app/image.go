@@ -9,7 +9,6 @@ import (
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
 	"github.com/RenatoGeh/gospn/utils"
-	"math/rand"
 	"runtime"
 	"sync"
 )
@@ -175,9 +174,9 @@ func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
 	vs := make(spn.VarSet)
 
 	for i := 0; i < n; i++ {
-		r := rand.Intn(nsc)
+		r := sys.Random.Intn(nsc)
 		id := sc[r]
-		v := int(rand.NormFloat64()*(float64(id.Categories)/6) + float64(id.Categories/2))
+		v := int(sys.Random.NormFloat64()*(float64(id.Categories)/6) + float64(id.Categories/2))
 		if v >= id.Categories {
 			v = id.Categories - 1
 		} else if v < 0 {

@@ -1,8 +1,8 @@
 package spn
 
 import (
+	"github.com/RenatoGeh/gospn/sys"
 	"math"
-	"math/rand"
 )
 
 // Mode of a univariate distribution.
@@ -45,7 +45,7 @@ func NewMultinomial(varid int, dist []float64) *Multinomial {
 		}
 	}
 	if nmi > 1 {
-		mi = miv[rand.Intn(nmi)]
+		mi = miv[sys.Random.Intn(nmi)]
 	}
 	return &Multinomial{Node{sc: []int{varid}}, varid, dist, Mode{mi, m}}
 }
@@ -83,7 +83,7 @@ func NewCountingMultinomial(varid int, counts []int) *Multinomial {
 		}
 	}
 	if nmi > 1 {
-		mi = miv[rand.Intn(nmi)]
+		mi = miv[sys.Random.Intn(nmi)]
 	}
 
 	return &Multinomial{Node{sc: []int{varid}}, varid, pr, Mode{mi, m}}

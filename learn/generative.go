@@ -77,7 +77,7 @@ func GenerativeHardGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Co
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 3; _l++ {
+	for _l := 0; _l < 1; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -188,7 +188,7 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 4; _l++ {
+	for _l := 0; _l < 1; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -285,8 +285,13 @@ func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 					w := W[i]
 					delta := eta * d / w
 					W[i] = w + delta
-					//pW := s.(*spn.Sum).Weights()
-					//sys.Printf("Ch: %d, pre-W[%d]=%.10f, d: %.10f, eta*d/w: %.10f, post-W[%d]=%.10f\n", i, i, w, d, delta, i, pW[i])
+					pW := s.(*spn.Sum).Weights()
+					sys.Printf("Ch: %d/%d, pre-W[%d]=%.10f, d: %.10f, eta*d/w: %.10f, post-W[%d]=%.10f\n", i, len(ch)-1, i, w, d, delta, i, pW[i])
+					for j := range ch {
+						if i != j {
+							sys.Printf("  sibling %d: %.10f\n", j, pW[j])
+						}
+					}
 				}
 				if norm {
 					Normalize(W)

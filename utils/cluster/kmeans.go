@@ -1,8 +1,8 @@
 package cluster
 
 import (
+	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
-	"math/rand"
 )
 
 func kMeansInsert(which int, means map[int][]int, clusters []map[int][]int, v []int) {
@@ -44,7 +44,7 @@ func KMeans(k int, data [][]int) []map[int][]int {
 	for i := 0; i < k; i++ {
 		var r int
 		for ok := true; ok; _, ok = chkrnd[r] {
-			r = rand.Intn(n)
+			r = sys.Random.Intn(n)
 		}
 		//fmt.Printf("%d vs %d\n", n, r)
 		clusters[i] = make(map[int][]int)

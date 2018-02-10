@@ -1,8 +1,8 @@
 package cluster
 
 import (
+	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
-	"math/rand"
 )
 
 func kMedoidInsert(which int, means []int, clusters []map[int][]int, v []int, i int) {
@@ -49,7 +49,7 @@ func KMedoid(k int, data [][]int) []map[int][]int {
 		ok := true
 		for ok && len(chkrnd) < n {
 			for ok = true; ok; _, ok = chkrnd[r] {
-				r = rand.Intn(n)
+				r = sys.Random.Intn(n)
 			}
 			chkrnd[r] = true
 			for ii := 0; ii < i && !ok; ii++ {

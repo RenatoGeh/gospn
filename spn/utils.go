@@ -3,7 +3,6 @@ package spn
 import (
 	"fmt"
 	"math"
-	"math/rand"
 
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/sys"
@@ -145,7 +144,7 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 				}
 			}
 			// Randomly break tie.
-			mvc := mv[rand.Intn(len(mv))]
+			mvc := mv[sys.Random.Intn(len(mv))]
 			if mvc != nil && !V[mvc] {
 				Q.Enqueue(mvc)
 				V[mvc] = true
@@ -165,12 +164,24 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 }
 
 func norm(v []float64) {
-	var n float64
+	var min float64
+	for _, u := range v {
+		if u < min {
+			min = u
+		}
+	}
+	if min < 0 {
+		for i := range v {
+			v[i] += min
+		}
+	}
+
+	var norm float64
 	for i := range v {
-		n += v[i]
+		norm += v[i]
 	}
 	for i := range v {
-		v[i] /= n
+		v[i] /= norm
 	}
 }
 
