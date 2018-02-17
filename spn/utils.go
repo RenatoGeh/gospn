@@ -143,7 +143,7 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 					mv = append(mv, c)
 				}
 			}
-			// Randomly break tie.
+			// Randomly break ties.
 			mvc := mv[sys.Random.Intn(len(mv))]
 			if mvc != nil && !V[mvc] {
 				Q.Enqueue(mvc)
@@ -391,27 +391,34 @@ func TraceMAP(S SPN, I VarSet) map[SPN]int {
 	for !Q.Empty() {
 		s := Q.Dequeue().(SPN)
 		ch := s.Ch()
-		if s.Type() == "sum" {
-			mi := -1
+		switch t := s.Type(); t {
+		case "sum":
+			sum := s.(*Sum)
+			W := sum.Weights()
+			m := math.Inf(-1)
+			var mv []int
 			for i, c := range ch {
-				if T.ExistsSPN(c) && !V[c] {
-					mi = i
+				v, _ := T.Single(c)
+				u := math.Log(W[i]) + v
+				if u > m {
+					mv, m = []int{i}, u
+				} else if u == m {
+					mv = append(mv, i)
 				}
 			}
-			//if mi < 0 {
-			//sys.Printf("mi=%d, SPN={\n%v\n}\n", mi, s)
-			//} else {
-			if mi >= 0 {
-				trace[s] = mi
-				c := ch[mi]
-				Q.Enqueue(c)
-				V[c] = true
+			// Randomly break ties.
+			mvi := mv[sys.Random.Intn(len(mv))]
+			trace[s] = mvi
+			mvc := ch[mvi]
+			if mvc != nil && !V[mvc] {
+				Q.Enqueue(mvc)
+				V[mvc] = true
 			}
-		}
-		for _, c := range ch {
-			if !V[c] && c.Type() != "leaf" {
-				Q.Enqueue(c)
-				V[c] = true
+		case "product":
+			for _, c := range ch {
+				if !V[c] && c.Type() != "leaf" {
+					Q.Enqueue(c)
+				}
 			}
 		}
 	}

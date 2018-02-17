@@ -21,3 +21,23 @@ func RefreshRandom(s int64) *rand.Rand {
 
 // Seed returns the pseudo-random seed.
 func Seed() int64 { return seed }
+
+func RandomComb(u int, v int, m int) [][2]int {
+	n := u * v
+	C := make([][2]int, n)
+	var t int
+	for i := 0; i < u; i++ {
+		for j := 0; j < v; j++ {
+			C[t][0], C[t][1] = i, j
+			t++
+		}
+	}
+	K := Random.Perm(n)
+	D := make([][2]int, m)
+	var j int
+	for i := 0; i < m; i++ {
+		D[j] = C[K[i]]
+		j++
+	}
+	return D
+}
