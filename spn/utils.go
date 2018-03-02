@@ -6,6 +6,7 @@ import (
 
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/sys"
+	"github.com/RenatoGeh/gospn/utils"
 )
 
 // Some of the following functions are non-recursive versions of equivalent spn.SPN methods. They
@@ -21,18 +22,19 @@ import (
 // at the position designated by the ticket tk. Returns S and the ticket used (if tk < 0,
 // StoreInference creates a new ticket).
 func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
+	if len(S.Ch()) == 0 {
+		return nil, -1
+	}
+
 	if tk < 0 {
 		tk = storage.NewTicket()
 	}
 
-	sys.Println("Finding topological sort...")
 	// Get topological order.
 	O := common.Queue{}
 	TopSortTarjan(S, &O)
-	sys.Println("Found topological sort.")
 	sys.Free()
 
-	sys.Println("Starting inference computations...")
 	table, _ := storage.Table(tk)
 	for !O.Empty() {
 		s := O.Dequeue().(SPN)
@@ -53,7 +55,11 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 				}
 				vals[i] = v + math.Log(W[i])
 			}
-			table.StoreSingle(s, sum.Compute(vals))
+			if n == 0 {
+				table.StoreSingle(s, utils.LogZero)
+			} else {
+				table.StoreSingle(s, sum.Compute(vals))
+			}
 		case "product":
 			prod := s.(*Product)
 			ch := prod.Ch()
@@ -73,6 +79,10 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 // at the position designated by the ticket tk. Returns S and the ticket used (if tk < 0,
 // StoreMAP creates a new ticket).
 func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
+	if len(S.Ch()) == 0 {
+		return nil, -1, nil
+	}
+
 	if tk < 0 {
 		tk = storage.NewTicket()
 	}

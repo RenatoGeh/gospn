@@ -23,7 +23,7 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 2; _l++ {
+	for _l := 0; _l < 4; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -188,7 +188,7 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 1; _l++ {
+	for _l := 0; _l < 4; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -242,15 +242,15 @@ func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Coll
 			dW, _ := wt.Value(s)
 			for i := range W {
 				delta := eta * math.Exp(dW[i])
-				//sys.Printf("delta=%.10f=%.2f*Exp(%.10f), W[%d]=%.10f\n", delta, eta, dW[i], i, W[i])
+				sys.Printf("delta=%.10f=%.2f*Exp(%.10f), W[%d]=%.10f\n", delta, eta, dW[i], i, W[i])
 				//if delta > 1 {
 				//delta = 1
 				//} else if delta < -1 {
 				//delta = -1
 				//}
 				W[i] += delta
-				//pW := sum.Weights()
-				//sys.Printf("W[%d]=%.10f, post-W[%d]=%.10f\n", i, W[i], i, pW[i])
+				pW := sum.Weights()
+				sys.Printf("W[%d]=%.10f, post-W[%d]=%.10f\n", i, W[i], i, pW[i])
 			}
 			if norm {
 				Normalize(W)
@@ -283,15 +283,15 @@ func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 				W := s.(*spn.Sum).Weights()
 				for i, d := range v {
 					w := W[i]
-					delta := eta * d / w
+					delta := eta * math.Log(d+1) / w
 					W[i] = w + delta
-					pW := s.(*spn.Sum).Weights()
-					sys.Printf("Ch: %d/%d, pre-W[%d]=%.10f, d: %.10f, eta*d/w: %.10f, post-W[%d]=%.10f\n", i, len(ch)-1, i, w, d, delta, i, pW[i])
-					for j := range ch {
-						if i != j {
-							sys.Printf("  sibling %d: %.10f\n", j, pW[j])
-						}
-					}
+					//pW := s.(*spn.Sum).Weights()
+					//sys.Printf("Ch: %d/%d, pre-W[%d]=%.10f, d: %.10f, eta*d/w: %.10f, post-W[%d]=%.10f\n", i, len(ch)-1, i, w, d, delta, i, pW[i])
+					//for j := range ch {
+					//if i != j {
+					//sys.Printf("  sibling %d: %.10f\n", j, pW[j])
+					//}
+					//}
 				}
 				if norm {
 					Normalize(W)
