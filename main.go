@@ -7,7 +7,7 @@ import (
 
 	"github.com/RenatoGeh/gospn/app"
 	"github.com/RenatoGeh/gospn/io"
-	"github.com/RenatoGeh/gospn/learn"
+	"github.com/RenatoGeh/gospn/learn/gens"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils"
 	//profile "github.com/pkg/profile"
@@ -39,7 +39,7 @@ func main() {
 	flag.IntVar(&iterations, "iterations", 1, "How many iterations to be run when running a "+
 		"classification job. This allows for better, more general and randomized results, as some "+
 		"test/train partitions may become degenerated.")
-	flag.IntVar(&concurrents, "concurrents", -1, "GoSPN makes use of Go's natie concurrency and is "+
+	flag.IntVar(&concurrents, "concurrents", -1, "GoSPN makes use of Go's native concurrency and is "+
 		"able to run on multiple cores in parallel. Argument concurrents defines the number of "+
 		"concurrent jobs GoSPN should run at most. If concurrents <= 0, then concurrents = nCPU, "+
 		"where nCPU is the number of CPUs the running machine has available.")
@@ -81,11 +81,11 @@ func main() {
 		return
 	} else if mode == "cmpl" {
 		fmt.Printf("Running image completion on dataset %s with %d threads...\n", dataset, concurrents)
-		lf := learn.BindedGens(clusters, sys.Pval, sys.Eps, sys.Mp)
+		lf := gens.Binded(clusters, sys.Pval, sys.Eps, sys.Mp)
 		app.ImgCompletion(lf, utils.StringConcat(in, "/all.data"), concurrents)
 		return
 	} else if mode == "class" {
-		lf := learn.BindedGens(clusters, sys.Pval, sys.Eps, sys.Mp)
+		lf := gens.Binded(clusters, sys.Pval, sys.Eps, sys.Mp)
 		app.ImgBatchClassify(lf, dataset, p, rseed, clusters, iterations)
 	} else if mode == "test" {
 		//_, data, _ := io.ParseDataNL("data/digits/compiled/all.data")
@@ -97,7 +97,7 @@ func main() {
 		//sys.Width, sys.Height = 4, 4
 		sys.Verbose = true
 		//sys.MemConservative = true
-		app.ImgTest("data/olivetti_padded_u/compiled/all.data", 2, 4, 4, 0.0001, 1)
+		app.ImgTest("data/olivetti_small/compiled/all.data", 2, 4, 4, 0.01, 1)
 		//app.ImgTest("data/fourbyfour/compiled/all.data", 2, 1, 1, 0.1)
 		//lf := learn.BindedPoonGD(2, 4, 0.1, 1)
 		//sc, data, _ := io.ParseDataNL(filename)

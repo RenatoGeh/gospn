@@ -43,19 +43,21 @@ various learning algorithms present in literature.
   - Generative gradient descent
   - SPN derivatives
   - Support for `.arff` dataset format (discrete variables for now)
+  - Poon-Domingos deep structure
 
 **Under development**
 
- - Poon-Domingos deep structure
+- Testing performance on Poon-Domingos' deep structure using hard
+  generative gradient descent.
+- Dennis-Ventura clustering structural learning algorithm
+    * *Learning the Architecture of Sum-Product Networks Using Clustering
+     on Variables*, A. Dennis & D. Ventura, NIPS 25 (2012)
+    * [pdf](http://papers.nips.cc/paper/4544-learning-the-architecture-of-sum-product-networks-using-clustering-on-variables.pdf)
 
 **To do (high priority)**
 
 - Generative EM
 - EM clustering
-- Dennis-Ventura clustering structural learning algorithm
-    * *Learning the Architecture of Sum-Product Networks Using Clustering
-     on Variables*, A. Dennis & D. Ventura, NIPS 25 (2012)
-    * [pdf](http://papers.nips.cc/paper/4544-learning-the-architecture-of-sum-product-networks-using-clustering-on-variables.pdf)
 - Mauro-Vergari structural learning algorithm
     * *Simplifying, Regularizing and Strengthening Sum-Product Network
     Structure Learning*, A. Vergari & N. Mauro & F. Esposito, ECMLPKDD

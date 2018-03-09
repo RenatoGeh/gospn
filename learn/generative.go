@@ -188,7 +188,7 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 4; _l++ {
+	for _l := 0; _l < 5; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)

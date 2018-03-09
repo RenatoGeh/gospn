@@ -1,4 +1,4 @@
-package learn
+package poon
 
 import (
 	"fmt"
@@ -14,8 +14,8 @@ func subRects(w, h int) int {
 	return w * (w + 1) * h * (h + 1) / 4
 }
 
-func TestPoonEncoding(t *testing.T) {
-	fmt.Println("PoonCodingTest")
+func TestEncoding(t *testing.T) {
+	fmt.Println("PoonEncodingTest")
 	w, h := sys.Width, sys.Height
 	n := w * h
 	var conf int

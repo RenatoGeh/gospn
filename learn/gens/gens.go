@@ -1,8 +1,9 @@
-package learn
+package gens
 
 import (
 	"sort"
 
+	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils"
@@ -10,19 +11,19 @@ import (
 	"github.com/RenatoGeh/gospn/utils/indep"
 )
 
-// BindedGens is a binded version of Gens.
-func BindedGens(kclusters int, pval, eps float64, mp int) LearnFunc {
-	return func(sc map[int]Variable, data spn.Dataset) spn.SPN {
-		return Gens(sc, data, kclusters, pval, eps, mp)
+// Binded is a binded version of Gens.
+func Binded(kclusters int, pval, eps float64, mp int) learn.LearnFunc {
+	return func(sc map[int]learn.Variable, data spn.Dataset) spn.SPN {
+		return Learn(sc, data, kclusters, pval, eps, mp)
 	}
 }
 
-// Gens Learning Algorithm
+// Learn runs the Gens Learning Algorithm
 // Based on the article
 //	Learning the Structure of Sum Product Networks
 //	Robert Gens and Pedro Domingos
 //	International Conference on Machine Learning 30 (ICML 2013)
-func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
+func Learn(sc map[int]learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
 	n := len(sc)
 
 	sys.Printf("Sample size: %d, scope size: %d\n", len(data), n)
@@ -34,7 +35,7 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 		// m number of instantiations.
 		m := len(data)
 		// pr is the univariate probability distribution.
-		var tv *Variable
+		var tv *learn.Variable
 		for _, v := range sc {
 			tv = &v
 		}
@@ -107,15 +108,15 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 				}
 			}
 			// Create new scope with new variables.
-			nsc := make(map[int]Variable)
+			nsc := make(map[int]learn.Variable)
 			for j := 0; j < s; j++ {
 				t := (*kset)[i][j]
-				nsc[t] = Variable{t, sc[t].Categories, ""}
+				nsc[t] = learn.Variable{t, sc[t].Categories, ""}
 			}
 			//sys.Printf("LENGTH: %d\n", len(tdata))
 			//sys.Println("Product node created. Recursing...")
 			// Adds the recursive calls as children of this new product node.
-			prod.AddChild(Gens(nsc, tdata, kclusters, pval, eps, mp))
+			prod.AddChild(Learn(nsc, tdata, kclusters, pval, eps, mp))
 		}
 		return prod
 	}
@@ -201,21 +202,21 @@ func Gens(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps floa
 			l++
 		}
 
-		nsc := make(map[int]Variable)
+		nsc := make(map[int]learn.Variable)
 		for k, v := range sc {
 			nsc[k] = v
 		}
 
 		//sys.Println("Created new sum node child. Recursing...")
-		sum.AddChildW(Gens(nsc, ndata, kclusters, pval, eps, mp), float64(ni)/float64(len(data)))
+		sum.AddChildW(Learn(nsc, ndata, kclusters, pval, eps, mp), float64(ni)/float64(len(data)))
 	}
 
 	clusters = nil
 	return sum
 }
 
-// GensGauss uses Gaussians instead of Multinomials.
-func GensGauss(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
+// LearnGauss uses Gaussians instead of Multinomials.
+func LearnGauss(sc map[int]learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
 	n := len(sc)
 
 	sys.Printf("Sample size: %d, scope size: %d\n", len(data), n)
@@ -227,7 +228,7 @@ func GensGauss(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps
 		// m number of instantiations.
 		m := len(data)
 		// pr is the univariate probability distribution.
-		var tv *Variable
+		var tv *learn.Variable
 		for _, v := range sc {
 			tv = &v
 		}
@@ -300,15 +301,15 @@ func GensGauss(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps
 				}
 			}
 			// Create new scope with new variables.
-			nsc := make(map[int]Variable)
+			nsc := make(map[int]learn.Variable)
 			for j := 0; j < s; j++ {
 				t := (*kset)[i][j]
-				nsc[t] = Variable{t, sc[t].Categories, ""}
+				nsc[t] = learn.Variable{t, sc[t].Categories, ""}
 			}
 			//sys.Printf("LENGTH: %d\n", len(tdata))
 			//sys.Println("Product node created. Recursing...")
 			// Adds the recursive calls as children of this new product node.
-			prod.AddChild(GensGauss(nsc, tdata, kclusters, pval, eps, mp))
+			prod.AddChild(LearnGauss(nsc, tdata, kclusters, pval, eps, mp))
 		}
 		return prod
 	}
@@ -394,13 +395,13 @@ func GensGauss(sc map[int]Variable, data []map[int]int, kclusters int, pval, eps
 			l++
 		}
 
-		nsc := make(map[int]Variable)
+		nsc := make(map[int]learn.Variable)
 		for k, v := range sc {
 			nsc[k] = v
 		}
 
 		//sys.Println("Created new sum node child. Recursing...")
-		sum.AddChildW(GensGauss(nsc, ndata, kclusters, pval, eps, mp), float64(ni)/float64(len(data)))
+		sum.AddChildW(LearnGauss(nsc, ndata, kclusters, pval, eps, mp), float64(ni)/float64(len(data)))
 	}
 
 	clusters = nil

@@ -5,6 +5,7 @@ import (
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/io"
 	"github.com/RenatoGeh/gospn/learn"
+	"github.com/RenatoGeh/gospn/learn/poon"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
@@ -207,7 +208,7 @@ func ImgTest(filename string, m, g, r int, eta, eps float64) {
 			}
 		}
 		//S := spn.NormalizeSPN(learn.PoonStructure(D, m, r))
-		S := learn.PoonGD(tD, m, g, r, eta, eps)
+		S := poon.LearnGD(tD, m, g, r, eta, eps)
 		//spn.NormalizeSPN(S)
 		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height, r)
 		fmt.Printf("len(I)=%d, len(cmpl)=%d, len(half)=%d\n", len(I), len(cmpl), len(half))

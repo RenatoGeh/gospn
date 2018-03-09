@@ -1,13 +1,13 @@
-package learn
+package poon
 
 import (
 	"fmt"
 	"github.com/RenatoGeh/gospn/common"
+	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
 	"github.com/RenatoGeh/gospn/utils"
-	"gonum.org/v1/gonum/floats"
 	"math"
 	"sort"
 )
@@ -96,44 +96,6 @@ func createRegion(m, r int) *region {
 	return newRegion(regionId, z, r)
 }
 
-func partitionQuantiles(X []int, m int) [][]float64 {
-	k := len(X)
-	var l int
-	if k/m <= 1 {
-		l = 1
-	} else {
-		l = int(floats.Round(float64(k)/float64(m), 0))
-	}
-	P := make([][]float64, m)
-	for i := 0; i < m; i++ {
-		q := (i + 1) * l
-		if i == m-1 {
-			q = k
-		}
-		var Q []int
-		for j := i * l; j < q && j < k; j++ {
-			Q = append(Q, X[j])
-		}
-		// Compute mean and standard deviation.
-		var mu, sigma float64
-		n := float64(len(Q))
-		for _, x := range Q {
-			mu += float64(x)
-		}
-		mu /= n
-		for _, x := range Q {
-			d := float64(x) - mu
-			sigma += d * d
-		}
-		sigma = math.Sqrt(sigma / n)
-		if sigma == 0 {
-			sigma = 1
-		}
-		P[i] = []float64{mu, sigma, n}
-	}
-	return P
-}
-
 func createUnitRegion(x, y, n int, D spn.Dataset) *region {
 	p := x + y*w
 	V := make([]int, len(D))
@@ -148,7 +110,7 @@ func createUnitRegion(x, y, n int, D spn.Dataset) *region {
 
 	sort.Ints(V)
 	//sys.Printf("p: %d\n", p)
-	Q := partitionQuantiles(V, n)
+	Q := utils.PartitionQuantiles(V, n)
 	S := make([]spn.SPN, n)
 	//s := spn.NewSum()
 	for i, q := range Q {
@@ -607,13 +569,13 @@ func mapInference(m, g, r int, I spn.VarSet, L map[uint64]*region, st *spn.Store
 }
 
 func maxThroughData(D spn.Dataset, m, g, r int, L map[uint64]*region) spn.SPN {
-	const batchSize = 1
+	const batchSize = 10
 	st := spn.NewStorer()
 	st.NewTicket()
 	st.NewTicket()
-	n := len(D) / batchSize
+	n := int(math.Ceil(float64(len(D)) / float64(batchSize)))
 	E, P, Q := make(map[string]bool), make(map[spn.SPN]*decomp), make(map[string]spn.SPN)
-	for q := 0; q < 1; q++ {
+	for q := 0; q < 2; q++ {
 		for i := 0; i < n; i++ {
 			l, u := i*batchSize, int(math.Min(float64((i+1)*batchSize), float64(len(D))))
 			sys.Printf("%d: %d, %d\n", i, l, u)
@@ -631,7 +593,7 @@ func maxThroughData(D spn.Dataset, m, g, r int, L map[uint64]*region) spn.SPN {
 	return L[k].inner[0]
 }
 
-func PoonStructure(D spn.Dataset, m, g, r int) spn.SPN {
+func Structure(D spn.Dataset, m, g, r int) spn.SPN {
 	w, h, max = sys.Width, sys.Height, sys.Max
 	L := createRegions(D, m, g, r)
 	S := maxThroughData(D, m, g, r, L)
@@ -639,8 +601,8 @@ func PoonStructure(D spn.Dataset, m, g, r int) spn.SPN {
 	return S
 }
 
-func PoonTest(D spn.Dataset, I spn.VarSet, m, g, r int) spn.SPN {
-	S := PoonStructure(D, m, g, r)
+func Test(D spn.Dataset, I spn.VarSet, m, g, r int) spn.SPN {
+	S := Structure(D, m, g, r)
 	var sums, prods, leaves int
 	test.DoBFS(S, func(s spn.SPN) bool {
 		t := s.Type()
@@ -657,29 +619,14 @@ func PoonTest(D spn.Dataset, I spn.VarSet, m, g, r int) spn.SPN {
 	return S
 }
 
-func BindedPoonGD(m, g, r int, eta, eps float64) LearnFunc {
-	return func(_ map[int]Variable, data spn.Dataset) spn.SPN {
-		return PoonGD(data, m, g, r, eta, eps)
+func BindedGD(m, g, r int, eta, eps float64) learn.LearnFunc {
+	return func(_ map[int]learn.Variable, data spn.Dataset) spn.SPN {
+		return LearnGD(data, m, g, r, eta, eps)
 	}
 }
 
-func PoonGD(D spn.Dataset, m, g, r int, eta, eps float64) spn.SPN {
-	S := PoonStructure(D, m, g, r)
-
-	//spn.ComputeScope(S)
-	//chs := make(map[spn.SPN]bool)
-	//for _, c := range S.Ch() {
-	//for _, k := range c.Ch() {
-	//chs[k] = true
-	//}
-	//}
-	//var i int
-	//for c, _ := range chs {
-	//sc := c.Sc()
-	//sys.Printf("c[%d] has scope (size %d):\n  %v\n", i, len(sc), sc)
-	//i++
-	//}
-	//sys.Printf("Number of children: %d\n", i)
+func LearnGD(D spn.Dataset, m, g, r int, eta, eps float64) spn.SPN {
+	S := Structure(D, m, g, r)
 
 	sys.Println("Counting nodes...")
 	spn.NormalizeSPN(S)
@@ -696,13 +643,7 @@ func PoonGD(D spn.Dataset, m, g, r int, eta, eps float64) spn.SPN {
 		return true
 	}, nil)
 	sys.Printf("Sums: %d, Prods: %d, Leaves: %d\nTotal:%d\n", sums, prods, leaves, sums+prods+leaves)
-	//h := spn.ComputeHeight(S)
-	//sys.Printf("Height: %d\n", h)
-	//sys.Printf("Complete? %v, Decomposable? %v\n", spn.Complete(S), spn.Decomposable(S))
-	//sys.Println("Maximizing the likelihood through gradient descent...")
-	//spn.PrintSPN(S, "test_before.spn")
-	//spn.NormalizeSPN(S)
-	GenerativeHardBGD(S, eta, eps, D, nil, true, 50)
+	learn.GenerativeHardBGD(S, eta, eps, D, nil, true, 50)
 	//spn.NormalizeSPN(S)
 	spn.PrintSPN(S, "test_after.spn")
 	return S
