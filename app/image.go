@@ -197,7 +197,7 @@ func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
 
 func ImgTest(filename string, m, g, r int, eta, eps float64) {
 	_, D, _ := io.ParseDataNL(filename)
-	for i := range D {
+	for i := 1; i < len(D); i++ {
 		I := D[i]
 		tD := make(spn.Dataset, len(D)-1)
 		var q int

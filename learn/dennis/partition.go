@@ -24,3 +24,5 @@ func (p *partition) translate(n int) []*spn.Product {
 	}
 	return p.rep
 }
+
+func (p *partition) Type() string { return "partition" }

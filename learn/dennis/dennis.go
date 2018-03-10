@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-func buildRegionGraph(D spn.Dataset, sc map[int]learn.Variable, k int, t float64) {
+func buildRegionGraph(D spn.Dataset, sc map[int]learn.Variable, k int, t float64) *graph {
 	M := learn.DataToMatrix(D)
 	C := cluster.KMeans(k, M)
 	G := newGraph(sc)
@@ -15,6 +15,7 @@ func buildRegionGraph(D spn.Dataset, sc map[int]learn.Variable, k int, t float64
 	for i := 0; i < k; i++ {
 		expandRegionGraph(G, n, C[i], t)
 	}
+	return G
 }
 
 func expandRegionGraph(G *graph, n *region, C map[int][]int, t float64) {
@@ -83,4 +84,55 @@ func partitionScope(r *region, C map[int][]int) (scope, scope) {
 		s2[k] = sn[k]
 	}
 	return s1, s2
+}
+
+func buildSPN(g *graph, D spn.Dataset, m int) spn.SPN {
+	// Take the post-order first, since we go top-down.
+	R := g.postorder()
+	for _, r := range R {
+		var N []spn.SPN
+		if r == g.root {
+			N = []spn.SPN{spn.NewSum()}
+		} else {
+			N = r.translate(D, m)
+		}
+		P := r.ch
+		// If this for block executes, then we know that N is a set of sum nodes.
+		for _, p := range P {
+			C := p.ch
+			// Assume |C|=2, since we partition scope into two.
+			O := p.translate(m * m)
+			w := 1.0 / float64(len(O))
+			// Add sum nodes from parent region to each product node in partition P.
+			for _, n := range N {
+				for _, o := range O {
+					s := n.(*spn.Sum)
+					s.AddChildW(o, w)
+				}
+			}
+			// Add every combination of each child of P as children of each product node created.
+			// We assume |C|=2 again, since we only partition the scope in two.
+			var i int
+			S1, S2 := C[0].rep, C[1].rep
+			for _, c1 := range S1 {
+				for _, c2 := range S2 {
+					O[i].AddChild(c1)
+					O[i].AddChild(c2)
+					i++
+				}
+			}
+		}
+	}
+	return g.root.rep[0]
+}
+
+func Structure(D spn.Dataset, sc map[int]learn.Variable, k, m int, t float64) spn.SPN {
+	G := buildRegionGraph(D, sc, k, t)
+	S := buildSPN(G, D, m)
+	return S
+}
+
+func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m int, t, eta, eps float64, norm bool) spn.SPN {
+	S := Structure(D, sc, k, m, t)
+	return learn.GenerativeHardGD(S, eta, eps, D, nil, norm)
 }

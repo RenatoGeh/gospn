@@ -40,3 +40,5 @@ func (r *region) translate(D spn.Dataset, m int) []spn.SPN {
 	}
 	return r.rep
 }
+
+func (r *region) Type() string { return "region" }
