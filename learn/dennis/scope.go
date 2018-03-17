@@ -98,6 +98,9 @@ func (s scope) equal(t scope) bool {
 // This definition follows from the fact that p=1 if and only if S=T.
 // In this function, we let argument d=1-epsilon.
 func (s scope) similarTo(r, t scope, d float64) bool {
+	if len(s) == 0 || len(t) == 0 {
+		return false
+	}
 	p1 := float64(s.lenIntersect(r)) / float64(s.lenUnion(r))
 	p2 := float64(s.lenIntersect(t)) / float64(s.lenUnion(t))
 	return math.Max(p1, p2) > d

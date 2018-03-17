@@ -139,3 +139,26 @@ func TopSortDFS(G SPN, C common.Collection) common.Collection {
 
 	return C
 }
+
+func postOrderRec(n SPN, V map[SPN]bool, C common.Collection) {
+	ch := n.Ch()
+	if len(ch) != 0 {
+		for _, c := range ch {
+			if !V[c] {
+				V[c] = true
+				postOrderRec(c, V, C)
+			}
+		}
+	}
+	C.Give(n)
+}
+
+func PostOrder(G SPN, C common.Collection) common.Collection {
+	if C == nil {
+		C = &common.Queue{}
+	}
+	V := make(map[SPN]bool)
+	V[G] = true
+	postOrderRec(G, V, C)
+	return C
+}

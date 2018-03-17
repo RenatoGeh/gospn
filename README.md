@@ -44,17 +44,32 @@ various learning algorithms present in literature.
   - SPN derivatives
   - Support for `.arff` dataset format (discrete variables for now)
   - Poon-Domingos deep structure
-
-**Under development**
-
-- Testing performance on Poon-Domingos' deep structure using hard
-  generative gradient descent.
 - Dennis-Ventura clustering structural learning algorithm
     * *Learning the Architecture of Sum-Product Networks Using Clustering
      on Variables*, A. Dennis & D. Ventura, NIPS 25 (2012)
     * [pdf](http://papers.nips.cc/paper/4544-learning-the-architecture-of-sum-product-networks-using-clustering-on-variables.pdf)
 
+
+
+**Under development**
+
+- Testing performance on Poon-Domingos' deep structure using hard
+  generative gradient descent.
+- Testing performance on Dennis-Ventura's.
+
+
 **To do (high priority)**
+
+- EM and GD discriminative learning
+  * *Discriminative Learning of Sum-Product Networks*, R. Gens & P.
+    Domingos, NIPS 25 (2012)
+  * [pdf](http://spn.cs.washington.edu/papers/dspn.pdf)
+- Language modelling SPN
+  * *Language Modelling with Sum-Product Networks*, Cheng *et al*,
+  INTERSPEECH 2014
+  * [pdf](http://spn.cs.washington.edu/papers/is14.pdf)
+
+**To do (low priority)**
 
 - Generative EM
 - EM clustering
@@ -64,16 +79,6 @@ various learning algorithms present in literature.
     2015
     * [pdf](http://www.di.uniba.it/~vergari/papers/Simplifying,%20Regularizing%20and%20Strengthening%20Sum-Product%20Network%20Structure%20Learning.pdf)
 
-**To do (low priority)**
-
- - EM and GD discriminative learning
-    * *Discriminative Learning of Sum-Product Networks*, R. Gens & P.
-      Domingos, NIPS 25 (2012)
-    * [pdf](http://spn.cs.washington.edu/papers/dspn.pdf)
- - Language modelling SPN
-    * *Language Modelling with Sum-Product Networks*, Cheng *et al*,
-    INTERSPEECH 2014
-    * [pdf](http://spn.cs.washington.edu/papers/is14.pdf)
  - Support for `.csv` dataset file format.
 
 ### Branches

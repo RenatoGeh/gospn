@@ -22,12 +22,13 @@ func (r *region) add(p *partition) {
 }
 
 func (r *region) translate(D spn.Dataset, m int) []spn.SPN {
-	var v int
-	for k, _ := range r.sc {
-		v = k
-	}
 	r.rep = make([]spn.SPN, m)
 	if len(r.sc) == 1 {
+		var v int
+		for k, _ := range r.sc {
+			v = k
+			break
+		}
 		X := learn.ExtractInstance(v, D)
 		Q := utils.PartitionQuantiles(X, m)
 		for i, q := range Q {

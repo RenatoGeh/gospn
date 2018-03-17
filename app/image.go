@@ -5,7 +5,8 @@ import (
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/io"
 	"github.com/RenatoGeh/gospn/learn"
-	"github.com/RenatoGeh/gospn/learn/poon"
+	//"github.com/RenatoGeh/gospn/learn/poon"
+	"github.com/RenatoGeh/gospn/learn/dennis"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
@@ -196,8 +197,8 @@ func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
 }
 
 func ImgTest(filename string, m, g, r int, eta, eps float64) {
-	_, D, _ := io.ParseDataNL(filename)
-	for i := 1; i < len(D); i++ {
+	sc, D, _ := io.ParseDataNL(filename)
+	for i := 0; i < len(D); i++ {
 		I := D[i]
 		tD := make(spn.Dataset, len(D)-1)
 		var q int
@@ -208,7 +209,8 @@ func ImgTest(filename string, m, g, r int, eta, eps float64) {
 			}
 		}
 		//S := spn.NormalizeSPN(learn.PoonStructure(D, m, r))
-		S := poon.LearnGD(tD, m, g, r, eta, eps)
+		//S := poon.LearnGD(tD, m, g, r, eta, eps)
+		S := dennis.LearnGD(D, sc, 2, m, 0.95, eta, eps, true)
 		//spn.NormalizeSPN(S)
 		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height, r)
 		fmt.Printf("len(I)=%d, len(cmpl)=%d, len(half)=%d\n", len(I), len(cmpl), len(half))
