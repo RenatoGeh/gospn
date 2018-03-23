@@ -3,6 +3,7 @@ package cluster
 import (
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
+	"math"
 )
 
 func kMeansInsert(which int, means map[int][]int, clusters []map[int][]int, v []int) {
@@ -34,9 +35,10 @@ func kMeansRemove(which int, means map[int][]int, clusters []map[int][]int, v []
 
 func KMeans(k int, data [][]int) []map[int][]int {
 	n := len(data)
+	F := metrics.Hamming
 
 	// Initializes using the Forgy method.
-	//fmt.Println("Initializing K-means clustering via the Forgy method...")
+	//sys.Println("Initializing K-means clustering via the Forgy method...")
 	chkrnd := make(map[int]bool)
 	clusters := make([]map[int][]int, k)
 	means := make(map[int][]int, k)
@@ -67,18 +69,18 @@ func KMeans(k int, data [][]int) []map[int][]int {
 		kMeansInsert(i, means, clusters, data[r])
 	}
 
-	//fmt.Println("Starting K-means until convergence...")
+	//sys.Println("Starting K-means until convergence...")
 	nochange := 0
 	i := 0
 	for nochange < n {
 		min, which := len(data[i])+1, -1
 		if v, ok := chkdata[i]; ok {
 			which = v
-			min = metrics.Hamming(means[which], data[i])
+			min = F(means[which], data[i])
 		}
 		for j := 0; j < k; j++ {
 			if j != which {
-				t := metrics.Hamming(means[j], data[i])
+				t := F(means[j], data[i])
 				if t < min {
 					min, which = t, j
 				}
@@ -107,7 +109,7 @@ func KMeans(k int, data [][]int) []map[int][]int {
 		}
 		//fmt.Println("0:", means[0], "  1:", means[1])
 	}
-	//fmt.Println("Converged. Returning clusters...")
+	//sys.Println("Converged. Returning clusters...")
 	clusters = make([]map[int][]int, k)
 	for i = 0; i < k; i++ {
 		clusters[i] = make(map[int][]int)
@@ -117,4 +119,83 @@ func KMeans(k int, data [][]int) []map[int][]int {
 		copy(clusters[chkdata[i]][i], data[i])
 	}
 	return clusters
+}
+
+func KMeansF(k int, D [][]float64, F metrics.MetricF) []map[int][]float64 {
+	if len(D) < k {
+		panic("Length of dataset is smaller than number of clusters!")
+	}
+
+	n := len(D[0])            // Instance dimension size.
+	M := make([][]float64, k) // Cluster means (centroids at each cluster).
+	for i := range M {
+		M[i] = make([]float64, n)
+	}
+	R := make(map[int]bool)
+	m := len(D)
+	//sys.Println("Initialized through Forgy.")
+	//sys.Printf("%d\n", len(D))
+	// Forgy initialization.
+	for i := 0; i < k; i++ {
+		r := sys.Random.Intn(m)
+		for _, e := R[r]; e; _, e = R[r] {
+			r = sys.Random.Intn(m)
+		}
+		R[r] = true
+		copy(M[i], D[r])
+	}
+
+	C := make([]int, m) // Maps an instance to a cluster.
+	S := make([]int, k) // Number of instances in a cluster.
+	//sys.Println("Running until convergence...")
+	// Continue until there is no change (converges). If c = false, there was no change.
+	for c := true; c; {
+		c = false
+		// Assignment step.
+		for i, d := range D {
+			kmin, min := -1, math.Inf(1)
+			for j := 0; j < k; j++ {
+				u := F(d, M[j])
+				if u < min {
+					kmin, min = j, u
+				}
+			}
+			if C[i] != kmin {
+				c = true
+				C[i] = kmin
+			}
+		}
+		// Update step.
+		for i := range M {
+			for j := 0; j < n; j++ {
+				M[i][j] = 0
+			}
+			S[i] = 0
+		}
+		for i := 0; i < m; i++ {
+			p := C[i] // Which cluster instance i belongs to.
+			S[p]++
+			for j := 0; j < n; j++ {
+				M[p][j] += D[i][j]
+			}
+		}
+		for i := 0; i < k; i++ {
+			for j := 0; j < n; j++ {
+				M[i][j] /= float64(S[i])
+			}
+		}
+	}
+
+	//sys.Println("Converged. Converting to output format...")
+	// Convert to output format.
+	O := make([]map[int][]float64, k)
+	for i := range O {
+		O[i] = make(map[int][]float64)
+	}
+	for i := range D {
+		c := C[i]
+		O[c][i] = make([]float64, n)
+		copy(O[c][i], D[i])
+	}
+	return O
 }
