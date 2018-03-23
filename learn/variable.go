@@ -43,3 +43,23 @@ func DataToMatrix(D spn.Dataset) [][]int {
 	}
 	return M
 }
+
+// DataToMatrixF returns a Dataset's matrix form. Assumes a consistent dataset.
+func DataToMatrixF(D spn.Dataset) [][]float64 {
+	if D == nil || D[0] == nil {
+		return nil
+	}
+	n := len(D)
+	// Assumption: D is consistent. A dataset D is consistent if for every pair of instances (I, J)
+	// of D, Sc(I)=Sc(J). A direct implication of consistency is that len(D[i])=len(D[j]) for any
+	// i!=j.
+	m := len(D[0])
+	M := make([][]float64, n)
+	for i, I := range D {
+		M[i] = make([]float64, m)
+		for k, v := range I {
+			M[i][k] = float64(v)
+		}
+	}
+	return M
+}

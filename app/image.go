@@ -11,6 +11,7 @@ import (
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/test"
 	"github.com/RenatoGeh/gospn/utils"
+	"math"
 	"runtime"
 	"sync"
 )
@@ -127,7 +128,7 @@ func ImgClassify(lf learn.LearnFunc, filename string, p float64, rseed int64) (i
 	return corrects, lines
 }
 
-func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h, r int) (spn.VarSet, spn.VarSet) {
+func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, spn.VarSet) {
 	cmpl, half := make(spn.VarSet), make(spn.VarSet)
 	var criteria func(int) bool
 
@@ -156,12 +157,8 @@ func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h, r int) (spn.VarSe
 		}
 	}
 
-	//cmpl, _ = s.ArgMax(half)
 	st := spn.NewStorer()
 	_, tk, cmpl := spn.StoreMAP(s, half, -1, st)
-	//if r > 1 {
-	//cmpl = learn.PoonUnwrap(cmpl, r, sys.Width)
-	//}
 	st.Delete(tk)
 
 	for k := range half {
@@ -196,11 +193,57 @@ func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
 	return mpe
 }
 
+func completeHalfExact(S spn.SPN, E spn.VarSet) spn.VarSet {
+	st := spn.NewStorer()
+	jtk, etk := st.NewTicket(), st.NewTicket()
+	spn.StoreInference(S, E, etk, st)
+	pe, _ := st.Single(etk, S) // Probability of evidence: P(E).
+	Y := make(spn.VarSet)      // Result of argmax_X P(X|E), where Y = X \union E.
+	for k, v := range Y {
+		Y[k] = v
+	}
+	w, h := sys.Width/2, sys.Height
+	for x := 0; x < w; x++ {
+		for y := 0; y < h; y++ {
+			p := x + y*sys.Width
+			J := make(spn.VarSet) // Joint X=x \union E.
+			for k, v := range E {
+				J[k] = v
+			}
+			imax, max := -1, math.Inf(-1)
+			for v := 0; v < sys.Max; v++ {
+				J[p] = v
+				spn.StoreInference(S, J, jtk, st)
+				pj, _ := st.Single(jtk, S) // Joint probability P(X, E).
+				pc := pj / pe              // Conditional probability P(X | E) = P(X, E)/P(E).
+				if pc > max {
+					max, imax = pc, v
+				}
+				st.Reset(jtk)
+			}
+			Y[p] = imax
+			sys.Printf("Completed pixel: (%d, %d)=%d with value %d.\n", x, y, p, imax)
+		}
+	}
+	return Y
+}
+
 func ImgTest(filename string, m, g, r int, eta, eps float64) {
+	//_, D, _ := io.ParseDataNL(filename)
 	sc, D, _ := io.ParseDataNL(filename)
 	for i := 0; i < len(D); i++ {
 		I := D[i]
 		tD := make(spn.Dataset, len(D)-1)
+		//tD := make(spn.Dataset, 9)
+		//var q int
+		//for j := 0; j < 10; j++ {
+		//if j != i%10 {
+		//k := j + (i/10)*10
+		//sys.Printf("  > k = %d\n", k)
+		//tD[q] = D[k]
+		//q++
+		//}
+		//}
 		var q int
 		for j := range D {
 			if i != j {
@@ -210,9 +253,9 @@ func ImgTest(filename string, m, g, r int, eta, eps float64) {
 		}
 		//S := spn.NormalizeSPN(learn.PoonStructure(D, m, r))
 		//S := poon.LearnGD(tD, m, g, r, eta, eps)
-		S := dennis.LearnGD(D, sc, 2, m, 0.95, eta, eps, true)
+		S := dennis.LearnGD(tD, sc, 2, m, 0.95, eta, eps, true)
 		//spn.NormalizeSPN(S)
-		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height, r)
+		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height)
 		fmt.Printf("len(I)=%d, len(cmpl)=%d, len(half)=%d\n", len(I), len(cmpl), len(half))
 		set := make(spn.VarSet)
 		sys.Println("Left half")
@@ -234,6 +277,8 @@ func ImgTest(filename string, m, g, r int, eta, eps float64) {
 		fmt.Printf("len(set)=%d\n", len(set))
 		io.VarSetToPGM(fmt.Sprintf("right_%d.pgm", i), set, sys.Width/2, sys.Height, sys.Max-1)
 		io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d.pgm", i), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max-1)
+		C := completeHalfExact(S, set)
+		io.VarSetToPGM(fmt.Sprintf("cnd_cmpl_%d.pgm", i), C, sys.Width, sys.Height, sys.Max-1)
 	}
 }
 
@@ -294,7 +339,7 @@ func ImgCompletion(lf learn.LearnFunc, filename string, concurrents int) {
 
 			for _, v := range io.Orientations {
 				fmt.Printf("P-%d: Drawing %s image completion for instance %d.\n", id, v, id)
-				cmpl, half := halfImg(s, chosen, v, sys.Width, sys.Height, -1)
+				cmpl, half := halfImg(s, chosen, v, sys.Width, sys.Height)
 				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, sys.Width,
 					sys.Height, sys.Max-1)
 				cmpl, half = nil, nil

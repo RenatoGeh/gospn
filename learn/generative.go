@@ -188,7 +188,7 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 5; _l++ {
+	for _l := 0; _l < 10; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -283,7 +283,7 @@ func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 				W := s.(*spn.Sum).Weights()
 				for i, d := range v {
 					w := W[i]
-					delta := eta * math.Log(d+1) / w
+					delta := eta * d / w
 					W[i] = w + delta
 					//pW := s.(*spn.Sum).Weights()
 					//sys.Printf("Ch: %d/%d, pre-W[%d]=%.10f, d: %.10f, eta*d/w: %.10f, post-W[%d]=%.10f\n", i, len(ch)-1, i, w, d, delta, i, pW[i])

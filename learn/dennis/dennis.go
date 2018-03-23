@@ -5,6 +5,7 @@ import (
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils/cluster"
+	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
 	"sort"
 )
 
@@ -26,7 +27,7 @@ func transpose(C map[int][]int) map[int][]int {
 
 func buildRegionGraph(D spn.Dataset, sc map[int]learn.Variable, k int, t float64) *graph {
 	M := learn.DataToMatrix(D)
-	C := cluster.KMeans(k, M)
+	C := cluster.KMedoid(k, M)
 	G := newGraph(sc)
 	n := G.root
 	for i := 0; i < k; i++ {
@@ -39,18 +40,23 @@ func buildRegionGraph(D spn.Dataset, sc map[int]learn.Variable, k int, t float64
 
 func expandRegionGraph(G *graph, n *region, C map[int][]int, t float64) {
 	sn := n.sc
+	//sys.Printf("Partitioning scope of size %d...\n", len(sn))
 	s1, s2 := partitionScope(sn, C)
 	S := G.allScopes()
+	//sys.Println("Trying to find similar scopes to S1 and S2...")
 	for _, s := range S {
 		if s.subsetOf(sn) && !s.equal(sn) {
 			if s.similarTo(s1, s2, t) {
 				s1, s2 = s, sn.minus(s)
+				//sys.Printf("  Found similar scopes of size: %d, %d\n", len(s1), len(s2))
 				break
 			}
 		}
 	}
+	//sys.Println("Validating regions from S1 and S2...")
 	n1, n2 := G.validateRegion(s1), G.validateRegion(s2)
 	if !G.existsPartition(n, n1, n2) {
+		//sys.Println("No existing partition found. Creating new one...")
 		p := newPartition()
 		n.add(p)
 		p.add(n1)
@@ -58,24 +64,30 @@ func expandRegionGraph(G *graph, n *region, C map[int][]int, t float64) {
 		G.registerPartition(p, n, n1, n2)
 	}
 	if !S.contains(s1) && len(s1) > 1 {
+		//sys.Println("Expanding on S1...")
 		expandRegionGraph(G, n1, C, t)
 	}
 	if !S.contains(s2) && len(s2) > 1 {
+		//sys.Println("Expanding on S2...")
 		expandRegionGraph(G, n2, C, t)
 	}
 }
 
 // Already transposes C and excludes any variables that are not present in s.
-func clusterToMatrix(C map[int][]int, S scope) ([][]int, map[int]int) {
+func clusterToMatrix(C map[int][]int, S scope) ([][]float64, map[int]int) {
 	// S is always a subset of Sc(C), since C is complete. So we must restrict C wrt S and return a
 	// matrix that has scope S.
-	M := make([][]int, len(S))
+	M := make([][]float64, len(S))
 	V := make(map[int]int)
 	var i int
 	for k, v := range C {
 		if _, e := S[k]; e {
-			M[i] = make([]int, len(v))
-			copy(M[i], v)
+			m := len(v)
+			M[i] = make([]float64, m)
+			for j := 0; j < m; j++ {
+				M[i][j] = float64(v[j])
+			}
+			//copy(M[i], v)
 			V[i] = k
 			i++
 		}
@@ -85,8 +97,10 @@ func clusterToMatrix(C map[int][]int, S scope) ([][]int, map[int]int) {
 
 func partitionScope(sn scope, C map[int][]int) (scope, scope) {
 	M, V := clusterToMatrix(C, sn)
-	//sys.Printf("%d, %d\n", len(sn), len(M))
-	S := cluster.KMeans(2, M)
+	sys.Printf("%d, %d\n", len(sn), len(M))
+	sys.Println("Running k-means on variables...")
+	S := cluster.KMeansF(2, M, metrics.EuclideanF)
+	//sys.Println("Finished k-means.")
 	//sys.Printf("  %d, %d, %d, %d\n", len(S[0]), len(S[1]), len(S[0])+len(S[1]), len(sn))
 	s1, s2 := make(scope), make(scope)
 	// Cluster/Partition 1
@@ -103,6 +117,7 @@ func partitionScope(sn scope, C map[int][]int) (scope, scope) {
 		//}
 		s2[V[k]] = sn[V[k]]
 	}
+	sys.Printf("Split scope into two partitions of size: %d, %d...\n", len(s1), len(s2))
 	return s1, s2
 }
 
