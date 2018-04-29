@@ -25,14 +25,31 @@ func transpose(C map[int][]int) map[int][]int {
 	return V
 }
 
+func dataToCluster(D spn.Dataset) map[int][]int {
+	C := make(map[int][]int)
+	for i, I := range D {
+		C[i] = make([]int, len(I))
+		for j, v := range I {
+			C[i][j] = v
+		}
+	}
+	return C
+}
+
 func buildRegionGraph(D spn.Dataset, sc map[int]learn.Variable, k int, t float64) *graph {
-	M := learn.DataToMatrix(D)
-	C := cluster.KMedoid(k, M)
 	G := newGraph(sc)
 	n := G.root
-	for i := 0; i < k; i++ {
-		sys.Printf("Expanding region graph on cluster %d...\n", i)
-		P := transpose(C[i])
+	if k > 1 {
+		M := learn.DataToMatrix(D)
+		C := cluster.KMedoid(k, M)
+		for i := 0; i < k; i++ {
+			sys.Printf("Expanding region graph on cluster %d...\n", i)
+			P := transpose(C[i])
+			expandRegionGraph(G, n, P, t)
+		}
+	} else {
+		C := dataToCluster(D)
+		P := transpose(C)
 		expandRegionGraph(G, n, P, t)
 	}
 	return G
@@ -121,7 +138,7 @@ func partitionScope(sn scope, C map[int][]int) (scope, scope) {
 	return s1, s2
 }
 
-func buildSPN(g *graph, D spn.Dataset, m int) spn.SPN {
+func buildSPN(g *graph, D spn.Dataset, m, l int) spn.SPN {
 	// Take the post-order first, since we go top-down.
 	R := g.postorder()
 	for _, r := range R {
@@ -130,20 +147,22 @@ func buildSPN(g *graph, D spn.Dataset, m int) spn.SPN {
 			N = []spn.SPN{spn.NewSum()}
 			r.rep = N
 		} else {
-			N = r.translate(D, m)
+			N = r.translate(D, m, l)
 		}
 		P := r.ch
 		// If this for block executes, then we know that N is a set of sum nodes.
 		for _, p := range P {
 			C := p.ch
 			// Assume |C|=2, since we partition scope into two.
-			O := p.translate(m * m)
-			w := 1.0 / float64(len(O))
+			u, v := len(C[0].rep), len(C[1].rep)
+			O := p.translate(u * v)
+			//w := 1.0 / float64(len(O))
 			// Add sum nodes from parent region to each product node in partition P.
 			for _, n := range N {
 				s := n.(*spn.Sum)
 				for _, o := range O {
-					s.AddChildW(o, w)
+					//s.AddChildW(o, w)
+					s.AddChildW(o, float64(sys.Random.Intn(10)+1))
 				}
 			}
 			// Add every combination of each child of P as children of each product node created.
@@ -162,16 +181,17 @@ func buildSPN(g *graph, D spn.Dataset, m int) spn.SPN {
 	return g.root.rep[0]
 }
 
-func Structure(D spn.Dataset, sc map[int]learn.Variable, k, m int, t float64) spn.SPN {
+func Structure(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t float64) spn.SPN {
 	sys.Println("Building region graph...")
 	G := buildRegionGraph(D, sc, k, t)
 	sys.Println("Building SPN from region graph...")
-	S := buildSPN(G, D, m)
+	S := buildSPN(G, D, m, g)
+	spn.NormalizeSPN(S)
 	return S
 }
 
-func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m int, t, eta, eps float64, norm bool) spn.SPN {
-	S := Structure(D, sc, k, m, t)
+func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t, eta, eps float64, norm bool) spn.SPN {
+	S := Structure(D, sc, k, m, g, t)
 	var ns, np, nl int
 	spn.BreadthFirst(S, func(s spn.SPN) bool {
 		switch t := s.Type(); t {
@@ -185,5 +205,6 @@ func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m int, t, eta, eps flo
 		return true
 	})
 	sys.Printf("Sum: %d, Products: %d, Leaves: %d, Total: %d\n", ns, np, nl, ns+np+nl)
-	return learn.GenerativeHardBGD(S, eta, eps, D, nil, norm, 50)
+	return learn.GenerativeHardGD(S, eta, eps, D, nil, norm)
+	//return S
 }

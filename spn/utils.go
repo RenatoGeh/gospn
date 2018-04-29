@@ -388,50 +388,85 @@ func Decomposable(S SPN) bool {
 // children in case of ties. In this case, TraceMAP chooses the first child it finds to meet the
 // criteria.
 func TraceMAP(S SPN, I VarSet) map[SPN]int {
-	st := NewStorer()
-	_, itk, _ := StoreMAP(S, I, -1, st)
-	T, _ := st.Table(itk)
-	trace := make(map[SPN]int)
+	tab := make(map[SPN]float64)
+	P := make(map[SPN]int)
 
-	V := make(map[SPN]bool)
+	// Get topological order.
+	T := common.Queue{}
+	TopSortTarjan(S, &T)
+
+	// Find max values.
+	for !T.Empty() {
+		s := T.Dequeue().(SPN)
+		switch t := s.Type(); t {
+		case "leaf":
+			m := s.Max(I)
+			tab[s] = m
+		case "sum":
+			sum := s.(*Sum)
+			W := sum.Weights()
+			ch := s.Ch()
+			mv := math.Inf(-1)
+			for i, c := range ch {
+				v := tab[c]
+				u := math.Log(W[i]) + v
+				if u > mv {
+					mv = u
+				}
+			}
+			tab[s] = mv
+		case "product":
+			ch := s.Ch()
+			var v float64
+			for _, c := range ch {
+				cv := tab[c]
+				v += cv
+			}
+			tab[s] = v
+		}
+	}
+
 	Q := common.Queue{}
+	V := make(map[SPN]bool)
 	Q.Enqueue(S)
 	V[S] = true
 
 	for !Q.Empty() {
 		s := Q.Dequeue().(SPN)
-		ch := s.Ch()
 		switch t := s.Type(); t {
 		case "sum":
 			sum := s.(*Sum)
 			W := sum.Weights()
+			ch := s.Ch()
 			m := math.Inf(-1)
-			var mv []int
+			var mv []SPN
 			for i, c := range ch {
-				v, _ := T.Single(c)
+				v := tab[c]
 				u := math.Log(W[i]) + v
 				if u > m {
-					mv, m = []int{i}, u
+					mv, m = []SPN{c}, u
 				} else if u == m {
-					mv = append(mv, i)
+					mv = append(mv, c)
 				}
 			}
 			// Randomly break ties.
-			mvi := mv[sys.Random.Intn(len(mv))]
-			trace[s] = mvi
-			mvc := ch[mvi]
+			i := sys.Random.Intn(len(mv))
+			mvc := mv[i]
 			if mvc != nil && !V[mvc] {
 				Q.Enqueue(mvc)
 				V[mvc] = true
+				P[s] = i
 			}
 		case "product":
+			ch := s.Ch()
 			for _, c := range ch {
-				if !V[c] && c.Type() != "leaf" {
+				if !V[c] {
 					Q.Enqueue(c)
+					V[c] = true
 				}
 			}
 		}
 	}
 
-	return trace
+	return P
 }

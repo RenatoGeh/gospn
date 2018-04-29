@@ -13,6 +13,11 @@ import (
 // Where X^2 is the chi-square distribution X^2(df), with df being the degree of freedom.
 func ChiSquare(chi float64, df int) float64 {
 	// GoNum version.
+	if df > 20000 {
+		// When degrees of freedom is very high, the Chi-Squared distribution approximates a Gaussian.
+		g := distuv.Normal{float64(df), float64(2 * df), nil}
+		return g.CDF(chi)
+	}
 	cs := distuv.ChiSquared{float64(df), nil}
 	return cs.CDF(chi)
 }

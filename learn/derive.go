@@ -283,7 +283,9 @@ func DeriveHard(S spn.SPN, st *spn.Storer, tk int, I spn.VarSet) int {
 
 	T := spn.TraceMAP(S, I)
 	Q := common.Queue{}
+	V := make(map[spn.SPN]bool)
 	Q.Enqueue(S)
+	V[S] = true
 
 	for !Q.Empty() {
 		s := Q.Dequeue().(spn.SPN)
@@ -291,15 +293,21 @@ func DeriveHard(S spn.SPN, st *spn.Storer, tk int, I spn.VarSet) int {
 		switch t := s.Type(); t {
 		case "product":
 			for _, c := range ch {
-				if c.Type() != "leaf" {
+				if c.Type() != "leaf" && !V[c] {
 					Q.Enqueue(c)
+					V[c] = true
 				}
 			}
 		case "sum":
-			mi := T[s]
-			v, _ := tab.Entry(s, mi)
-			tab.Store(s, mi, v+1)
-			Q.Enqueue(ch[mi])
+			mi, e := T[s]
+			if e {
+				v, _ := tab.Entry(s, mi)
+				tab.Store(s, mi, v+1)
+				if mc := ch[mi]; !V[mc] {
+					Q.Enqueue(mc)
+					V[mc] = true
+				}
+			}
 		}
 	}
 

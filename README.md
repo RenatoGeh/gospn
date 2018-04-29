@@ -60,7 +60,7 @@ various learning algorithms present in literature.
 
 **To do (high priority)**
 
-- EM and GD discriminative learning
+- Soft and Hard GD discriminative learning
   * *Discriminative Learning of Sum-Product Networks*, R. Gens & P.
     Domingos, NIPS 25 (2012)
   * [pdf](http://spn.cs.washington.edu/papers/dspn.pdf)
@@ -102,12 +102,13 @@ import "github.com/RenatoGeh/gospn/learn
 To parse an ARFF format dataset and perform learning with the
 Gens-Domingos structure learning algorithm:
 
-First import the relevant packages (`learn` for `Gens`, `io` for
-`ParseArff` and `spn` for inference methods):
+First import the relevant packages (`learn/gens` for Gens' structural
+learning algorithm, `io` for `ParseArff` and `spn` for inference
+methods):
 
 ```
 import (
-  "github.com/RenatoGeh/gospn/learn"
+  "github.com/RenatoGeh/gospn/learn/gens"
   "github.com/RenatoGeh/gospn/io"
   "github.com/RenatoGeh/gospn/spn"
 )
@@ -122,7 +123,7 @@ name, scope, values, labels := io.ParseArff("filename.arff")
 Send the relevant information to the learning algorithm:
 
 ```
-S := learn.Gens(scope, values, -1, 0.0001, 4.0, 4)
+S := gens.Learn(scope, values, -1, 0.0001, 4.0, 4)
 ```
 
 `S` is the resulting SPN. We can now compute the marginal probabilities
@@ -138,10 +139,30 @@ p := S.Value(evidence)
 // p is the marginal Pr(evidence), since S is already valid and normalized.
 ```
 
+The method `S.Value` may repeat calculations if the SPN's graph is not a
+tree. To use dynamic programming and avoid recalculations, use
+`spn.Storer`:
+
+```
+T := spn.NewStorer()
+t := T.NewTicket() // Creates a new DP table.
+spn.StoreInference(S, evidence, t, T) // Stores inference values from each node to T(t).
+p := T.Single(t, S) // Returns the first value inside node S: T(t, S).
+```
+
 Finding the approximate MPE works the same way. Let `evidence` be some
 evidence, the MPE is given by:
+
 ```
 mpe, args := S.ArgMax(evidence) // mpe is the probability and args is the argmax valuation.
+```
+
+Similarly to `S.Value`, `S.ArgMax` may recompute values if the graph is
+not a tree. Use `StoreMAP` if the graph is a general DAG instead.
+
+```
+_, args := spn.StoreMAP(S, evidence, t, T)
+mpe := T.Single(t, S)
 ```
 
 #### As a standalone program

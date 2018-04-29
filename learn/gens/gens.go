@@ -8,6 +8,7 @@ import (
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils"
 	"github.com/RenatoGeh/gospn/utils/cluster"
+	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
 	"github.com/RenatoGeh/gospn/utils/indep"
 )
 
@@ -337,7 +338,6 @@ func LearnGauss(sc map[int]learn.Variable, data []map[int]int, kclusters int, pv
 
 	var clusters []map[int][]int
 	if kclusters > 0 {
-		sys.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
 		if len(mdata) < kclusters {
 			//Fully factorized form.
 			//All instances are approximately the same.
@@ -353,7 +353,18 @@ func LearnGauss(sc map[int]learn.Variable, data []map[int]int, kclusters int, pv
 			}
 			return prod
 		}
-		clusters = cluster.KMedoid(kclusters, mdata)
+		D := learn.DataToMatrixF(data)
+		C := cluster.KMeansF(kclusters, D, metrics.EuclideanF)
+		clusters = make([]map[int][]int, len(C))
+		for i, c := range C {
+			clusters[i] = make(map[int][]int)
+			for k, v := range c {
+				clusters[i][k] = make([]int, len(v))
+				for j := range v {
+					clusters[i][k][j] = int(v[j])
+				}
+			}
+		}
 	} else if kclusters == -1 {
 		clusters = cluster.DBSCAN(mdata, eps, mp)
 	} else {
