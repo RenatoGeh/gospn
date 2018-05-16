@@ -8,7 +8,14 @@ import (
 	"math"
 )
 
-func Generative(S spn.SPN, D spn.Dataset, P parameters.P) spn.SPN {
+// Generative performs generative parameter learning, taking parameters from the underlying bound
+// parameters.P. If no parameters.P is found, uses default parameters. See parameters.P for more
+// information.
+func Generative(S spn.SPN, D spn.Dataset) spn.SPN {
+	P, e := parameters.Retrieve(S)
+	if !e {
+		P = parameters.Default()
+	}
 	b := P.BatchSize > 1
 	if parameters.Hardness(P.LearningType) == parameters.Hard {
 		if b {
@@ -36,9 +43,10 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 	stk, itk := storage.NewTicket(), storage.NewTicket()
 	//wtk := storage.NewTicket()
 	var ollh, llh float64
+	P := S.Parameters()
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 4; _l++ {
+	for _l := 0; _l < P.Iterations; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -75,6 +83,7 @@ func GenerativeGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Collec
 			dllh := math.Abs(ollh - llh)
 			sys.Printf("Epsilon log-likelihood: eps = %.3f > %.3f ? %v \n", dllh, eps, dllh > eps)
 		}
+		sys.Printf("Epoch %d\n", _l)
 	}
 	sys.Println("Generative gradient descent done. Returning...")
 
@@ -90,9 +99,10 @@ func GenerativeHardGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Co
 	storage := spn.NewStorer()
 	dtk, itk := storage.NewTicket(), storage.NewTicket()
 	var ollh, llh float64
+	P := S.Parameters()
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 2; _l++ {
+	for _l := 0; _l < P.Iterations; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -144,9 +154,10 @@ func GenerativeBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Colle
 	storage := spn.NewStorer()
 	stk, itk, wtk := storage.NewTicket(), storage.NewTicket(), storage.NewTicket()
 	var ollh, llh float64
+	P := S.Parameters()
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 1; _l++ {
+	for _l := 0; _l < P.Iterations; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -187,6 +198,7 @@ func GenerativeBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Colle
 			dllh := math.Abs(ollh - llh)
 			sys.Printf("Epsilon log-likelihood: eps = %.3f > %.3f ? %v \n", dllh, eps, dllh > eps)
 		}
+		sys.Printf("Epoch %d\n", _l)
 	}
 	sys.Println("Generative gradient descent done. Returning...")
 
@@ -201,10 +213,11 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 
 	storage := spn.NewStorer()
 	dtk, itk := storage.NewTicket(), storage.NewTicket()
+	P := S.Parameters()
 	var ollh, llh float64
 	sys.Println("Initiating Generative Gradient Descent...")
 	//for ok := true; ok; ok = (math.Abs(ollh-llh) > eps) {
-	for _l := 0; _l < 1; _l++ {
+	for _l := 0; _l < P.Iterations; _l++ {
 		ollh = llh
 		llh = 0.0
 		n := len(data)
@@ -237,6 +250,7 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 			dllh := math.Abs(ollh - llh)
 			sys.Printf("Epsilon log-likelihood: eps = %.3f > %.3f ? %v \n", dllh, eps, dllh > eps)
 		}
+		sys.Printf("Epoch %d\n", _l)
 	}
 	sys.Println("Generative gradient descent done. Returning...")
 
@@ -290,6 +304,7 @@ func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 	V := make(map[spn.SPN]bool)
 	Q.Enqueue(S)
 	V[S] = true
+	P := S.Parameters()
 	for !Q.Empty() {
 		s := Q.Dequeue().(spn.SPN)
 		ch := s.Ch()
@@ -298,16 +313,13 @@ func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 			if e {
 				W := s.(*spn.Sum).Weights()
 				for i, d := range v {
-					w := W[i]
-					delta := eta * math.Log(d) / w
-					W[i] = w + delta
-					//pW := s.(*spn.Sum).Weights()
-					//sys.Printf("Ch: %d/%d, pre-W[%d]=%.10f, d: %.10f, eta*d/w: %.10f, post-W[%d]=%.10f\n", i, len(ch)-1, i, w, d, delta, i, pW[i])
-					//for j := range ch {
-					//if i != j {
-					//sys.Printf("  sibling %d: %.10f\n", j, pW[j])
-					//}
-					//}
+					if P.HardWeight {
+						W[i] += d
+					} else {
+						w := W[i]
+						delta := eta * d / w
+						W[i] = w + delta - 2*P.Lambda*w
+					}
 				}
 				if norm {
 					Normalize(W)

@@ -27,26 +27,30 @@ const (
 type P struct {
 	Normalize    bool    // Normalize on weight update.
 	HardWeight   bool    // Hard weights (true) or soft weights (false).
+	SmoothSum    float64 // Constant for smoothing sum counts when hard weights is true.
 	LearningType int     // Soft or hard EM or GD (only applies to weight learning functions).
 	Eta          float64 // Learning rate.
 	Epsilon      float64 // Epsilon convergence criterion (in logspace).
 	BatchSize    int     // Batch size if mini-batch. If bs <= 1, then no batching.
+	Lambda       float64 // Regularization constant.
+	Iterations   int     // Number of iterations for gradient descent.
 }
 
 // Default returns a P instance with the following default options:
 //  Normalize    = true
 //  HardWeight   = false
+//  SmoothSum    = 0.01
 //  HardLearning = parameters.SoftGD
 //  Eta          = 0.1
 //  Epsilon      = 1.0
 //  BatchSize    = 0
 func Default() *P {
-	return &P{true, false, SoftGD, 0.1, 1.0, 0}
+	return &P{true, false, 0.01, SoftGD, 0.1, 1.0, 0, 0.01, 4}
 }
 
 // New returns a P instance with the given parameters as option values.
-func New(norm, hw bool, t int, eta, eps float64, bs int) *P {
-	return &P{norm, hw, t, eta, eps, bs}
+func New(norm, hw bool, sm float64, t int, eta, eps float64, bs int, l float64, i int) *P {
+	return &P{norm, hw, sm, t, eta, eps, bs, l, i}
 }
 
 // Method returns what super-type of learning method P.LearningType is.
@@ -63,4 +67,34 @@ func Hardness(t int) int {
 		return Hard
 	}
 	return Soft
+}
+
+// Parametriable defines a type that has parameters.
+type Parametrizable interface {
+	// Parameters returns the parameters of this object.
+	Parameters() *P
+}
+
+var bindings map[Parametrizable]*P
+
+func init() {
+	bindings = make(map[Parametrizable]*P)
+}
+
+func Bind(e Parametrizable, p *P) {
+	bindings[e] = p
+}
+
+func Unbind(e Parametrizable) {
+	delete(bindings, e)
+}
+
+func Exists(p Parametrizable) bool {
+	_, e := bindings[p]
+	return e
+}
+
+func Retrieve(e Parametrizable) (*P, bool) {
+	p, q := bindings[e]
+	return p, q
 }

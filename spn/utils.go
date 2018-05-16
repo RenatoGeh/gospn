@@ -35,6 +35,7 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 	TopSortTarjan(S, &O)
 	sys.Free()
 
+	P := S.Parameters()
 	table, _ := storage.Table(tk)
 	for !O.Empty() {
 		s := O.Dequeue().(SPN)
@@ -47,18 +48,29 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 			W := sum.Weights()
 			n := len(ch)
 			vals := make([]float64, n)
-			for i, cs := range ch {
-				v, e := table.Single(cs)
-				if !e {
-					// Should never occur. Just in case what I thought of is flawed.
-					fmt.Println("Something terrible has just happened. (StoreInference:learn/derive.go)")
+			if P.HardWeight {
+				for i, cs := range ch {
+					v, _ := table.Single(cs)
+					vals[i] = v
 				}
-				vals[i] = v + math.Log(W[i])
+			} else {
+				for i, cs := range ch {
+					v, e := table.Single(cs)
+					if !e {
+						// Should never occur. Just in case what I thought of is flawed.
+						fmt.Println("Something terrible has just happened. (StoreInference:learn/derive.go)")
+					}
+					vals[i] = v + math.Log(W[i])
+				}
 			}
 			if n == 0 {
 				table.StoreSingle(s, utils.LogZero)
 			} else {
-				table.StoreSingle(s, sum.Compute(vals))
+				if P.HardWeight {
+					table.StoreSingle(s, sum.ComputeHard(vals, P.SmoothSum))
+				} else {
+					table.StoreSingle(s, sum.Compute(vals))
+				}
 			}
 		case "product":
 			prod := s.(*Product)
@@ -439,23 +451,23 @@ func TraceMAP(S SPN, I VarSet) map[SPN]int {
 			W := sum.Weights()
 			ch := s.Ch()
 			m := math.Inf(-1)
-			var mv []SPN
+			var mi []int
 			for i, c := range ch {
 				v := tab[c]
 				u := math.Log(W[i]) + v
 				if u > m {
-					mv, m = []SPN{c}, u
+					mi, m = []int{i}, u
 				} else if u == m {
-					mv = append(mv, c)
+					mi = append(mi, i)
 				}
 			}
 			// Randomly break ties.
-			i := sys.Random.Intn(len(mv))
-			mvc := mv[i]
+			i := sys.Random.Intn(len(mi))
+			mvc := ch[mi[i]]
 			if mvc != nil && !V[mvc] {
 				Q.Enqueue(mvc)
 				V[mvc] = true
-				P[s] = i
+				P[s] = mi[i]
 			}
 		case "product":
 			ch := s.Ch()

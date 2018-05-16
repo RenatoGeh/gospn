@@ -1,5 +1,9 @@
 package spn
 
+import (
+	"github.com/RenatoGeh/gospn/learn/parameters"
+)
+
 // Node represents a node in an SPN.
 type Node struct {
 	// Children nodes.
@@ -28,6 +32,8 @@ type SPN interface {
 	AddChild(c SPN)
 	// Returns the height of the graph.
 	Height() int
+	// Parameters returns the parameters of this object.
+	Parameters() *parameters.P
 
 	rawSc() []int
 	setRawSc([]int)
@@ -102,4 +108,15 @@ func (n *Node) Height() int {
 	} else {
 		return 0
 	}
+}
+
+// Parameters returns the parameters of this object. If no bound parameter is found, binds default
+// parameter values and returns.
+func (n *Node) Parameters() *parameters.P {
+	p, e := parameters.Retrieve(n)
+	if !e {
+		p = parameters.Default()
+		parameters.Bind(n, p)
+	}
+	return p
 }

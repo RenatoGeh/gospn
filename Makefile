@@ -21,4 +21,4 @@ build:
 
 .PHONY: clean
 clean:
-	rm *.put *.pbm *.ppm *.pgm
+	rm *.put *.pbm *.ppm *.pgm test_after_*.spn test_before_*.spn

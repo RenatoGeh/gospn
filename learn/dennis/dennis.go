@@ -2,6 +2,7 @@ package dennis
 
 import (
 	"github.com/RenatoGeh/gospn/learn"
+	"github.com/RenatoGeh/gospn/learn/parameters"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils/cluster"
@@ -162,6 +163,7 @@ func buildSPN(g *graph, D spn.Dataset, m, l int) spn.SPN {
 				s := n.(*spn.Sum)
 				for _, o := range O {
 					//s.AddChildW(o, w)
+					//s.AddChildW(o, 1.0)
 					s.AddChildW(o, float64(sys.Random.Intn(10)+1))
 				}
 			}
@@ -190,7 +192,7 @@ func Structure(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t float64)
 	return S
 }
 
-func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t, eta, eps float64, norm bool) spn.SPN {
+func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t float64, P *parameters.P, i int) spn.SPN {
 	S := Structure(D, sc, k, m, g, t)
 	var ns, np, nl int
 	spn.BreadthFirst(S, func(s spn.SPN) bool {
@@ -205,6 +207,8 @@ func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t, eta, eps 
 		return true
 	})
 	sys.Printf("Sum: %d, Products: %d, Leaves: %d, Total: %d\n", ns, np, nl, ns+np+nl)
-	return learn.GenerativeHardGD(S, eta, eps, D, nil, norm)
+	parameters.Bind(S, P)
+	//spn.PrintSPN(S, fmt.Sprintf("test_before_%d.spn", i))
+	return learn.Generative(S, D)
 	//return S
 }

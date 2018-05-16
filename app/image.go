@@ -5,8 +5,9 @@ import (
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/io"
 	"github.com/RenatoGeh/gospn/learn"
-	"github.com/RenatoGeh/gospn/learn/poon"
-	//"github.com/RenatoGeh/gospn/learn/dennis"
+	"github.com/RenatoGeh/gospn/learn/parameters"
+	//"github.com/RenatoGeh/gospn/learn/poon"
+	"github.com/RenatoGeh/gospn/learn/dennis"
 	//"github.com/RenatoGeh/gospn/learn/gens"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
@@ -234,8 +235,9 @@ func completeHalfExact(S spn.SPN, E spn.VarSet) spn.VarSet {
 }
 
 func ImgTest(filename string, m, g, r int, eta, eps float64) {
-	_, D, _ := io.ParseDataNL(filename)
-	//sc, D, _ := io.ParseDataNL(filename)
+	//_, D, _ := io.ParseDataNL(filename)
+	sc, D, _ := io.ParseDataNL(filename)
+	P := parameters.New(true, false, 0.0001, parameters.HardGD, eta, eps, 1, 0.4, 1)
 	for i := 0; i < len(D); i++ {
 		I := D[i]
 		tD := make(spn.Dataset, len(D)-1)
@@ -247,8 +249,8 @@ func ImgTest(filename string, m, g, r int, eta, eps float64) {
 			}
 		}
 		//S := spn.NormalizeSPN(learn.PoonStructure(D, m, r))
-		S := poon.LearnGD(tD, m, g, r, eta, eps)
-		//S := dennis.LearnGD(tD, sc, 1, m, g, 0.95, eta, eps, true)
+		//S := poon.LearnGD(tD, m, g, r, eta, eps)
+		S := dennis.LearnGD(tD, sc, 1, m, g, 0.95, P, i)
 		//S := gens.Learn(sc, tD, 2, sys.Pval, sys.Eps, sys.Mp)
 		//spn.NormalizeSPN(S)
 		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height)

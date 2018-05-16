@@ -1,6 +1,7 @@
 package spn
 
 import (
+	"github.com/RenatoGeh/gospn/learn/parameters"
 	"github.com/RenatoGeh/gospn/sys"
 	"math"
 )
@@ -84,4 +85,15 @@ func (p *Product) ArgMax(val VarSet) (VarSet, float64) {
 // AddChild adds a child.
 func (p *Product) AddChild(c SPN) {
 	p.ch = append(p.ch, c)
+}
+
+// Parameters returns the parameters of this object. If no bound parameter is found, binds default
+// parameter values and returns.
+func (p *Product) Parameters() *parameters.P {
+	r, e := parameters.Retrieve(p)
+	if !e {
+		r = parameters.Default()
+		parameters.Bind(p, r)
+	}
+	return r
 }

@@ -1,6 +1,7 @@
 package spn
 
 import (
+	"github.com/RenatoGeh/gospn/learn/parameters"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils"
 	"math"
@@ -56,6 +57,26 @@ func (s *Sum) Compute(cv []float64) float64 {
 	return utils.LogSumExp(cv)
 }
 
+// ComputeHard returns the soft value using hard weights (unit weights). Expects only children
+// values, and not weighted child value. Parameter scount is the smooth sum count constant.
+func (s *Sum) ComputeHard(cv []float64, scount float64) float64 {
+	imax, max := -1, -1.0
+	for i := range s.ch {
+		w := s.w[i]
+		if imax < 0 || max < w {
+			imax, max = i, w
+		}
+	}
+	if imax < 0 {
+		return utils.LogZero
+	}
+	var v float64
+	for i := range cv {
+		v += s.w[i] * math.Exp(cv[i]-max)
+	}
+	return math.Log(v/scount) + max
+}
+
 // Max returns the MAP value of this node given an evidence.
 func (s *Sum) Max(val VarSet) float64 {
 	max := math.Inf(-1)
@@ -99,4 +120,15 @@ func (s *Sum) Weights() []float64 {
 // AddChild adds a child.
 func (s *Sum) AddChild(c SPN) {
 	s.ch = append(s.ch, c)
+}
+
+// Parameters returns the parameters of this object. If no bound parameter is found, binds default
+// parameter values and returns.
+func (s *Sum) Parameters() *parameters.P {
+	p, e := parameters.Retrieve(s)
+	if !e {
+		p = parameters.Default()
+		parameters.Bind(s, p)
+	}
+	return p
 }
