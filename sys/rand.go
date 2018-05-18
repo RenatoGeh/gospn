@@ -1,10 +1,14 @@
 package sys
 
-import "math/rand"
+import (
+	"math/rand"
+	"sync"
+)
 
 var (
 	seed   int64
 	Random *rand.Rand
+	mu     sync.Mutex
 )
 
 func init() {
@@ -14,9 +18,32 @@ func init() {
 
 // RandSeed sets the pseudo-random generator's seed and resets the
 func RefreshRandom(s int64) *rand.Rand {
+	mu.Lock()
 	seed = s
 	Random = rand.New(rand.NewSource(seed))
+	mu.Unlock()
 	return Random
+}
+
+func RandIntn(n int) int {
+	mu.Lock()
+	r := Random.Intn(n)
+	mu.Unlock()
+	return r
+}
+
+func RandFloat64() float64 {
+	mu.Lock()
+	r := Random.Float64()
+	mu.Unlock()
+	return r
+}
+
+func RandNormFloat64() float64 {
+	mu.Lock()
+	r := Random.NormFloat64()
+	mu.Unlock()
+	return r
 }
 
 // Seed returns the pseudo-random seed.
@@ -32,7 +59,9 @@ func RandomComb(u int, v int, m int) [][2]int {
 			t++
 		}
 	}
+	mu.Lock()
 	K := Random.Perm(n)
+	mu.Unlock()
 	D := make([][2]int, m)
 	var j int
 	for i := 0; i < m; i++ {

@@ -1,5 +1,9 @@
 package parameters
 
+import (
+	"sync"
+)
+
 // Constants to be used for P.LearningType.
 const (
 	HardGD = iota // Hard gradient descent key.
@@ -18,6 +22,10 @@ const (
 const (
 	Hard = iota
 	Soft
+)
+
+var (
+	mu sync.Mutex
 )
 
 // P is a collection of available parameters for learning algorithms.
@@ -82,19 +90,27 @@ func init() {
 }
 
 func Bind(e Parametrizable, p *P) {
+	mu.Lock()
 	bindings[e] = p
+	mu.Unlock()
 }
 
 func Unbind(e Parametrizable) {
+	mu.Lock()
 	delete(bindings, e)
+	mu.Unlock()
 }
 
 func Exists(p Parametrizable) bool {
+	mu.Lock()
 	_, e := bindings[p]
+	mu.Unlock()
 	return e
 }
 
 func Retrieve(e Parametrizable) (*P, bool) {
+	mu.Lock()
 	p, q := bindings[e]
+	mu.Unlock()
 	return p, q
 }
