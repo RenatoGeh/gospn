@@ -166,7 +166,7 @@ func StoreMAP(S SPN, I VarSet, tk int, storage *Storer) (SPN, int, VarSet) {
 				}
 			}
 			// Randomly break ties.
-			mvc := mv[sys.Random.Intn(len(mv))]
+			mvc := mv[sys.RandIntn(len(mv))]
 			if mvc != nil && !V[mvc] {
 				Q.Enqueue(mvc)
 				V[mvc] = true
@@ -462,7 +462,7 @@ func TraceMAP(S SPN, I VarSet) map[SPN]int {
 				}
 			}
 			// Randomly break ties.
-			i := sys.Random.Intn(len(mi))
+			i := sys.RandIntn(len(mi))
 			mvc := ch[mi[i]]
 			if mvc != nil && !V[mvc] {
 				Q.Enqueue(mvc)

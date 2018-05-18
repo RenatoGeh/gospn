@@ -45,7 +45,7 @@ func KMode(k int, data [][]int) []map[int][]int {
 	for i := 0; i < k; i++ {
 		var r int
 		for ok := true; ok; _, ok = chkrnd[r] {
-			r = sys.Random.Intn(n)
+			r = sys.RandIntn(n)
 		}
 		//fmt.Printf("%d vs %d\n", n, r)
 		clusters[i] = make(map[int][]int)

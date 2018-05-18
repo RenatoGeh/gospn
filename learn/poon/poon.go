@@ -189,7 +189,7 @@ func linkRegions(R, S, T *region) {
 			pi.AddChild(T.inner[j])
 			for n := range R.inner {
 				s := R.inner[n].(*spn.Sum)
-				s.AddChildW(pi, float64(sys.Random.Intn(10)+1))
+				s.AddChildW(pi, float64(sys.RandIntn(10)+1))
 			}
 		}
 	}
@@ -349,7 +349,7 @@ func (R *region) compMap(k uint64, m, g, r int, I spn.VarSet, L map[uint64]*regi
 	}
 	var cUnusedIndex int
 	if len(U) > 0 {
-		cUnusedIndex = U[sys.Random.Intn(len(U))]
+		cUnusedIndex = U[sys.RandIntn(len(U))]
 	}
 	step := R.step
 	var D []*decomp
@@ -396,7 +396,7 @@ func (R *region) compMap(k uint64, m, g, r int, I spn.VarSet, L map[uint64]*regi
 	}
 	//sys.Printf("(%d, %d, %d, %d), step=%d\n", x1, y1, x2, y2, R.step)
 	//sys.Printf("%v\n", D)
-	cDecomp := D[sys.Random.Intn(len(D))]
+	cDecomp := D[sys.RandIntn(len(D))]
 	//sys.Printf("Selected: %v\n", cDecomp)
 
 	var mapSumOpts []int
@@ -435,7 +435,7 @@ func (R *region) compMap(k uint64, m, g, r int, I spn.VarSet, L map[uint64]*regi
 			}
 		}
 		tab.StoreSingle(s, mS-math.Log(sc+1))
-		R.bestDecomp[i] = bestDecomp[sys.Random.Intn(len(bestDecomp))]
+		R.bestDecomp[i] = bestDecomp[sys.RandIntn(len(bestDecomp))]
 		if len(mapSumOpts) == 0 || sv > R.maxSum {
 			mapSumOpts, R.maxSum = nil, sv
 		}
@@ -454,7 +454,7 @@ func (R *region) compMap(k uint64, m, g, r int, I spn.VarSet, L map[uint64]*regi
 			mapSumOpts = append(mapSumOpts, cUnusedIndex)
 		}
 	}
-	R.mapIndex = mapSumOpts[sys.Random.Intn(len(mapSumOpts))]
+	R.mapIndex = mapSumOpts[sys.RandIntn(len(mapSumOpts))]
 	bD := R.bestDecomp[R.mapIndex]
 	if !existsDecomp(bD, existingDecomps) {
 		pi := spn.NewProduct()

@@ -175,9 +175,9 @@ func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
 	vs := make(spn.VarSet)
 
 	for i := 0; i < n; i++ {
-		r := sys.Random.Intn(nsc)
+		r := sys.RandIntn(nsc)
 		id := sc[r]
-		v := int(sys.Random.NormFloat64()*(float64(id.Categories)/6) + float64(id.Categories/2))
+		v := int(sys.RandNormFloat64()*(float64(id.Categories)/6) + float64(id.Categories/2))
 		if v >= id.Categories {
 			v = id.Categories - 1
 		} else if v < 0 {
@@ -237,7 +237,7 @@ func completeHalfExact(S spn.SPN, E spn.VarSet) spn.VarSet {
 func ImgTest(filename string, m, g, r int, eta, eps float64) {
 	//_, D, _ := io.ParseDataNL(filename)
 	sc, D, _ := io.ParseDataNL(filename)
-	P := parameters.New(true, false, 0.0001, parameters.HardGD, eta, eps, 1, 0.4, 1)
+	P := parameters.New(true, false, 0.001, parameters.HardGD, eta, eps, 1, 0.4, 4)
 	for i := 0; i < len(D); i++ {
 		I := D[i]
 		tD := make(spn.Dataset, len(D)-1)
@@ -279,6 +279,89 @@ func ImgTest(filename string, m, g, r int, eta, eps float64) {
 		//C := completeHalfExact(S, half)
 		//io.VarSetToPGM(fmt.Sprintf("cnd_cmpl_%d.pgm", i), C, sys.Width, sys.Height, sys.Max-1)
 	}
+}
+
+func ImgTestParallel(filename string, m, g, r int, eta, eps float64, concurrents int) {
+	sc, D, lbls := io.ParseDataNL(filename)
+	ndata := len(D)
+	P := parameters.New(true, false, 0.001, parameters.HardGD, eta, eps, 1, 0.4, 4)
+
+	// Concurrency control.
+	var wg sync.WaitGroup
+	var nprocs int
+	if concurrents <= 0 {
+		nprocs = runtime.NumCPU()
+	} else {
+		nprocs = concurrents
+	}
+	nrun := 0
+	cond := sync.NewCond(&sync.Mutex{})
+	cpmutex := &sync.Mutex{}
+
+	for i := 0; i < ndata; i++ {
+		cond.L.Lock()
+		for nrun >= nprocs {
+			cond.Wait()
+		}
+		nrun++
+		cond.L.Unlock()
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			var train []map[int]int
+			var ldata []map[int]int
+			lsc := make(map[int]learn.Variable)
+
+			cpmutex.Lock()
+			for k, v := range sc {
+				lsc[k] = v
+			}
+			for j := 0; j < ndata; j++ {
+				ldata = append(ldata, make(map[int]int))
+				for k, v := range D[j] {
+					ldata[j][k] = v
+				}
+			}
+			cpmutex.Unlock()
+
+			I := ldata[id]
+			for j := 0; j < ndata; j++ {
+				if id != j && lbls[j] != lbls[id] {
+					train = append(train, ldata[j])
+				}
+			}
+
+			sys.Printf("Starting job %d\n", id)
+			S := dennis.LearnGD(train, lsc, 1, m, g, 0.95, P, id)
+			cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height)
+			set := make(spn.VarSet)
+			w := sys.Width / 2
+			for k, v := range cmpl {
+				l := k - k/sys.Width*w
+				set[l] = v
+			}
+			io.VarSetToPGM(fmt.Sprintf("left_%d.pgm", id), set, sys.Width/2, sys.Height, sys.Max-1)
+			set = make(spn.VarSet)
+			for k, v := range half {
+				l := (k - w)
+				l -= l / sys.Width * w
+				set[l] = v
+			}
+			io.VarSetToPGM(fmt.Sprintf("right_%d.pgm", id), set, sys.Width/2, sys.Height, sys.Max-1)
+			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d.pgm", id), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max-1)
+			spn.PrintSPN(S, fmt.Sprintf("test_after_%d.spn", id))
+			sys.Printf("Ending job %d\n", id)
+
+			S, ldata, lsc, train = nil, nil, nil, nil
+			sys.Free()
+
+			cond.L.Lock()
+			nrun--
+			cond.L.Unlock()
+			cond.Signal()
+		}(i)
+	}
+	wg.Wait()
 }
 
 // ImgCompletion takes a LearnFunc, a dataset filename and the number of concurrent threads and

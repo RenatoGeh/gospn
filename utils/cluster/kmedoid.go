@@ -49,7 +49,7 @@ func KMedoid(k int, data [][]int) []map[int][]int {
 		ok := true
 		for ok && len(chkrnd) < n {
 			for ok = true; ok; _, ok = chkrnd[r] {
-				r = sys.Random.Intn(n)
+				r = sys.RandIntn(n)
 			}
 			chkrnd[r] = true
 			for ii := 0; ii < i && !ok; ii++ {

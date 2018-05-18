@@ -45,7 +45,7 @@ func NewMultinomial(varid int, dist []float64) *Multinomial {
 		}
 	}
 	if nmi > 1 {
-		mi = miv[sys.Random.Intn(nmi)]
+		mi = miv[sys.RandIntn(nmi)]
 	}
 	return &Multinomial{Node{sc: []int{varid}}, varid, dist, Mode{mi, m}}
 }
@@ -83,7 +83,7 @@ func NewCountingMultinomial(varid int, counts []int) *Multinomial {
 		}
 	}
 	if nmi > 1 {
-		mi = miv[sys.Random.Intn(nmi)]
+		mi = miv[sys.RandIntn(nmi)]
 	}
 
 	return &Multinomial{Node{sc: []int{varid}}, varid, pr, Mode{mi, m}}

@@ -175,14 +175,14 @@ func (c *Color) String() string { return fmt.Sprintf("%d %d %d", c.r, c.g, c.b) 
 
 // RandColor returns a random color.
 func RandColor() *Color {
-	return NewColor(sys.Random.Intn(256), sys.Random.Intn(256), sys.Random.Intn(256))
+	return NewColor(sys.RandIntn(256), sys.RandIntn(256), sys.RandIntn(256))
 }
 
 // RandTone returns a random tone for a given hue tone (HSV).
 func RandTone(h float64) *Color {
 	var c hsv
 	c.h = h
-	c.s, c.v = sys.Random.Float64(), sys.Random.Float64()
+	c.s, c.v = sys.RandFloat64(), sys.RandFloat64()
 	nc := hsv2rgb(c)
 	return &Color{r: int(255 * nc.r), g: int(255 * nc.g), b: int(255 * nc.b)}
 }

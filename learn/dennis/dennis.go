@@ -44,7 +44,7 @@ func buildRegionGraph(D spn.Dataset, sc map[int]learn.Variable, k int, t float64
 		M := learn.DataToMatrix(D)
 		C := cluster.KMedoid(k, M)
 		for i := 0; i < k; i++ {
-			sys.Printf("Expanding region graph on cluster %d...\n", i)
+			//sys.Printf("Expanding region graph on cluster %d...\n", i)
 			P := transpose(C[i])
 			expandRegionGraph(G, n, P, t)
 		}
@@ -115,8 +115,8 @@ func clusterToMatrix(C map[int][]int, S scope) ([][]float64, map[int]int) {
 
 func partitionScope(sn scope, C map[int][]int) (scope, scope) {
 	M, V := clusterToMatrix(C, sn)
-	sys.Printf("%d, %d\n", len(sn), len(M))
-	sys.Println("Running k-means on variables...")
+	//sys.Printf("%d, %d\n", len(sn), len(M))
+	//sys.Println("Running k-means on variables...")
 	S := cluster.KMeansF(2, M, metrics.EuclideanF)
 	//sys.Println("Finished k-means.")
 	//sys.Printf("  %d, %d, %d, %d\n", len(S[0]), len(S[1]), len(S[0])+len(S[1]), len(sn))
@@ -135,7 +135,7 @@ func partitionScope(sn scope, C map[int][]int) (scope, scope) {
 		//}
 		s2[V[k]] = sn[V[k]]
 	}
-	sys.Printf("Split scope into two partitions of size: %d, %d...\n", len(s1), len(s2))
+	//sys.Printf("Split scope into two partitions of size: %d, %d...\n", len(s1), len(s2))
 	return s1, s2
 }
 
@@ -164,7 +164,7 @@ func buildSPN(g *graph, D spn.Dataset, m, l int) spn.SPN {
 				for _, o := range O {
 					//s.AddChildW(o, w)
 					//s.AddChildW(o, 1.0)
-					s.AddChildW(o, float64(sys.Random.Intn(10)+1))
+					s.AddChildW(o, float64(sys.RandIntn(10)+1))
 				}
 			}
 			// Add every combination of each child of P as children of each product node created.
@@ -184,9 +184,9 @@ func buildSPN(g *graph, D spn.Dataset, m, l int) spn.SPN {
 }
 
 func Structure(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t float64) spn.SPN {
-	sys.Println("Building region graph...")
+	//sys.Println("Building region graph...")
 	G := buildRegionGraph(D, sc, k, t)
-	sys.Println("Building SPN from region graph...")
+	//sys.Println("Building SPN from region graph...")
 	S := buildSPN(G, D, m, g)
 	spn.NormalizeSPN(S)
 	return S
@@ -206,7 +206,7 @@ func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t float64, P
 		}
 		return true
 	})
-	sys.Printf("Sum: %d, Products: %d, Leaves: %d, Total: %d\n", ns, np, nl, ns+np+nl)
+	//sys.Printf("Sum: %d, Products: %d, Leaves: %d, Total: %d\n", ns, np, nl, ns+np+nl)
 	parameters.Bind(S, P)
 	//spn.PrintSPN(S, fmt.Sprintf("test_before_%d.spn", i))
 	return learn.Generative(S, D)

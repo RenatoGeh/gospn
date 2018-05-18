@@ -46,7 +46,7 @@ func KMeans(k int, data [][]int) []map[int][]int {
 	for i := 0; i < k; i++ {
 		var r int
 		for ok := true; ok; _, ok = chkrnd[r] {
-			r = sys.Random.Intn(n)
+			r = sys.RandIntn(n)
 		}
 		//fmt.Printf("%d vs %d\n", n, r)
 		clusters[i] = make(map[int][]int)
@@ -137,9 +137,9 @@ func KMeansF(k int, D [][]float64, F metrics.MetricF) []map[int][]float64 {
 	//sys.Printf("%d\n", len(D))
 	// Forgy initialization.
 	for i := 0; i < k; i++ {
-		r := sys.Random.Intn(m)
+		r := sys.RandIntn(m)
 		for _, e := R[r]; e; _, e = R[r] {
-			r = sys.Random.Intn(m)
+			r = sys.RandIntn(m)
 		}
 		R[r] = true
 		copy(M[i], D[r])
