@@ -131,7 +131,7 @@ func (g *Gaussian) ArgMax(val VarSet) (VarSet, float64) {
 		return retval, z
 	}
 
-	retval[g.varid] = int(g.dist.Mu)
+	retval[g.varid] = int(math.Round(g.dist.Mu))
 	return retval, g.dist.LogProb(g.dist.Mu)
 }
 

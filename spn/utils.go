@@ -1,7 +1,6 @@
 package spn
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/RenatoGeh/gospn/common"
@@ -57,8 +56,7 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 				for i, cs := range ch {
 					v, e := table.Single(cs)
 					if !e {
-						// Should never occur. Just in case what I thought of is flawed.
-						fmt.Println("Something terrible has just happened. (StoreInference:learn/derive.go)")
+						panic("Error: The SPN graph has sums or products as leaves.")
 					}
 					vals[i] = v + math.Log(W[i])
 				}

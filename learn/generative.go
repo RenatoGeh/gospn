@@ -313,13 +313,9 @@ func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 			if e {
 				W := s.(*spn.Sum).Weights()
 				for i, d := range v {
-					if P.HardWeight {
-						W[i] += d
-					} else {
-						w := W[i]
-						delta := eta * d / w
-						W[i] = w + delta - 2*P.Lambda*w
-					}
+					w := W[i]
+					delta := eta * d / w
+					W[i] = w + delta - 2*P.Lambda*w
 				}
 				if norm {
 					Normalize(W)

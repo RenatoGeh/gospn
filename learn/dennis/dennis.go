@@ -206,7 +206,7 @@ func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t float64, P
 		}
 		return true
 	})
-	//sys.Printf("Sum: %d, Products: %d, Leaves: %d, Total: %d\n", ns, np, nl, ns+np+nl)
+	sys.Printf("Sum: %d, Products: %d, Leaves: %d, Total: %d\n", ns, np, nl, ns+np+nl)
 	parameters.Bind(S, P)
 	//spn.PrintSPN(S, fmt.Sprintf("test_before_%d.spn", i))
 	return learn.Generative(S, D)

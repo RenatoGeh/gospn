@@ -282,9 +282,10 @@ func ImgTest(filename string, m, g, r int, eta, eps float64) {
 }
 
 func ImgTestParallel(filename string, m, g, r int, eta, eps float64, concurrents int) {
-	sc, D, lbls := io.ParseDataNL(filename)
+	//sc, D, lbls := io.ParseDataNL(filename)
+	sc, D, _ := io.ParseDataNL(filename)
 	ndata := len(D)
-	P := parameters.New(true, false, 0.001, parameters.HardGD, eta, eps, 1, 0.4, 4)
+	P := parameters.New(true, false, 0.0001, parameters.HardGD, eta, eps, 1, 0.4, 5)
 
 	// Concurrency control.
 	var wg sync.WaitGroup
@@ -326,13 +327,14 @@ func ImgTestParallel(filename string, m, g, r int, eta, eps float64, concurrents
 
 			I := ldata[id]
 			for j := 0; j < ndata; j++ {
-				if id != j && lbls[j] != lbls[id] {
+				//if id != j && lbls[j] != lbls[id] {
+				if id != j {
 					train = append(train, ldata[j])
 				}
 			}
 
 			sys.Printf("Starting job %d\n", id)
-			S := dennis.LearnGD(train, lsc, 1, m, g, 0.95, P, id)
+			S := dennis.LearnGD(train, lsc, 10, m, g, 0.95, P, id)
 			cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height)
 			set := make(spn.VarSet)
 			w := sys.Width / 2
@@ -352,6 +354,7 @@ func ImgTestParallel(filename string, m, g, r int, eta, eps float64, concurrents
 			spn.PrintSPN(S, fmt.Sprintf("test_after_%d.spn", id))
 			sys.Printf("Ending job %d\n", id)
 
+			parameters.Unbind(S)
 			S, ldata, lsc, train = nil, nil, nil, nil
 			sys.Free()
 

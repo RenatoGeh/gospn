@@ -93,13 +93,13 @@ func main() {
 		//sys.Width, sys.Height = 4, 4
 		sys.Max = 256
 		//sys.Width, sys.Height = 92, 112
-		sys.Width, sys.Height = 48, 56
-		//sys.Max = 2
+		//sys.Width, sys.Height = 48, 56
+		sys.Width, sys.Height = 20, 30
+		//sys.Max = 8
 		//sys.Width, sys.Height = 4, 4
 		sys.Verbose = true
-		//sys.MemConservative = true
 		//app.ImgTest("data/olivetti_padded_u/compiled/all.data", 4, 20, 4, 0.1, 1)
-		app.ImgTestParallel("data/olivetti_padded_u/compiled/all.data", 4, 20, 4, 0.1, 1, -1)
+		app.ImgTestParallel("data/digits_x/compiled/all.data", 4, 4, 4, 0.1, 1, 3)
 		//app.ImgTest("data/fourbyfour/compiled/all.data", 2, 1, 1, 0.1)
 		//lf := learn.BindedPoonGD(2, 4, 0.1, 1)
 		//sc, data, _ := io.ParseDataNL(filename)

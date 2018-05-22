@@ -126,13 +126,17 @@ func KMeansF(k int, D [][]float64, F metrics.MetricF) []map[int][]float64 {
 		panic("Length of dataset is smaller than number of clusters!")
 	}
 
-	n := len(D[0])            // Instance dimension size.
+	n := len(D[0]) // Instance dimension size.
+	m := len(D)
 	M := make([][]float64, k) // Cluster means (centroids at each cluster).
+	C := make([]int, m)       // Maps an instance to a cluster.
 	for i := range M {
 		M[i] = make([]float64, n)
 	}
+	for i := 0; i < m; i++ {
+		C[i] = -1
+	}
 	R := make(map[int]bool)
-	m := len(D)
 	//sys.Println("Initialized through Forgy.")
 	//sys.Printf("%d\n", len(D))
 	// Forgy initialization.
@@ -142,10 +146,10 @@ func KMeansF(k int, D [][]float64, F metrics.MetricF) []map[int][]float64 {
 			r = sys.RandIntn(m)
 		}
 		R[r] = true
+		C[r] = i
 		copy(M[i], D[r])
 	}
 
-	C := make([]int, m) // Maps an instance to a cluster.
 	S := make([]int, k) // Number of instances in a cluster.
 	//sys.Println("Running until convergence...")
 	// Continue until there is no change (converges). If c = false, there was no change.
@@ -153,7 +157,10 @@ func KMeansF(k int, D [][]float64, F metrics.MetricF) []map[int][]float64 {
 		c = false
 		// Assignment step.
 		for i, d := range D {
-			kmin, min := -1, math.Inf(1)
+			kmin, min := C[i], math.Inf(1)
+			if kmin != -1 {
+				min = F(d, M[kmin])
+			}
 			for j := 0; j < k; j++ {
 				u := F(d, M[j])
 				if u < min {
@@ -181,7 +188,9 @@ func KMeansF(k int, D [][]float64, F metrics.MetricF) []map[int][]float64 {
 		}
 		for i := 0; i < k; i++ {
 			for j := 0; j < n; j++ {
-				M[i][j] /= float64(S[i])
+				if S[i] > 0 {
+					M[i][j] /= float64(S[i])
+				}
 			}
 		}
 	}
