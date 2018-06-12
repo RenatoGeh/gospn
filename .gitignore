@@ -1,6 +1,9 @@
 # Vim session
 *.vim
 
+# GoSPN
+.cache
+
 # Input files.
 *.txt
 *.voc

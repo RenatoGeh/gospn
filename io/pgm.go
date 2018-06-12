@@ -591,7 +591,7 @@ func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h, ma
 			common.DrawColorRGB(file, v, v, v)
 		} else {
 			u, _ := cmpl[j]
-			common.DrawColorRGB(file, 0, u, 0)
+			common.DrawColorRGB(file, u, u, u)
 		}
 		j++
 	cleanup:

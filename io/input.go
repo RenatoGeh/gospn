@@ -22,7 +22,7 @@ func GetDataPath(dataset string) string {
 
 // GetPath gets the absolute path relative to relpath.
 func GetPath(relpath string) string {
-	rp, err := filepath.Abs(relpath)
+	rp, err := filepath.Abs(filepath.Clean(relpath))
 
 	if err != nil {
 		fmt.Printf("Error retrieving path \"%s\".\n", relpath)

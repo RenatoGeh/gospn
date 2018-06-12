@@ -24,6 +24,11 @@ const (
 	Right CmplType = "RIGHT"
 )
 
+var (
+	// Quadrants is an array of all CmplTypes.
+	Quadrants = [...]CmplType{Top, Right, Left, Bottom}
+)
+
 // Orientations contains all CmplType orientations.
 var Orientations = []CmplType{Top, Bottom, Left, Right}
 
