@@ -253,31 +253,10 @@ func ImgTest(filename string, m, g, r int, eta, eps float64) {
 		S := dennis.LearnGD(tD, sc, 1, m, g, 0.95, P, i)
 		//S := gens.Learn(sc, tD, 2, sys.Pval, sys.Eps, sys.Mp)
 		//spn.NormalizeSPN(S)
-		cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height)
-		fmt.Printf("len(I)=%d, len(cmpl)=%d, len(half)=%d\n", len(I), len(cmpl), len(half))
-		set := make(spn.VarSet)
-		sys.Println("Left half")
-		w := sys.Width / 2
-		for k, v := range cmpl {
-			l := k - k/sys.Width*w
-			//sys.Printf("k := %d -> %d, v := %d\n", k, l, v)
-			set[l] = v
+		for _, q := range io.Quadrants {
+			cmpl, half := halfImg(S, I, q, sys.Width, sys.Height)
+			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%s_%d.pgm", q, i), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max-1)
 		}
-		fmt.Printf("len(set)=%d\n", len(set))
-		io.VarSetToPGM(fmt.Sprintf("left_%d.pgm", i), set, sys.Width/2, sys.Height, sys.Max-1)
-		set = make(spn.VarSet)
-		sys.Println("Right half")
-		for k, v := range half {
-			l := (k - w)
-			l -= l / sys.Width * w
-			set[l] = v
-		}
-		fmt.Printf("len(set)=%d\n", len(set))
-		io.VarSetToPGM(fmt.Sprintf("right_%d.pgm", i), set, sys.Width/2, sys.Height, sys.Max-1)
-		io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d.pgm", i), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max-1)
-		spn.PrintSPN(S, fmt.Sprintf("test_after_%d.spn", i))
-		//C := completeHalfExact(S, half)
-		//io.VarSetToPGM(fmt.Sprintf("cnd_cmpl_%d.pgm", i), C, sys.Width, sys.Height, sys.Max-1)
 	}
 }
 
@@ -285,7 +264,11 @@ func ImgTestParallel(filename string, m, g, r int, eta, eps float64, concurrents
 	//sc, D, lbls := io.ParseDataNL(filename)
 	sc, D, _ := io.ParseDataNL(filename)
 	ndata := len(D)
-	P := parameters.New(true, false, 0.0001, parameters.HardGD, eta, eps, 1, 0.4, 5)
+	P := parameters.New(true, false, 0.01, parameters.HardGD, eta, eps, 1, 0.1, 1)
+
+	sys.Random.Shuffle(len(D), func(i, j int) {
+		D[i], D[j] = D[j], D[i]
+	})
 
 	// Concurrency control.
 	var wg sync.WaitGroup
@@ -334,24 +317,11 @@ func ImgTestParallel(filename string, m, g, r int, eta, eps float64, concurrents
 			}
 
 			sys.Printf("Starting job %d\n", id)
-			S := dennis.LearnGD(train, lsc, 10, m, g, 0.95, P, id)
-			cmpl, half := halfImg(S, I, io.Left, sys.Width, sys.Height)
-			set := make(spn.VarSet)
-			w := sys.Width / 2
-			for k, v := range cmpl {
-				l := k - k/sys.Width*w
-				set[l] = v
+			S := dennis.LearnGD(train, lsc, 1, m, g, 0.95, P, id)
+			for _, q := range io.Quadrants {
+				cmpl, half := halfImg(S, I, q, sys.Width, sys.Height)
+				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%s_%d.pgm", q, i), half, cmpl, q, sys.Width, sys.Height, sys.Max-1)
 			}
-			io.VarSetToPGM(fmt.Sprintf("left_%d.pgm", id), set, sys.Width/2, sys.Height, sys.Max-1)
-			set = make(spn.VarSet)
-			for k, v := range half {
-				l := (k - w)
-				l -= l / sys.Width * w
-				set[l] = v
-			}
-			io.VarSetToPGM(fmt.Sprintf("right_%d.pgm", id), set, sys.Width/2, sys.Height, sys.Max-1)
-			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d.pgm", id), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max-1)
-			spn.PrintSPN(S, fmt.Sprintf("test_after_%d.spn", id))
 			sys.Printf("Ending job %d\n", id)
 
 			parameters.Unbind(S)
