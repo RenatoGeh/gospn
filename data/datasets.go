@@ -50,7 +50,10 @@ func getDataset(d string) (string, error) {
 	return p, e
 }
 
-func Caltech() (map[int]learn.Variable, []map[int]int) {
+// Caltech downloads a partition of the Caltech-101 dataset containing only certain categories.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func Caltech() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(caltech)
 	if e != nil {
 		return nil, nil
@@ -59,7 +62,10 @@ func Caltech() (map[int]learn.Variable, []map[int]int) {
 	return v, d
 }
 
-func Digits() (map[int]learn.Variable, []map[int]int) {
+// Digits downloads the digits dataset containing handwritten digits from 0 to 9.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func Digits() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(digits)
 	if e != nil {
 		return nil, nil
@@ -68,7 +74,10 @@ func Digits() (map[int]learn.Variable, []map[int]int) {
 	return v, d
 }
 
-func DigitsX() (map[int]learn.Variable, []map[int]int) {
+// DigitsX downloads the digits-x dataset, an extended version of digits with more variance.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func DigitsX() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(digitsX)
 	if e != nil {
 		return nil, nil
@@ -77,7 +86,10 @@ func DigitsX() (map[int]learn.Variable, []map[int]int) {
 	return v, d
 }
 
-func Olivetti() (map[int]learn.Variable, []map[int]int) {
+// Olivetti downloads a downscaled Olivetti Faces dataset from Bell Labs.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func Olivetti() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(olivetti)
 	if e != nil {
 		return nil, nil
@@ -86,7 +98,11 @@ func Olivetti() (map[int]learn.Variable, []map[int]int) {
 	return v, d
 }
 
-func OlivettiPadded() (map[int]learn.Variable, []map[int]int) {
+// OlivettiPadded downloads a downscaled Olivetti Faces dataset with left and right sides padded by
+// uniformly distributed pixels such that both width and height are divisible by four.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func OlivettiPadded() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(olivettiPadded)
 	if e != nil {
 		return nil, nil
@@ -95,7 +111,10 @@ func OlivettiPadded() (map[int]learn.Variable, []map[int]int) {
 	return v, d
 }
 
-func OlivettiBig() (map[int]learn.Variable, []map[int]int) {
+// OlivettiBig downloads the original Olivetti Faces dataset.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func OlivettiBig() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(olivettiBig)
 	if e != nil {
 		return nil, nil
@@ -104,7 +123,10 @@ func OlivettiBig() (map[int]learn.Variable, []map[int]int) {
 	return v, d
 }
 
-func OlivettiSmall() (map[int]learn.Variable, []map[int]int) {
+// OlivettiSmall downloads a smaller version of Olivetti.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func OlivettiSmall() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(olivettiSmall)
 	if e != nil {
 		return nil, nil
