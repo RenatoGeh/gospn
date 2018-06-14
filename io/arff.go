@@ -194,7 +194,7 @@ func ARFFToData(dirname, fname, dname string) {
 //
 // For numeric variables, we take the highest value in the dataset and set this value as the
 // categorical upper bound of the variable.
-func ParseArff(filename string) (name string, sc map[int]learn.Variable, vals []map[int]int,
+func ParseArff(filename string) (name string, sc map[int]*learn.Variable, vals []map[int]int,
 	labels map[int]map[string]int) {
 	in, err := os.Open(filename)
 
@@ -206,7 +206,7 @@ func ParseArff(filename string) (name string, sc map[int]learn.Variable, vals []
 
 	stream := bufio.NewScanner(in)
 	labels = make(map[int]map[string]int)
-	sc = make(map[int]learn.Variable)
+	sc = make(map[int]*learn.Variable)
 	var typs []string
 	var counts map[int]int
 	data := false
@@ -249,7 +249,7 @@ func ParseArff(filename string) (name string, sc map[int]learn.Variable, vals []
 					cat = len(l)
 					typs = append(typs, "class")
 				}
-				sc[i] = learn.Variable{Varid: i, Categories: cat, Name: n}
+				sc[i] = &learn.Variable{Varid: i, Categories: cat, Name: n}
 				i++
 			} else if strings.HasPrefix(_l, "@data") {
 				data = true

@@ -170,7 +170,7 @@ func halfImg(s spn.SPN, set spn.VarSet, typ io.CmplType, w, h int) (spn.VarSet, 
 	return cmpl, half
 }
 
-func randVarSet(s spn.SPN, sc map[int]learn.Variable, n int) spn.VarSet {
+func randVarSet(s spn.SPN, sc map[int]*learn.Variable, n int) spn.VarSet {
 	nsc := len(sc)
 	vs := make(spn.VarSet)
 
@@ -294,7 +294,7 @@ func ImgTestParallel(filename string, m, g, r int, eta, eps float64, concurrents
 			defer wg.Done()
 			var train []map[int]int
 			var ldata []map[int]int
-			lsc := make(map[int]learn.Variable)
+			lsc := make(map[int]*learn.Variable)
 
 			cpmutex.Lock()
 			for k, v := range sc {
@@ -368,7 +368,7 @@ func ImgCompletion(lf learn.LearnFunc, filename string, concurrents int) {
 			defer wg.Done()
 			var train []map[int]int
 			var ldata []map[int]int
-			lsc := make(map[int]learn.Variable)
+			lsc := make(map[int]*learn.Variable)
 
 			cpmutex.Lock()
 			for k, v := range sc {

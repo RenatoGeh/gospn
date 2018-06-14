@@ -34,7 +34,7 @@ func GetPath(relpath string) string {
 
 // ParseData reads from a file named filename and returns the scope and data map of the parsed data
 // file.
-func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
+func ParseData(filename string) (map[int]*learn.Variable, []map[int]int) {
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Printf("Error. Could not open file [%s].\n", filename)
@@ -42,7 +42,7 @@ func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 	}
 	defer file.Close()
 
-	sc := make(map[int]learn.Variable)
+	sc := make(map[int]*learn.Variable)
 
 	scanner := bufio.NewScanner(file)
 
@@ -59,7 +59,7 @@ func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 		}
 		var varid, cats int
 		fmt.Sscanf(line, "var %d %d", &varid, &cats)
-		sc[varid] = learn.Variable{Varid: varid, Categories: cats}
+		sc[varid] = &learn.Variable{Varid: varid, Categories: cats}
 	}
 
 	n := len(sc)
@@ -106,7 +106,7 @@ func ParseData(filename string) (map[int]learn.Variable, []map[int]int) {
 
 // ParseDataNL reads from a file named filename and returns the scope and data map of the parsed
 // data file. This version doesn't add labels as variables, but return them separately as a slice.
-func ParseDataNL(filename string) (map[int]learn.Variable, []map[int]int, []int) {
+func ParseDataNL(filename string) (map[int]*learn.Variable, []map[int]int, []int) {
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Printf("Error. Could not open file [%s].\n", filename)
@@ -114,7 +114,7 @@ func ParseDataNL(filename string) (map[int]learn.Variable, []map[int]int, []int)
 	}
 	defer file.Close()
 
-	sc := make(map[int]learn.Variable)
+	sc := make(map[int]*learn.Variable)
 
 	scanner := bufio.NewScanner(file)
 
@@ -131,7 +131,7 @@ func ParseDataNL(filename string) (map[int]learn.Variable, []map[int]int, []int)
 		}
 		var varid, cats int
 		fmt.Sscanf(line, "var %d %d", &varid, &cats)
-		sc[varid] = learn.Variable{Varid: varid, Categories: cats}
+		sc[varid] = &learn.Variable{Varid: varid, Categories: cats}
 	}
 
 	n := len(sc) - 1
@@ -188,7 +188,7 @@ func ParseDataNL(filename string) (map[int]learn.Variable, []map[int]int, []int)
 //
 // Returns a slice of maps, with each key corresponding to a variable ID and each associated value
 // as the valuation of such variable; and the scope.
-func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []int) {
+func ParseEvidence(filename string) (map[int]*learn.Variable, []map[int]int, []int) {
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Printf("Error. Could not open file [%s].\n", filename)
@@ -196,7 +196,7 @@ func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []in
 	}
 	defer file.Close()
 
-	sc := make(map[int]learn.Variable)
+	sc := make(map[int]*learn.Variable)
 
 	scanner := bufio.NewScanner(file)
 
@@ -228,7 +228,7 @@ func ParseEvidence(filename string) (map[int]learn.Variable, []map[int]int, []in
 		}
 		var varid, cats int
 		fmt.Sscanf(line, "var %d %d", &varid, &cats)
-		sc[varid] = learn.Variable{Varid: varid, Categories: cats}
+		sc[varid] = &learn.Variable{Varid: varid, Categories: cats}
 	}
 
 	n := len(sc)
@@ -277,7 +277,7 @@ var glrand *rand.Rand
 var glrseed int64 = -1
 
 // ParsePartitionedData reads a data file and, with p probability, chooses ((1-p)*100)% of the data
-// file to be used as evidence file. For instance, p=0.7 will create a map[int]learn.Variable,
+// file to be used as evidence file. For instance, p=0.7 will create a map[int]*learn.Variable,
 // which contains the data variables, and two []map[int]int. The first []map[int]int returned is
 // the training data, which composes 70% of the data file. The second map will return the evidence
 // table with the remaining 30% data file. This partitioning is defined by the pseudo-random seed
@@ -286,7 +286,7 @@ var glrseed int64 = -1
 //
 // Note: since this function "breaks" the order of classification, it returns a separate label
 // containing the actual classification of each instantiation.
-func ParsePartitionedData(filename string, p float64, rseed int64) (map[int]learn.Variable,
+func ParsePartitionedData(filename string, p float64, rseed int64) (map[int]*learn.Variable,
 	[]map[int]int, []map[int]int, []int) {
 	vartable, fdata := ParseData(filename)
 	var rint func(n int) int

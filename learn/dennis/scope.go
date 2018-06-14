@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-type scope map[int]learn.Variable
+type scope map[int]*learn.Variable
 type scopeSlice []scope
 
 func (S scopeSlice) contains(s scope) bool {

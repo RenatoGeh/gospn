@@ -37,7 +37,7 @@ func dataToCluster(D spn.Dataset) map[int][]int {
 	return C
 }
 
-func buildRegionGraph(D spn.Dataset, sc map[int]learn.Variable, k int, t float64) *graph {
+func buildRegionGraph(D spn.Dataset, sc map[int]*learn.Variable, k int, t float64) *graph {
 	G := newGraph(sc)
 	n := G.root
 	if k > 1 {
@@ -183,7 +183,7 @@ func buildSPN(g *graph, D spn.Dataset, m, l int) spn.SPN {
 	return g.root.rep[0]
 }
 
-func Structure(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t float64) spn.SPN {
+func Structure(D spn.Dataset, sc map[int]*learn.Variable, k, m, g int, t float64) spn.SPN {
 	//sys.Println("Building region graph...")
 	G := buildRegionGraph(D, sc, k, t)
 	//sys.Println("Building SPN from region graph...")
@@ -192,7 +192,7 @@ func Structure(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t float64)
 	return S
 }
 
-func LearnGD(D spn.Dataset, sc map[int]learn.Variable, k, m, g int, t float64, P *parameters.P, i int) spn.SPN {
+func LearnGD(D spn.Dataset, sc map[int]*learn.Variable, k, m, g int, t float64, P *parameters.P, i int) spn.SPN {
 	S := Structure(D, sc, k, m, g, t)
 	var ns, np, nl int
 	spn.BreadthFirst(S, func(s spn.SPN) bool {

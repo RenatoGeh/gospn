@@ -14,7 +14,7 @@ import (
 
 // Binded is a binded version of Gens.
 func Binded(kclusters int, pval, eps float64, mp int) learn.LearnFunc {
-	return func(sc map[int]learn.Variable, data spn.Dataset) spn.SPN {
+	return func(sc map[int]*learn.Variable, data spn.Dataset) spn.SPN {
 		return Learn(sc, data, kclusters, pval, eps, mp)
 	}
 }
@@ -24,7 +24,7 @@ func Binded(kclusters int, pval, eps float64, mp int) learn.LearnFunc {
 //	Learning the Structure of Sum Product Networks
 //	Robert Gens and Pedro Domingos
 //	International Conference on Machine Learning 30 (ICML 2013)
-func Learn(sc map[int]learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
+func Learn(sc map[int]*learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
 	n := len(sc)
 
 	sys.Printf("Sample size: %d, scope size: %d\n", len(data), n)
@@ -38,7 +38,7 @@ func Learn(sc map[int]learn.Variable, data []map[int]int, kclusters int, pval, e
 		// pr is the univariate probability distribution.
 		var tv *learn.Variable
 		for _, v := range sc {
-			tv = &v
+			tv = v
 		}
 		counts := make([]int, tv.Categories)
 		for i := 0; i < m; i++ {
@@ -109,10 +109,10 @@ func Learn(sc map[int]learn.Variable, data []map[int]int, kclusters int, pval, e
 				}
 			}
 			// Create new scope with new variables.
-			nsc := make(map[int]learn.Variable)
+			nsc := make(map[int]*learn.Variable)
 			for j := 0; j < s; j++ {
 				t := (*kset)[i][j]
-				nsc[t] = learn.Variable{t, sc[t].Categories, ""}
+				nsc[t] = &learn.Variable{t, sc[t].Categories, ""}
 			}
 			//sys.Printf("LENGTH: %d\n", len(tdata))
 			//sys.Println("Product node created. Recursing...")
@@ -203,7 +203,7 @@ func Learn(sc map[int]learn.Variable, data []map[int]int, kclusters int, pval, e
 			l++
 		}
 
-		nsc := make(map[int]learn.Variable)
+		nsc := make(map[int]*learn.Variable)
 		for k, v := range sc {
 			nsc[k] = v
 		}
@@ -217,7 +217,7 @@ func Learn(sc map[int]learn.Variable, data []map[int]int, kclusters int, pval, e
 }
 
 // LearnGauss uses Gaussians instead of Multinomials.
-func LearnGauss(sc map[int]learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
+func LearnGauss(sc map[int]*learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
 	n := len(sc)
 
 	sys.Printf("Sample size: %d, scope size: %d\n", len(data), n)
@@ -231,7 +231,7 @@ func LearnGauss(sc map[int]learn.Variable, data []map[int]int, kclusters int, pv
 		// pr is the univariate probability distribution.
 		var tv *learn.Variable
 		for _, v := range sc {
-			tv = &v
+			tv = v
 		}
 		counts := make([]int, tv.Categories)
 		for i := 0; i < m; i++ {
@@ -302,10 +302,10 @@ func LearnGauss(sc map[int]learn.Variable, data []map[int]int, kclusters int, pv
 				}
 			}
 			// Create new scope with new variables.
-			nsc := make(map[int]learn.Variable)
+			nsc := make(map[int]*learn.Variable)
 			for j := 0; j < s; j++ {
 				t := (*kset)[i][j]
-				nsc[t] = learn.Variable{t, sc[t].Categories, ""}
+				nsc[t] = &learn.Variable{t, sc[t].Categories, ""}
 			}
 			//sys.Printf("LENGTH: %d\n", len(tdata))
 			//sys.Println("Product node created. Recursing...")
@@ -406,7 +406,7 @@ func LearnGauss(sc map[int]learn.Variable, data []map[int]int, kclusters int, pv
 			l++
 		}
 
-		nsc := make(map[int]learn.Variable)
+		nsc := make(map[int]*learn.Variable)
 		for k, v := range sc {
 			nsc[k] = v
 		}
