@@ -93,6 +93,8 @@ various learning algorithms present in literature.
 
 Check the docs: https://godoc.org/github.com/RenatoGeh/gospn
 
+You can find more elaborate examples at: https://github.com/RenatoGeh/benchmarks
+
 To import the learning algorithms:
 
 ```
@@ -167,101 +169,12 @@ mpe := T.Single(t, S)
 
 #### As a standalone program
 
-Let's first define the variable `$GOSPN` as the path
-`$GOPATH/src/github.com/RenatoGeh/gospn`. To run GoSPN, we must complete a few steps:
-
-1. Prepare the dataset:
-  - Let `ds` be your dataset's name.
-  - Create a new directory `$GOPATH/data/ds`, where root is the root of the
-    GoSPN package.
-  - Each subdirectory inside `$GOPATH/data/ds` represents a different class.
-  - For example: if we have three classes, `dog`, `cat` and `mouse`,
-    then we might have three subdirectories inside `$GOPATH/data/ds` named
-    `dog`, `cat` and `mouse`.
-  - Copy your class instances into `$GOPATH/data/ds/classname`.
-2. Compile the dataset into a `.data` file:
-  - If the dataset is an image, take note of the dimensions and max
-    value pixels take.
-  - Let `w` and `h` be the width and height of the images, and `m` be
-    the max value.
-  - Compile the data with `go run main.go -mode=data -width=w -height=h
-    -max=m -dataset=ds`
-  - This will generate a `.data` file inside `$GOPATH/data/ds/all/`. By default
-    it is named `all.data`.
-3. Run a job by running GoSPN with the following syntax.
-
-```
-Usage:
-  go run main.go [-p] [-rseed] [-clusters] [-iterations] [-concurrents]
-  [-dataset] [-width] [-height] [-max] [-mode] [-pval] [-eps] [-mp] [-v]
-Arguments:
-  p           - is the partition in the interval (0, 1) to be used for
-                cross-validation. If ommitted, p defaults to 0.7.
-  rseed       - the seed to be used when choosing which instances to be used
-                as train and which to be used as test set. If ommitted, rseed
-                defaults to -1, which chooses a random seed according to the
-                current time.
-  clusters    - how many k-clusters to be used during training on instance
-                splits. If clusters = -1, then use DBSCAN. Else if
-                clusters = -2, then use OPTICS. Else, if clusters > 0,
-                then use k-means clustering. By default, clusters is set
-                to -1.
-  iterations  - how many iterations to be run when running a
-                classification job. This allows for better, more general
-                and randomized results, as some test/train partitions may
-                become degenerated.
-  concurrents - GoSPN makes use of Go's native concurrency and is able
-                to run on multiple cores in parallel. Argument concurrents
-                defines the number of concurrent jobs GoSPN should run
-                at most. If concurrents <= 0, then concurrents = nCPU,
-                where nCPU is the number of CPUs the running machine has
-                available. By default, concurrents = -1.
-  dataset     - name of the dataset to be parsed or compiled. Setting
-                -mode=data will compile data. Ommitting -mode or setting
-                -mode to something different than data will either run
-                completion or classification.
-  width       - width of the images to be classified or completed.
-  height      - height of the images to be classified or completed.
-  max         - maximum pixel value the images can take.
-  mode        - whether to convert a directory structure into a data
-                file (data), run an image completion job (cmpl) or a
-                classification job (class).
-  pval        - the significance value for the independence test.
-  eps         - the epsilon minimum distance value for DBSCAN.
-  mp          - the minimum points density for DBSCAN.
-  v           - Verbose mode.
-```
-
-Running `go run main.go -help` shows the help page.
-
-Example datasets are available at `$GOSPN/data` as credited on section
-<https://github.com/RenatoGeh/gospn#datasets>.
-
-#### For step 3 to run a classification job:
-
-1. Choose a partition value `p` such that `0 < p < 1`. For instance,
-   `p=0.8`.
-2. Choose an `rseed` value. For instance, `rseed=-1`.
-3. Choose a `clusters` value (k-means with `clusters` clusters, DBSCAN
-   or OPTICS). For instance, `clusters=3`.
-4. Choose the number of iterations `iterations`. For instance,
-   `iterations=5`.
-5. Set your dataset name and image width, height and max value
-   (`-dataset`, `-width`, `-height` and `-max`).
-6. Run GoSPN with `-mode=class`.
-7. Example: `go run main.go -p=0.8 -rseed=-1 -clusters=3 -iterations=5
-   -dataset=caltech -width=150 -height=65 -max=256 -mode=class`.
-
-#### For step 3 to run an image completion job:
-1. Set your dataset name and image width, height and max value
-   (`-dataset`, `-width`, `-height` and `-max`).
-2. Run GoSPN with `-mode=cmpl`.
-3. Example: `go run main.go -mode=cmpl -dataset=olivetti_3bit -width=46
-   -height=56 -max=8`.
+**GoSPN is no longer supported as a standalone program. Use it as a
+library instead.**
 
 ### Dependencies
 
-GoSPN is built in Go. Go is an open source language originally developed
+GoSPN is written in Go. Go is an open source language originally developed
 at Google. It's a simple yet powerful and fast language built with
 efficiency in mind. Installing Go is easy. Pre-compiled packages are
 available for FreeBSD, Linux, Mac OS X and Windows for both 32 and
@@ -291,7 +204,7 @@ We have deprecated functions that made GoSPN independent of GoNum or GNU
 GSL, so we recommend installing GoNum.
 
 The dependencies below can be considered "optional", in that the user
-can avoid using them if one wishes so.
+can avoid using them if they wish.
 
 #### graph-tool (optional)
 
@@ -323,7 +236,7 @@ To get the source code through Go's `go get` command, run the following
 command:
 
 ```
-$ go get github.com/RenatoGeh/gospn
+$ go get -u github.com/RenatoGeh/gospn
 ```
 
 This should install GoSPN to your $GOPATH directory. Note that this will
@@ -383,6 +296,11 @@ We use the following datasets:
   from few training examples: an incremental Bayesian approach tested on
   101 object categories.* IEEE. CVPR 2004, Workshop on Generative-Model
   Based Vision. 2004
+
+For a list of all available datasets, see:
+
+* https://godoc.org/github.com/RenatoGeh/gospn/data
+* https://github.com/RenatoGeh/datasets
 
 ### Results
 

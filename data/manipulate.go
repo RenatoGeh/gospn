@@ -156,3 +156,16 @@ func PartitionByLabels(D []map[int]int, L []int, c int, p []float64) ([][]map[in
 
 	return M, U
 }
+
+// Split takes a dataset D, the number of classes c and label assignments L and returns the dataset
+// split by labels. That is, create c subdatasets where for each of these subdatasets, all items in
+// the i-th dataset belongs to the class i, and such that the union of all subdatasets is D.
+func Split(D []map[int]int, c int, L []int) [][]map[int]int {
+	S := make([][]map[int]int, c)
+	for i, l := range L {
+		M := make(map[int]int)
+		copyMap(M, D[i])
+		S[l] = append(S[l], M)
+	}
+	return S
+}
