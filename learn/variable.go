@@ -14,6 +14,8 @@ type Variable struct {
 	Name string
 }
 
+type Scope map[int]*Variable
+
 // ExtractInstance extracts all instances of variable v from dataset D and joins them into a single
 // slice.
 func ExtractInstance(v int, D spn.Dataset) []int {

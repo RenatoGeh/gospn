@@ -41,6 +41,7 @@ func ExtractLabels(S map[int]*learn.Variable, D []map[int]int) (map[int]*learn.V
 
 	for i, I := range D {
 		k := 0
+		M[i] = make(map[int]int)
 		for p, v := range I {
 			if p > k {
 				k = p
@@ -125,8 +126,9 @@ func PartitionByLabels(D []map[int]int, L []int, c int, p []float64) ([][]map[in
 			z := S[i][j]
 			for u := 0; u < z; u++ {
 				l := R[j][K[j]]
+				u := C[j][l]
 				M[i][t] = make(map[int]int)
-				copyMap(M[i][t], D[l])
+				copyMap(M[i][t], D[u])
 				U[i][t] = j
 				t++
 				K[j]++

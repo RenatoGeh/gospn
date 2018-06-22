@@ -106,7 +106,7 @@ func (g *Gaussian) Value(val VarSet) float64 {
 	return l
 }
 
-// Max returns the MAP state given a valuation.
+// Max returns the MAP given a valuation.
 func (g *Gaussian) Max(val VarSet) float64 {
 	v, ok := val[g.varid]
 	if g.dist.Sigma == 0 {

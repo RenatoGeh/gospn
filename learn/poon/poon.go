@@ -620,7 +620,7 @@ func Test(D spn.Dataset, I spn.VarSet, m, g, r int) spn.SPN {
 }
 
 func BindedGD(m, g, r int, eta, eps float64) learn.LearnFunc {
-	return func(_ map[int]learn.Variable, data spn.Dataset) spn.SPN {
+	return func(_ map[int]*learn.Variable, data spn.Dataset) spn.SPN {
 		return LearnGD(data, m, g, r, eta, eps)
 	}
 }
