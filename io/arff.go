@@ -215,7 +215,6 @@ func ParseArff(filename string) (name string, sc map[int]*learn.Variable, vals [
 
 		// Line is a comment.
 		if len(line) > 0 {
-			c := string(line[0])
 			if string(line[0]) == "%" {
 				continue
 			}
