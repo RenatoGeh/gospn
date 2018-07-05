@@ -214,8 +214,11 @@ func ParseArff(filename string) (name string, sc map[int]*learn.Variable, vals [
 		line := stream.Text()
 
 		// Line is a comment.
-		if line[0] == '%' {
-			continue
+		if len(line) > 0 {
+			c := string(line[0])
+			if string(line[0]) == "%" {
+				continue
+			}
 		}
 
 		if !data {

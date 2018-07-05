@@ -156,7 +156,7 @@ Finding the approximate MPE works the same way. Let `evidence` be some
 evidence, the MPE is given by:
 
 ```
-mpe, args := S.ArgMax(evidence) // mpe is the probability and args is the argmax valuation.
+args, mpe := S.ArgMax(evidence) // mpe is the probability and args is the argmax valuation.
 ```
 
 Similarly to `S.Value`, `S.ArgMax` may recompute values if the graph is
