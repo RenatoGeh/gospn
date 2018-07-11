@@ -263,6 +263,7 @@ func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Coll
 	wt, _ := storage.Table(wtk)
 	c.Give(S)
 	visited[S] = true
+	P := S.Parameters()
 	for !c.Empty() {
 		s := c.Take().(spn.SPN)
 		ch := s.Ch()
@@ -272,15 +273,15 @@ func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Coll
 			dW, _ := wt.Value(s)
 			for i := range W {
 				delta := eta * math.Exp(dW[i])
-				sys.Printf("delta=%.10f=%.2f*Exp(%.10f), W[%d]=%.10f\n", delta, eta, dW[i], i, W[i])
+				//sys.Printf("delta=%.10f=%.2f*Exp(%.10f), W[%d]=%.10f\n", delta, eta, dW[i], i, W[i])
 				//if delta > 1 {
 				//delta = 1
 				//} else if delta < -1 {
 				//delta = -1
 				//}
-				W[i] += delta
-				pW := sum.Weights()
-				sys.Printf("W[%d]=%.10f, post-W[%d]=%.10f\n", i, W[i], i, pW[i])
+				W[i] += delta - 2*P.Lambda*W[i]
+				//pW := sum.Weights()
+				//sys.Printf("W[%d]=%.10f, post-W[%d]=%.10f\n", i, W[i], i, pW[i])
 			}
 			if norm {
 				Normalize(W)

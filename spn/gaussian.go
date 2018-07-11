@@ -69,6 +69,35 @@ func NewGaussian(varid int, counts []int) *Gaussian {
 	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mean, sd, nil}}
 }
 
+// NewGaussianMode constructs a new Gaussian centered on the Mode instead of the Mean.
+func NewGaussianMode(varid int, counts []int) *Gaussian {
+	var mean, mode, sd float64
+	var N int
+	n := len(counts)
+
+	for i := range counts {
+		N += counts[i]
+	}
+
+	for i := 0; i < n; i++ {
+		mean += float64(counts[i]) / float64(N) * float64(i)
+	}
+
+	max := math.Inf(-1)
+	for i := 0; i < n; i++ {
+		c := float64(counts[i])
+		if c > max {
+			max = c
+		}
+		d := float64(i) - mean
+		sd += (c / float64(N)) * d * d
+	}
+	sd = math.Sqrt(sd)
+
+	//sys.Printf("Created new gaussian with Mu: %f and StdDev: %f\n", mean, sd)
+	return &Gaussian{Node{sc: []int{varid}}, varid, distuv.Normal{mode, sd, nil}}
+}
+
 // NewGaussianFit constructs a new Gaussian from GoNum's Fit function.
 func NewGaussianFit(varid int, counts []float64) *Gaussian {
 	N := distuv.Normal{}

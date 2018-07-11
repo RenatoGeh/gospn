@@ -34,16 +34,16 @@ various learning algorithms present in literature.
 
 **Completed**
 
-  - Soft inference (marginal probabilities)
-  - Hard inference (MAP)
-  - Gens-Domingos learning schema
-     * *Learning the Structure of Sum-Product Networks*, R. Gens & P.
-       Domingos, ICML 2013
-     * [pdf](http://spn.cs.washington.edu/papers/slspn.pdf)
-  - Generative gradient descent
-  - SPN derivatives
-  - Support for `.arff` dataset format (discrete variables for now)
-  - Poon-Domingos deep structure
+- Soft inference (marginal probabilities)
+- Hard inference (MAP)
+- Gens-Domingos learning schema
+   * *Learning the Structure of Sum-Product Networks*, R. Gens & P.
+     Domingos, ICML 2013
+   * [pdf](http://spn.cs.washington.edu/papers/slspn.pdf)
+- Generative gradient descent
+- SPN derivatives
+- Support for `.arff` dataset format (discrete variables for now)
+- Poon-Domingos deep structure
 - Dennis-Ventura clustering structural learning algorithm
     * *Learning the Architecture of Sum-Product Networks Using Clustering
      on Variables*, A. Dennis & D. Ventura, NIPS 25 (2012)
@@ -64,10 +64,6 @@ various learning algorithms present in literature.
   * *Discriminative Learning of Sum-Product Networks*, R. Gens & P.
     Domingos, NIPS 25 (2012)
   * [pdf](http://spn.cs.washington.edu/papers/dspn.pdf)
-- Language modelling SPN
-  * *Language Modelling with Sum-Product Networks*, Cheng *et al*,
-  INTERSPEECH 2014
-  * [pdf](http://spn.cs.washington.edu/papers/is14.pdf)
 
 **To do (low priority)**
 
@@ -79,6 +75,10 @@ various learning algorithms present in literature.
     2015
     * [pdf](http://www.di.uniba.it/~vergari/papers/Simplifying,%20Regularizing%20and%20Strengthening%20Sum-Product%20Network%20Structure%20Learning.pdf)
 
+- Language modelling SPN
+  * *Language Modelling with Sum-Product Networks*, Cheng *et al*,
+  INTERSPEECH 2014
+  * [pdf](http://spn.cs.washington.edu/papers/is14.pdf)
  - Support for `.csv` dataset file format.
 
 ### Branches
@@ -142,7 +142,7 @@ p := S.Value(evidence)
 ```
 
 The method `S.Value` may repeat calculations if the SPN's graph is not a
-tree. To use dynamic programming and avoid recalculations, use
+tree. To use dynamic programming and avoid recomputations, use
 `spn.Storer`:
 
 ```
@@ -247,7 +247,7 @@ download the repo's default branch (namely `dev`). To get to the
 git checkout stable
 ```
 
-Compiling the code is easy. First go to the GoSPN source dir.
+~~Compiling the code is easy. First go to the GoSPN source dir.
 
 ```
 $ cd $GOPATH/src/github.com/RenatoGeh/gospn/
@@ -259,7 +259,8 @@ To compile and run (the standalone version):
 $ go run main.go <args>
 ```
 
-Where `args` is a list of arguments. See Usage for more information.
+Where `args` is a list of arguments. See Usage for more information.~~
+(Standalone version is deprecated)
 
 When using GoSPN as a library, simply run your code as usual.
 
@@ -290,7 +291,7 @@ An analysis on our Gens-Domingos implementation can be found at
 
 We use the following datasets:
 
-* Custom hand drawn numerical digits dataset (https://github.com/RenatoGeh/gospn/tree/stable/data/digits)
+* Custom hand drawn numerical digits dataset (https://github.com/RenatoGeh/datasets/tree/master/digits)
 * Olivetti Faces Dataset by AT&T Laboratories Cambridge
 * Caltech101: L. Fei-Fei, R. Fergus and P. Perona. *Learning generative visual models
   from few training examples: an incremental Bayesian approach tested on

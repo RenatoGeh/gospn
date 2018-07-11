@@ -48,10 +48,12 @@ type P struct {
 //  Normalize    = true
 //  HardWeight   = false
 //  SmoothSum    = 0.01
-//  HardLearning = parameters.SoftGD
+//  LearningType = parameters.SoftGD
 //  Eta          = 0.1
 //  Epsilon      = 1.0
 //  BatchSize    = 0
+//  Lambda 			 = 0.01
+//  Iterations 	 = 4
 func Default() *P {
 	return &P{true, false, 0.01, SoftGD, 0.1, 1.0, 0, 0.01, 4}
 }

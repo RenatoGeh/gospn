@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"github.com/RenatoGeh/gospn/io"
 	"github.com/RenatoGeh/gospn/learn"
 	"os"
@@ -133,4 +134,51 @@ func OlivettiSmall() (map[int]*learn.Variable, []map[int]int) {
 	}
 	v, d := io.ParseData(p)
 	return v, d
+}
+
+func pullMNIST(n, b int) (map[int]*learn.Variable, []map[int]int, []map[int]int) {
+	if !exists(DatasetPath) {
+		os.MkdirAll(DatasetPath, os.ModePerm)
+	}
+	ta, ra := fmt.Sprintf("test_%d_%d.data", b, n), fmt.Sprintf("train_%d_%d.data", b, n)
+	ub := upstreamPrepend + "mnist/compiled/"
+	ut, ur := ub+ta, ub+ra
+	pb := DatasetPath + "mnist_"
+	pt, pr := pb+ta, pb+ra
+	e := io.DownloadFromURL(ut, pt, false)
+	if e != nil {
+		return nil, nil, nil
+	}
+	e = io.DownloadFromURL(ur, pr, false)
+	v, dt := io.ParseData(pt)
+	_, dr := io.ParseData(pr)
+	return v, dt, dr
+}
+
+// MNIST1000 downloads a subset of 1000 MNIST samples.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and a pair of test and training dataset indexed by variables' ID.
+func MNIST1000() (map[int]*learn.Variable, []map[int]int, []map[int]int) {
+	return pullMNIST(1000, 256)
+}
+
+// MNIST2000 downloads a subset of 2000 MNIST samples.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and a pair of test and training dataset indexed by variables' ID.
+func MNIST2000() (map[int]*learn.Variable, []map[int]int, []map[int]int) {
+	return pullMNIST(2000, 256)
+}
+
+// MNIST3Bits1000 downloads a subset of 1000 MNIST samples with 3-bit resolution.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and a pair of test and training dataset indexed by variables' ID.
+func MNIST3Bits1000() (map[int]*learn.Variable, []map[int]int, []map[int]int) {
+	return pullMNIST(1000, 8)
+}
+
+// MNIST3Bits2000 downloads a subset of 2000 MNIST samples with 3-bit resolution.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and a pair of test and training dataset indexed by variables' ID.
+func MNIST3Bits2000() (map[int]*learn.Variable, []map[int]int, []map[int]int) {
+	return pullMNIST(2000, 8)
 }

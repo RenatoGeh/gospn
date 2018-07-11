@@ -2,7 +2,6 @@ package spn
 
 import (
 	"github.com/RenatoGeh/gospn/learn/parameters"
-	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils"
 	"math"
 )
@@ -48,7 +47,6 @@ func (s *Sum) Value(val VarSet) float64 {
 	}
 
 	l := s.Compute(vals)
-	sys.Printf("Sum value: %f = ln(%f)\n", l, math.Exp(l))
 	return l
 }
 
