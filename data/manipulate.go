@@ -171,3 +171,29 @@ func Split(D []map[int]int, c int, L []int) [][]map[int]int {
 	}
 	return S
 }
+
+// Copy copies the dataset and labels. If labels does not exist, returns only the dataset.
+func Copy(D []map[int]int, L []int) ([]map[int]int, []int) {
+	if len(D) != len(L) {
+		panic("Length of dataset does not match length of labels.")
+	}
+	n := len(D)
+	nD, nL := make([]map[int]int, n), make([]int, n)
+	for i := 0; i < n; i++ {
+		nD[i] = make(map[int]int)
+		copyMap(nD[i], D[i])
+		nL[i] = L[i]
+	}
+	return nD, nL
+}
+
+// Shuffle shuffles a dataset and sets its labels accordingly. It is an in-place shuffle.
+func Shuffle(D []map[int]int, L []int) {
+	if len(D) != len(L) {
+		panic("Length of dataset does not match length of labels.")
+	}
+	rand.Shuffle(len(D), func(i, j int) {
+		D[i], D[j] = D[j], D[i]
+		L[i], L[j] = L[j], L[i]
+	})
+}

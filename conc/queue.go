@@ -12,7 +12,6 @@ type SingleQueue struct {
 	wg sync.WaitGroup
 	n  int // Total number of allowed running processes.
 	k  int // Number of currently running processes.
-	mu *sync.Mutex
 	c  *sync.Cond
 }
 
@@ -22,7 +21,7 @@ func NewSingleQueue(n int) *SingleQueue {
 	if n <= 0 {
 		n = runtime.NumCPU()
 	}
-	return &SingleQueue{n: n, k: 0, mu: &sync.Mutex{}, c: sync.NewCond(&sync.Mutex{})}
+	return &SingleQueue{n: n, k: 0, c: sync.NewCond(&sync.Mutex{})}
 }
 
 // Run queries the SingleQueue to run function f with id i. It may or may not run immediately.
