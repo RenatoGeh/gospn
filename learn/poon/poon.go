@@ -165,7 +165,7 @@ func createRegions(D spn.Dataset, m, g, r int) map[uint64]*region {
 								R = createUnitRegion(x1, y1, g, D)
 							} else {
 								R = createRegion(m, r)
-								if x2-x1 <= 4 || y2-y1 <= 4 {
+								if x2-x1 <= r || y2-y1 <= r {
 									R.step = 1
 								}
 							}

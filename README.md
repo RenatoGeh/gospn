@@ -95,16 +95,14 @@ Check the docs: https://godoc.org/github.com/RenatoGeh/gospn
 
 You can find more elaborate examples at: https://github.com/RenatoGeh/benchmarks
 
-To import the learning algorithms:
-
-```
-import "github.com/RenatoGeh/gospn/learn
-```
+Learning algorithms are inside the `github.com/RenatoGeh/gospn/learn`
+package, with each algorithm as a subpackage of `learn` (e.g.
+`learn/gens`, `learn/dennis`, `learn/poon`).
 
 To parse an ARFF format dataset and perform learning with the
 Gens-Domingos structure learning algorithm:
 
-First import the relevant packages (`learn/gens` for Gens' structural
+First import the relevant packages (e.g. `learn/gens` for Gens' structural
 learning algorithm, `io` for `ParseArff` and `spn` for inference
 methods):
 
