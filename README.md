@@ -245,23 +245,6 @@ download the repo's default branch (namely `dev`). To get to the
 git checkout stable
 ```
 
-~~Compiling the code is easy. First go to the GoSPN source dir.
-
-```
-$ cd $GOPATH/src/github.com/RenatoGeh/gospn/
-```
-
-To compile and run (the standalone version):
-
-```
-$ go run main.go <args>
-```
-
-Where `args` is a list of arguments. See Usage for more information.~~
-(Standalone version is deprecated)
-
-When using GoSPN as a library, simply run your code as usual.
-
 ### Updating GoSPN
 
 To update GoSPN, run:
@@ -283,7 +266,7 @@ Code documentation can be found at <https://godoc.org/github.com/RenatoGeh/gospn
 #### Documentation
 
 An analysis on our Gens-Domingos implementation can be found at
-<https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf>.
+<https://github.com/RenatoGeh/gospn/blob/dev/doc/analysis/analysis.pdf>.
 
 ### Datasets
 
@@ -303,11 +286,11 @@ For a list of all available datasets, see:
 
 ### Results
 
-In our [analysis'](https://github.com/RenatoGeh/gospn/blob/master/doc/analysis/analysis.pdf)
+In our [analysis'](https://github.com/RenatoGeh/gospn/blob/dev/doc/analysis/analysis.pdf)
 experiments section we show some results from the three datasets
 enumerated above. We include some graphs and image completions here.
 More images completions can be found at
-[/results/olivetti_3bit/](https://github.com/RenatoGeh/gospn/tree/master/results/olivetti_3bit).
+[/results/olivetti_3bit/](https://github.com/RenatoGeh/gospn/tree/dev/results/olivetti_3bit).
 We also ran experiments on a modified Caltech-101 dataset due to memory
 constraints. Read the analysis document (Experiments section) for more information.
 
