@@ -26,6 +26,22 @@ func transpose(C map[int][]int) map[int][]int {
 	return V
 }
 
+func transposeF(C map[int][]float64) map[int][]int {
+	var K []int
+	for k, _ := range C {
+		K = append(K, k)
+	}
+	sort.Ints(K)
+	V := make(map[int][]int)
+	for _, k := range K {
+		c := C[k]
+		for i, p := range c {
+			V[i] = append(V[i], int(p))
+		}
+	}
+	return V
+}
+
 func dataToCluster(D spn.Dataset) map[int][]int {
 	C := make(map[int][]int)
 	for i, I := range D {
@@ -41,17 +57,25 @@ func buildRegionGraph(D spn.Dataset, sc map[int]*learn.Variable, k int, t float6
 	G := newGraph(sc)
 	n := G.root
 	if k > 1 {
-		M := learn.DataToMatrix(D)
-		C := cluster.KMedoid(k, M)
+		M := learn.DataToMatrixF(D)
+		C := cluster.KMeansF(k, M, metrics.EuclideanF)
 		for i := 0; i < k; i++ {
 			//sys.Printf("Expanding region graph on cluster %d...\n", i)
-			P := transpose(C[i])
+			P := transposeF(C[i])
 			expandRegionGraph(G, n, P, t)
 		}
-	} else {
+	} else if k == 1 {
 		C := dataToCluster(D)
 		P := transpose(C)
 		expandRegionGraph(G, n, P, t)
+	} else {
+		M := learn.DataToMatrix(D)
+		C := cluster.DBSCAN(M, 4, 4)
+		k = len(C)
+		for i := 0; i < k; i++ {
+			P := transpose(C[i])
+			expandRegionGraph(G, n, P, t)
+		}
 	}
 	return G
 }

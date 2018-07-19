@@ -178,22 +178,60 @@ func Copy(D []map[int]int, L []int) ([]map[int]int, []int) {
 		panic("Length of dataset does not match length of labels.")
 	}
 	n := len(D)
-	nD, nL := make([]map[int]int, n), make([]int, n)
+	nD := make([]map[int]int, n)
+	var nL []int
+	if L != nil {
+		nL = make([]int, n)
+	}
 	for i := 0; i < n; i++ {
 		nD[i] = make(map[int]int)
 		copyMap(nD[i], D[i])
-		nL[i] = L[i]
+		if L != nil {
+			nL[i] = L[i]
+		}
 	}
 	return nD, nL
 }
 
-// Shuffle shuffles a dataset and sets its labels accordingly. It is an in-place shuffle.
+// Shuffle shuffles a dataset and sets its labels accordingly (if it exists). It is an in-place shuffle.
 func Shuffle(D []map[int]int, L []int) {
-	if len(D) != len(L) {
+	if len(D) != len(L) && L != nil {
 		panic("Length of dataset does not match length of labels.")
 	}
 	rand.Shuffle(len(D), func(i, j int) {
 		D[i], D[j] = D[j], D[i]
-		L[i], L[j] = L[j], L[i]
+		if L != nil {
+			L[i], L[j] = L[j], L[i]
+		}
 	})
+}
+
+// Join returns the concatenation of two datasets and their labels (if both exist).
+func Join(D []map[int]int, E []map[int]int, L []int, M []int) ([]map[int]int, []int) {
+	n, m := len(D), len(E)
+	o := n + m
+	if len(L) != n || len(M) != m {
+		panic("Length of dataset does not match length of labels.")
+	}
+	F := make([]map[int]int, o)
+	var P []int
+	c := L != nil && M != nil
+	if c {
+		P = make([]int, o)
+	}
+	for i := 0; i < n; i++ {
+		F[i] = make(map[int]int)
+		copyMap(F[i], D[i])
+		if c {
+			P[i] = L[i]
+		}
+	}
+	for i := n; i < o; i++ {
+		F[i] = make(map[int]int)
+		copyMap(F[i], E[i-n])
+		if c {
+			P[i] = M[i-n]
+		}
+	}
+	return F, P
 }
