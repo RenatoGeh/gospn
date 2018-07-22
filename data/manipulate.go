@@ -174,7 +174,7 @@ func Split(D []map[int]int, c int, L []int) [][]map[int]int {
 
 // Copy copies the dataset and labels. If labels does not exist, returns only the dataset.
 func Copy(D []map[int]int, L []int) ([]map[int]int, []int) {
-	if len(D) != len(L) {
+	if len(D) != len(L) && L != nil {
 		panic("Length of dataset does not match length of labels.")
 	}
 	n := len(D)
@@ -210,12 +210,12 @@ func Shuffle(D []map[int]int, L []int) {
 func Join(D []map[int]int, E []map[int]int, L []int, M []int) ([]map[int]int, []int) {
 	n, m := len(D), len(E)
 	o := n + m
-	if len(L) != n || len(M) != m {
+	c := L != nil && M != nil
+	if c && (len(L) != n || len(M) != m) {
 		panic("Length of dataset does not match length of labels.")
 	}
 	F := make([]map[int]int, o)
 	var P []int
-	c := L != nil && M != nil
 	if c {
 		P = make([]int, o)
 	}
@@ -234,4 +234,47 @@ func Join(D []map[int]int, E []map[int]int, L []int, M []int) ([]map[int]int, []
 		}
 	}
 	return F, P
+}
+
+// SubtractLabel takes a dataset D, its label array and a label l and returns the result of
+// subtracting D with every instance of label l. It also returns the set of instances of label l.
+// It does not modify D. Instead, it copies D and returns the result of the subtraction.
+func SubtractLabel(D []map[int]int, L []int, l int) ([]map[int]int, []int, []map[int]int, []int) {
+	n := len(L)
+	if n != len(D) {
+		panic("Length of dataset does not match length of labels.")
+	}
+	var S, T []map[int]int
+	var P, Q []int
+	for i := 0; i < n; i++ {
+		if L[i] == l {
+			t := make(map[int]int)
+			copyMap(t, D[i])
+			T = append(T, t)
+			Q = append(Q, l)
+		} else {
+			s := make(map[int]int)
+			copyMap(s, D[i])
+			S = append(S, s)
+			P = append(P, L[i])
+		}
+	}
+	return S, P, T, Q
+}
+
+// SubtractVariable takes a dataset D, a variable v and returns the result of subtracting all
+// entries that belong to variable v. It does not modify D. Instead, it copies D and returns the
+// result of the subtraction.
+func SubtractVariable(D []map[int]int, v *learn.Variable) []map[int]int {
+	u := v.Varid
+	E := make([]map[int]int, len(D))
+	for i, I := range D {
+		E[i] = make(map[int]int)
+		for k, v := range I {
+			if k != u {
+				E[i][k] = v
+			}
+		}
+	}
+	return E
 }

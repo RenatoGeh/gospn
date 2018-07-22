@@ -580,6 +580,7 @@ func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h, ma
 		}
 	}
 
+	max--
 	fmt.Fprintf(file, "P3\n%d %d\n%d\n", w, h, max)
 
 	n, j := w*h, 0
@@ -591,7 +592,7 @@ func ImgCmplToPGM(filename string, orig, cmpl spn.VarSet, typ CmplType, w, h, ma
 			common.DrawColorRGB(file, v, v, v)
 		} else {
 			u, _ := cmpl[j]
-			common.DrawColorRGB(file, u, u, u)
+			common.DrawColorRGB(file, 0, u, 0)
 		}
 		j++
 	cleanup:

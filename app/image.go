@@ -255,7 +255,7 @@ func ImgTest(filename string, m, g, r int, eta, eps float64) {
 		//spn.NormalizeSPN(S)
 		for _, q := range io.Quadrants {
 			cmpl, half := halfImg(S, I, q, sys.Width, sys.Height)
-			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%s_%d.pgm", q, i), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max-1)
+			io.ImgCmplToPGM(fmt.Sprintf("cmpl_%s_%d.pgm", q, i), half, cmpl, io.Left, sys.Width, sys.Height, sys.Max)
 		}
 	}
 }
@@ -320,7 +320,7 @@ func ImgTestParallel(filename string, m, g, r int, eta, eps float64, concurrents
 			S := dennis.LearnGD(train, lsc, 1, m, g, 0.95, P, id)
 			for _, q := range io.Quadrants {
 				cmpl, half := halfImg(S, I, q, sys.Width, sys.Height)
-				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%s_%d.pgm", q, i), half, cmpl, q, sys.Width, sys.Height, sys.Max-1)
+				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%s_%d.pgm", q, i), half, cmpl, q, sys.Width, sys.Height, sys.Max)
 			}
 			sys.Printf("Ending job %d\n", id)
 
@@ -396,7 +396,7 @@ func ImgCompletion(lf learn.LearnFunc, filename string, concurrents int) {
 				fmt.Printf("P-%d: Drawing %s image completion for instance %d.\n", id, v, id)
 				cmpl, half := halfImg(s, chosen, v, sys.Width, sys.Height)
 				io.ImgCmplToPGM(fmt.Sprintf("cmpl_%d-%s.pgm", id, v), half, cmpl, v, sys.Width,
-					sys.Height, sys.Max-1)
+					sys.Height, sys.Max)
 				cmpl, half = nil, nil
 			}
 			//fmt.Printf("P-%d: Drawing MPE image for instance %d.\n", id, id)

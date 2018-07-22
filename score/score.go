@@ -62,10 +62,12 @@ func (s *S) Evaluate(T spn.Dataset, L []int, N spn.SPN, classVar *learn.Variable
 		if i > 0 && i%n == 0 {
 			fmt.Printf("... %d%% ...\n", int(100.0*(float64(i)/float64(len(T)))))
 		}
+		l := I[v]
 		delete(I, v)
 		_, _, M := spn.StoreMAP(N, I, tk, st)
 		s.Register(M[v], L[i])
 		st.Reset(tk)
+		I[v] = l
 	}
 }
 
@@ -77,4 +79,10 @@ func (s *S) Save(filename string) {
 		panic(e)
 	}
 	fmt.Fprintln(f, s.String())
+}
+
+// Clear clears the score table.
+func (s *S) Clear() {
+	s.Hits, s.Misses, s.Total = 0, 0, 0
+	s.Predictions = nil
 }
