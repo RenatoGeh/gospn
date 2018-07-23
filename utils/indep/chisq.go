@@ -3,7 +3,7 @@ package indep
 // Chi-Square Independence Test
 
 import (
-	//"fmt"
+	//"github.com/RenatoGeh/gospn/sys"
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 )
@@ -12,12 +12,6 @@ import (
 // 	Pr(X^2 <= chi)
 // Where X^2 is the chi-square distribution X^2(df), with df being the degree of freedom.
 func ChiSquare(chi float64, df int) float64 {
-	// GoNum version.
-	if df > 20000 {
-		// When degrees of freedom is very high, the Chi-Squared distribution approximates a Gaussian.
-		g := distuv.Normal{float64(df), float64(2 * df), nil}
-		return g.CDF(chi)
-	}
 	cs := distuv.ChiSquared{float64(df), nil}
 	return cs.CDF(chi)
 }
@@ -194,10 +188,10 @@ func ChiSquareTest(p, q int, data [][]int, sigval float64) bool {
 
 	// Compare cmd with sigval. If cmp < sigval, then dependent. Otherwise independent.
 	//fmt.Println("Computing integral of p-value on chi-square distribution...")
-	cmp := ChiSquare(chi, df)
+	cmp := 1.0 - ChiSquare(chi, df)
 
 	//fmt.Println("Returning if integral >= significance value")
-	//fmt.Printf("CHI: df: %d, chi: %f, cmp: %f\n", df, chi, cmp)
-	//fmt.Printf("%.40f vs %.40f, %t\n", cmp, sigval, cmp >= sigval)
+	//sys.Printf("CHI: df: %d, chi: %f, cmp: %f\n", df, chi, cmp)
+	//sys.Printf("%.40f vs %.40f, %t\n", cmp, sigval, cmp >= sigval)
 	return cmp >= sigval
 }

@@ -195,6 +195,10 @@ func NewUFIndepGraph(data []*utils.VarData, pval float64) *Graph {
 		for j := i + 1; j < n; j++ {
 			v1, v2 := ids[i], ids[j]
 
+			//if u, v := (i*n + j), n*n/10000; u%v == 0 {
+			//sys.Printf("%d / %d\n", u, n*n)
+			//}
+
 			if utils.Find(sets[i]) == utils.Find(sets[j]) {
 				continue
 			}
@@ -236,7 +240,7 @@ func NewUFIndepGraph(data []*utils.VarData, pval float64) *Graph {
 
 			// Checks if variables i, j are independent.
 			//sys.Println("Checking for pairwise independence...")
-			//indep := ChiSquareTest(p, q, mdata, n-1)
+			//indep := ChiSquareTest(p, q, mdata, pval)
 			//chidep := ChiSquareTest(p, q, mdata, n-1)
 			indep := GTest(p, q, mdata, n*(n-1)/2, pval)
 			//sys.Printf("Compare Chi with G: %v vs %v\n", chidep, indep)

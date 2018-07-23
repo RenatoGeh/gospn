@@ -13,9 +13,11 @@ const (
 
 	// Dataset names.
 	caltech        = "caltech"
+	caltech4Bit    = "caltech_4bit"
 	digits         = "digits"
 	digitsX        = "digits_x"
 	olivetti       = "olivetti"
+	olivetti3Bit   = "olivetti_3bit"
 	olivettiPadded = "olivetti_padded_u"
 	olivettiBig    = "olivetti_big"
 	olivettiSmall  = "olivetti_small"
@@ -56,6 +58,18 @@ func getDataset(d string) (string, error) {
 // Returns scope (variables) and dataset indexed by variables' ID.
 func Caltech() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(caltech)
+	if e != nil {
+		return nil, nil
+	}
+	v, d := io.ParseData(p)
+	return v, d
+}
+
+// Caltech downloads a partition of the Caltech-101 dataset containing only certain categories.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func Caltech4Bit() (map[int]*learn.Variable, []map[int]int) {
+	p, e := getDataset(caltech4Bit)
 	if e != nil {
 		return nil, nil
 	}
@@ -105,6 +119,18 @@ func Olivetti() (map[int]*learn.Variable, []map[int]int) {
 // Returns scope (variables) and dataset indexed by variables' ID.
 func OlivettiPadded() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(olivettiPadded)
+	if e != nil {
+		return nil, nil
+	}
+	v, d := io.ParseData(p)
+	return v, d
+}
+
+// Olivetti3Bit downloads a 3-bit resolution version of Olivetti.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func Olivetti3Bit() (map[int]*learn.Variable, []map[int]int) {
+	p, e := getDataset(olivetti3Bit)
 	if e != nil {
 		return nil, nil
 	}
