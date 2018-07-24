@@ -14,6 +14,7 @@ const (
 	// Dataset names.
 	caltech        = "caltech"
 	caltech4Bit    = "caltech_4bit"
+	caltech3Bit    = "caltech_3bit"
 	digits         = "digits"
 	digitsX        = "digits_x"
 	olivetti       = "olivetti"
@@ -65,11 +66,23 @@ func Caltech() (map[int]*learn.Variable, []map[int]int) {
 	return v, d
 }
 
-// Caltech downloads a partition of the Caltech-101 dataset containing only certain categories.
+// Caltech downloads a partition of the Caltech-101 dataset in 4-bit containing only certain categories.
 // For more information: https://github.com/RenatoGeh/datasets.
 // Returns scope (variables) and dataset indexed by variables' ID.
 func Caltech4Bit() (map[int]*learn.Variable, []map[int]int) {
 	p, e := getDataset(caltech4Bit)
+	if e != nil {
+		return nil, nil
+	}
+	v, d := io.ParseData(p)
+	return v, d
+}
+
+// Caltech downloads a partition of the Caltech-101 dataset in 3-bit containing only certain categories.
+// For more information: https://github.com/RenatoGeh/datasets.
+// Returns scope (variables) and dataset indexed by variables' ID.
+func Caltech3Bit() (map[int]*learn.Variable, []map[int]int) {
+	p, e := getDataset(caltech3Bit)
 	if e != nil {
 		return nil, nil
 	}
