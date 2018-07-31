@@ -573,20 +573,26 @@ func maxThroughData(D spn.Dataset, m, g, r int, L map[uint64]*region) spn.SPN {
 	st := spn.NewStorer()
 	st.NewTicket()
 	st.NewTicket()
-	n := int(math.Ceil(float64(len(D)) / float64(batchSize)))
+	//n := int(math.Ceil(float64(len(D)) / float64(batchSize)))
 	E, P, Q := make(map[string]bool), make(map[spn.SPN]*decomp), make(map[string]spn.SPN)
-	for q := 0; q < 2; q++ {
-		for i := 0; i < n; i++ {
-			l, u := i*batchSize, int(math.Min(float64((i+1)*batchSize), float64(len(D))))
-			sys.Printf("%d: %d, %d\n", i, l, u)
-			for j := l; j < u; j++ {
-				I := D[j]
-				sys.Printf("Starting mapInference on instance %d\n", j)
-				sys.StartTimer()
-				mapInference(m, g, r, I, L, st, E, P, Q)
-				sys.Printf("mapInference took %s\n", sys.StopTimer())
-				sys.Printf("Finished instance %d\n", j)
-			}
+	for q := 0; q < 1; q++ {
+		//for i := 0; i < n; i++ {
+		for i, I := range D {
+			//l, u := i*batchSize, int(math.Min(float64((i+1)*batchSize), float64(len(D))))
+			//sys.Printf("%d: %d, %d\n", i, l, u)
+			//for j := l; j < u; j++ {
+			//I := D[j]
+			//sys.Printf("Starting mapInference on instance %d\n", j)
+			//sys.StartTimer()
+			//mapInference(m, g, r, I, L, st, E, P, Q)
+			//sys.Printf("mapInference took %s\n", sys.StopTimer())
+			//sys.Printf("Finished instance %d\n", j)
+			//}
+			sys.Printf("Starting mapInference on instance %d\n", i)
+			sys.StartTimer()
+			mapInference(m, g, r, I, L, st, E, P, Q)
+			sys.Printf("mapInference took %s\n", sys.StopTimer())
+			sys.Printf("Finished instance %d\n", i)
 		}
 	}
 	k := Encode(0, 0, w, h)

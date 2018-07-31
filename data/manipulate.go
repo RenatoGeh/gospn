@@ -278,3 +278,26 @@ func SubtractVariable(D []map[int]int, v *learn.Variable) []map[int]int {
 	}
 	return E
 }
+
+// Identical compares two datasets (and their labels if they exist) and returns whether they are
+// identical in value and order.
+func Identical(D []map[int]int, E []map[int]int, L []int, M []int) bool {
+	c := L != nil && M != nil
+	if c && (len(L) != len(D) || len(M) != len(E)) {
+		panic("Length of dataset does not match length of labels.")
+	}
+	for i, I := range D {
+		J := E[i]
+		for k, v := range I {
+			if v != J[k] {
+				return false
+			}
+		}
+	}
+	for i, l := range L {
+		if M[i] != l {
+			return false
+		}
+	}
+	return true
+}

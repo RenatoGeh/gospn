@@ -8,3 +8,8 @@ func Free() {
 		debug.FreeOSMemory()
 	}
 }
+
+// ForceFree forces the garbage collector to free memory regardless of sys.MemConservative.
+func ForceFree() {
+	debug.FreeOSMemory()
+}
