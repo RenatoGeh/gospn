@@ -65,3 +65,15 @@ func DataToMatrixF(D spn.Dataset) [][]float64 {
 	}
 	return M
 }
+
+// MatrixToData returns a dataset from matrix M.
+func MatrixToData(M [][]int) spn.Dataset {
+	D := make(spn.Dataset, len(M))
+	for i, L := range M {
+		D[i] = make(map[int]int)
+		for j, e := range L {
+			D[i][j] = e
+		}
+	}
+	return D
+}
