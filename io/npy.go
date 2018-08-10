@@ -227,6 +227,11 @@ func (r *NpyReader) Read(n int) ([]map[int]int, []int, error) {
 	return read(r, n)
 }
 
+// ReadAll reads all instances from file and returns a dataset and label slice.
+func (r *NpyReader) ReadAll() ([]map[int]int, []int, error) {
+	return read(r, r.s[0])
+}
+
 // Close closes this reader's stream.
 func (r *NpyReader) Close() {
 	r.f.Close()
