@@ -144,15 +144,33 @@ func (t StorerTable) Exists(S SPN, i int) bool {
 // Delete frees the memory at T[k]. A combination of Delete and NewTicket is NOT equivalent to
 // using Reset. Prefer Reset over Delete + NewTicket.
 func (s *Storer) Delete(k int) {
-	s.tables[k] = nil
+	delete(s.tables, k)
 	sys.Free()
 }
 
 // Reset resets the values at T[k], deleting the map and creating a new one over it. The ticket
 // remains the same. Reset returns the ticket k.
 func (s *Storer) Reset(k int) int {
-	s.tables[k] = nil
+	delete(s.tables, k)
 	sys.Free()
 	s.tables[k] = make(StorerTable)
 	return k
+}
+
+// ResetEntries resets all store tables whose tickets were given.
+func (s *Storer) ResetTickets(K ...int) {
+	for _, k := range K {
+		delete(s.tables, k)
+		s.tables[k] = make(StorerTable)
+	}
+	sys.Free()
+}
+
+// Purge deletes all tables in this storer.
+func (s *Storer) Purge() {
+	for k, _ := range s.tables {
+		delete(s.tables, k)
+	}
+	s.tickets = 0
+	sys.Free()
 }
