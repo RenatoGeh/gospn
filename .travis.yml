@@ -11,6 +11,6 @@ install:
   - go get -u gonum.org/v1/gonum/stat
   - go get -u gonum.org/v1/gonum/mathext
   - go get -u golang.org/x/exp/rand
-  - go get -u github.com/RenatoGeh/npyio
+  - go get -u github.com/sbinet/npyio
 
 script: make build

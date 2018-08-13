@@ -2,7 +2,7 @@ package io
 
 import (
 	"errors"
-	"github.com/RenatoGeh/npyio"
+	"github.com/sbinet/npyio"
 	"os"
 )
 
@@ -230,6 +230,14 @@ func (r *NpyReader) Read(n int) ([]map[int]int, []int, error) {
 // ReadAll reads all instances from file and returns a dataset and label slice.
 func (r *NpyReader) ReadAll() ([]map[int]int, []int, error) {
 	return read(r, r.s[0])
+}
+
+// Reset resets the file pointer so it points to the beginning of data.
+func (r *NpyReader) Reset() error {
+	r.f.Seek(0, 0)
+	nr, err := npyio.NewReader(r.f)
+	r.r = nr
+	return err
 }
 
 // Close closes this reader's stream.

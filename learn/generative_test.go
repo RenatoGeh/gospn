@@ -3,6 +3,7 @@ package learn
 import (
 	"fmt"
 	"github.com/RenatoGeh/gospn/common"
+	"github.com/RenatoGeh/gospn/learn/parameters"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/test"
 	"math"
@@ -11,6 +12,7 @@ import (
 
 func initSimpleSPN() (spn.SPN, []spn.SPN) {
 	R := spn.NewSum()
+	parameters.Bind(R, parameters.New(true, false, 0.0, parameters.SoftGD, 0.1, 1, 0, 0, 1))
 	P1, P2 := spn.NewProduct(), spn.NewProduct()
 	S1, S2, S3, S4 := spn.NewSum(), spn.NewSum(), spn.NewSum(), spn.NewSum()
 	X11, X12 := spn.NewMultinomial(0, []float64{0.3, 0.7}), spn.NewMultinomial(0, []float64{0.6, 0.4})
@@ -171,7 +173,7 @@ func TestGenerativeGD(t *testing.T) {
 	R, _ := test.SampleSPN()
 	storage := spn.NewStorer()
 
-	fmt.Println("\n=== GenerativeGD Test ===\n")
+	fmt.Println("\n=== GenerativeGD Test ===")
 	data := make([]spn.VarSet, 16)
 	for i := range data {
 		data[i] = make(spn.VarSet)

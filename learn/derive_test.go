@@ -37,7 +37,7 @@ func testStoreInference(R spn.SPN, val spn.VarSet, storage *spn.Storer, c common
 	itk := storage.NewTicket()
 	spn.StoreInference(R, val, itk, storage)
 
-	fmt.Println("\n=== StoreInference Test ===\n")
+	fmt.Println("\n=== StoreInference Test ===")
 	itab, _ := storage.Table(itk)
 	test.DoBFS(R, func(s spn.SPN) bool {
 		v, _ := itab.Single(s)
@@ -53,7 +53,7 @@ func testDeriveSPN(R spn.SPN, storage *spn.Storer, itk int, c common.Collection)
 	dtk := storage.NewTicket()
 	DeriveSPN(R, storage, dtk, itk, c)
 
-	fmt.Println("\n=== DeriveSPN Test ===\n")
+	fmt.Println("\n=== DeriveSPN Test ===")
 	dtab, _ := storage.Table(dtk)
 	test.DoBFS(R, func(s spn.SPN) bool {
 		v, _ := dtab.Single(s)
@@ -68,7 +68,7 @@ func testDeriveWeights(R spn.SPN, storage *spn.Storer, itk, dtk int, c common.Co
 	wtk := storage.NewTicket()
 	DeriveWeights(R, storage, wtk, dtk, itk, c)
 
-	fmt.Println("\n=== DeriveWeights Test ===\n")
+	fmt.Println("\n=== DeriveWeights Test ===")
 	dtab, _ := storage.Table(dtk)
 	itab, _ := storage.Table(itk)
 	wtab, _ := storage.Table(wtk)

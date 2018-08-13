@@ -201,8 +201,12 @@ go get -u gonum.org/v1/gonum/mathext
 We have deprecated functions that made GoSPN independent of GoNum or GNU
 GSL, so we recommend installing GoNum.
 
-The dependencies below can be considered "optional", in that the user
-can avoid using them if they wish.
+#### NpyIO
+
+GoSPN supports `.npy` NumPy array dataset. We use
+[NpyIO](https://github.com/sbinet/npyio) to read the file and reformat
+into GoSPN dataset format. Go's `go get` should automatically install
+NpyIO.
 
 #### graph-tool (optional)
 
@@ -224,7 +228,7 @@ that you do not install graph-tool.
 Subdependencies and installation instructions are listed at
 <https://graph-tool.skewed.de/download>.
 
-#### Graphviz
+#### Graphviz (optional)
 
 GoSPN also supports graph drawing with Graphviz. See `io/output.go`.
 
