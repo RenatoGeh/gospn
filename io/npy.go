@@ -42,7 +42,6 @@ func isValid(t string) int {
 type NpyReader struct {
 	f *os.File      // File stream.
 	r *npyio.Reader // Npyio reader.
-	p int           // Position in number of elements (not instances!).
 	t int           // Actual type.
 	s [2]int        // Shape.
 }
@@ -65,9 +64,160 @@ func NewNpyReader(fname string) (*NpyReader, error) {
 	if t < 0 {
 		return nil, ErrNonIntegerType
 	}
-	return &NpyReader{f, r, 0, t, [2]int{s[0], s[1]}}, nil
+	return &NpyReader{f, r, t, [2]int{s[0], s[1]}}, nil
 }
 
+func new_counts(n int, k int) []int {
+	c := make([]int, k)
+	q, p := n/k, n%k
+	for i := 0; i < k; i++ {
+		if i < p {
+			c[i] = q + 1
+		} else {
+			c[i] = q
+		}
+	}
+	return c
+}
+
+// readBalanced reads .npy file from an *NpyReader, pulling n entries total. It pulls one instance
+// at a time, attempting to return a balanced dataset. That is, there should be roughly the same
+// number of entries for each label in the resulting dataset. Argument c is the number of classes
+// in the dataset.
+func readBalanced(r *NpyReader, n, c int) ([]map[int]int, []int, error) {
+	D := make([]map[int]int, n)
+	L := make([]int, n)
+	y := r.s[1]
+	C := new_counts(n, c)
+	for i := 0; i < n; {
+		switch r.t {
+		case 0:
+			m := make([]uint8, y)
+			err := r.r.Read(&m)
+			if err != nil {
+				return nil, nil, err
+			}
+			if l := m[y-1]; C[l] > 0 {
+				D[i] = make(map[int]int)
+				for j := 0; j < y-1; j++ {
+					D[i][j] = int(m[j])
+				}
+				L[i] = int(l)
+				C[l]--
+				i++
+			}
+		case 1:
+			m := make([]uint16, y)
+			err := r.r.Read(&m)
+			if err != nil {
+				return nil, nil, err
+			}
+			if l := m[y-1]; C[l] > 0 {
+				D[i] = make(map[int]int)
+				for j := 0; j < y-1; j++ {
+					D[i][j] = int(m[j])
+				}
+				L[i] = int(l)
+				C[l]--
+				i++
+			}
+		case 2:
+			m := make([]uint32, y)
+			err := r.r.Read(&m)
+			if err != nil {
+				return nil, nil, err
+			}
+			if l := m[y-1]; C[l] > 0 {
+				D[i] = make(map[int]int)
+				for j := 0; j < y-1; j++ {
+					D[i][j] = int(m[j])
+				}
+				L[i] = int(l)
+				C[l]--
+				i++
+			}
+		case 3:
+			m := make([]uint64, y)
+			err := r.r.Read(&m)
+			if err != nil {
+				return nil, nil, err
+			}
+			if l := m[y-1]; C[l] > 0 {
+				D[i] = make(map[int]int)
+				for j := 0; j < y-1; j++ {
+					D[i][j] = int(m[j])
+				}
+				L[i] = int(l)
+				C[l]--
+				i++
+			}
+		case 4:
+			m := make([]int8, y)
+			err := r.r.Read(&m)
+			if err != nil {
+				return nil, nil, err
+			}
+			if l := m[y-1]; C[l] > 0 {
+				D[i] = make(map[int]int)
+				for j := 0; j < y-1; j++ {
+					D[i][j] = int(m[j])
+				}
+				L[i] = int(l)
+				C[l]--
+				i++
+			}
+		case 5:
+			m := make([]int16, y)
+			err := r.r.Read(&m)
+			if err != nil {
+				return nil, nil, err
+			}
+			if l := m[y-1]; C[l] > 0 {
+				D[i] = make(map[int]int)
+				for j := 0; j < y-1; j++ {
+					D[i][j] = int(m[j])
+				}
+				L[i] = int(l)
+				C[l]--
+				i++
+			}
+		case 6:
+			m := make([]int32, y)
+			err := r.r.Read(&m)
+			if err != nil {
+				return nil, nil, err
+			}
+			if l := m[y-1]; C[l] > 0 {
+				D[i] = make(map[int]int)
+				for j := 0; j < y-1; j++ {
+					D[i][j] = int(m[j])
+				}
+				L[i] = int(l)
+				C[l]--
+				i++
+			}
+		case 7:
+			m := make([]int64, y)
+			err := r.r.Read(&m)
+			if err != nil {
+				return nil, nil, err
+			}
+			if l := m[y-1]; C[l] > 0 {
+				D[i] = make(map[int]int)
+				for j := 0; j < y-1; j++ {
+					D[i][j] = int(m[j])
+				}
+				L[i] = int(l)
+				C[l]--
+				i++
+			}
+		}
+	}
+
+	return D, L, nil
+}
+
+// read reads .npy file from an *NpyReader, pulling n entries.
 func read(r *NpyReader, n int) ([]map[int]int, []int, error) {
 	k := n * r.s[1]
 	u := make([]map[int]int, n)
@@ -86,7 +236,7 @@ func read(r *NpyReader, n int) ([]map[int]int, []int, error) {
 				u[p] = make(map[int]int)
 			}
 			j := i % y
-			if j == r.s[1]-1 {
+			if j == y-1 {
 				l[p] = int(v)
 			} else {
 				u[p][j] = int(v)
@@ -104,7 +254,7 @@ func read(r *NpyReader, n int) ([]map[int]int, []int, error) {
 				u[p] = make(map[int]int)
 			}
 			j := i % y
-			if j == r.s[1]-1 {
+			if j == y-1 {
 				l[p] = int(v)
 			} else {
 				u[p][j] = int(v)
@@ -122,7 +272,7 @@ func read(r *NpyReader, n int) ([]map[int]int, []int, error) {
 				u[p] = make(map[int]int)
 			}
 			j := i % y
-			if j == r.s[1]-1 {
+			if j == y-1 {
 				l[p] = int(v)
 			} else {
 				u[p][j] = int(v)
@@ -140,7 +290,7 @@ func read(r *NpyReader, n int) ([]map[int]int, []int, error) {
 				u[p] = make(map[int]int)
 			}
 			j := i % y
-			if j == r.s[1]-1 {
+			if j == y-1 {
 				l[p] = int(v)
 			} else {
 				u[p][j] = int(v)
@@ -158,7 +308,7 @@ func read(r *NpyReader, n int) ([]map[int]int, []int, error) {
 				u[p] = make(map[int]int)
 			}
 			j := i % y
-			if j == r.s[1]-1 {
+			if j == y-1 {
 				l[p] = int(v)
 			} else {
 				u[p][j] = int(v)
@@ -176,7 +326,7 @@ func read(r *NpyReader, n int) ([]map[int]int, []int, error) {
 				u[p] = make(map[int]int)
 			}
 			j := i % y
-			if j == r.s[1]-1 {
+			if j == y-1 {
 				l[p] = int(v)
 			} else {
 				u[p][j] = int(v)
@@ -194,7 +344,7 @@ func read(r *NpyReader, n int) ([]map[int]int, []int, error) {
 				u[p] = make(map[int]int)
 			}
 			j := i % y
-			if j == r.s[1]-1 {
+			if j == y-1 {
 				l[p] = int(v)
 			} else {
 				u[p][j] = int(v)
@@ -212,7 +362,7 @@ func read(r *NpyReader, n int) ([]map[int]int, []int, error) {
 				u[p] = make(map[int]int)
 			}
 			j := i % y
-			if j == r.s[1]-1 {
+			if j == y-1 {
 				l[p] = int(v)
 			} else {
 				u[p][j] = int(v)
@@ -230,6 +380,12 @@ func (r *NpyReader) Read(n int) ([]map[int]int, []int, error) {
 // ReadAll reads all instances from file and returns a dataset and label slice.
 func (r *NpyReader) ReadAll() ([]map[int]int, []int, error) {
 	return read(r, r.s[0])
+}
+
+// ReadBalanced returns a balanced dataset and label slice totalling n instances. As argument, it
+// takes the number of classes c.
+func (r *NpyReader) ReadBalanced(n int, c int) ([]map[int]int, []int, error) {
+	return readBalanced(r, n, c)
 }
 
 // Reset resets the file pointer so it points to the beginning of data.

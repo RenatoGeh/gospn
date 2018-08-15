@@ -4,6 +4,7 @@ GoSPN
 [![Build Status](https://travis-ci.org/RenatoGeh/gospn.svg?branch=stable)](https://travis-ci.org/RenatoGeh/gospn)
 [![Go Report Card](https://goreportcard.com/badge/github.com/renatogeh/gospn)](https://goreportcard.com/report/github.com/renatogeh/gospn)
 [![GoDoc](https://godoc.org/github.com/RenatoGeh/gospn?status.svg)](https://godoc.org/github.com/RenatoGeh/gospn)
+[![License](https://img.shields.io/badge/License-BSD--3-blue.svg)](https://github.com/RenatoGeh/gospn/blob/dev/LICENSE)
 
 ![](./gospnpher.png "My crude attempt at drawing Renee French's Go Gopher.")
 
