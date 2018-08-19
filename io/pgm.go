@@ -10,9 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	common "github.com/RenatoGeh/gospn/common"
-	spn "github.com/RenatoGeh/gospn/spn"
-	utils "github.com/RenatoGeh/gospn/utils"
+	"github.com/RenatoGeh/gospn/common"
+	"github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/utils"
 )
 
 // PGMFToData (PGM Folder to Data file). Each class is in a subfolder of dirname. dname is the
@@ -536,7 +536,7 @@ func VarSetToPGM(filename string, state spn.VarSet, w, h, max int) {
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "P3\n%d %d\n%d\n", w, h, max)
+	fmt.Fprintf(file, "P2\n%d %d\n%d\n", w, h, max)
 
 	n := len(state)
 	pixels := make([]int, n)
@@ -547,12 +547,11 @@ func VarSetToPGM(filename string, state spn.VarSet, w, h, max int) {
 	}
 
 	for i := 0; i < n; i++ {
-		if i%71 == 0 {
+		if (i+1)%w == 0 {
 			fmt.Fprintf(file, "\n")
 		}
 		p := pixels[i]
-		common.DrawColorRGB(file, p, p, p)
-		fmt.Fprintf(file, " ")
+		fmt.Fprintf(file, "%d ", p)
 	}
 }
 

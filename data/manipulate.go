@@ -301,3 +301,17 @@ func Identical(D []map[int]int, E []map[int]int, L []int, M []int) bool {
 	}
 	return true
 }
+
+// MergeLabel takes a dataset D, a label slice L and a variable V such that V is not in D's scope
+// and L are the instances of V. The function then returns a single dataset T where V is in D's
+// scope and L is in T.
+func MergeLabel(D []map[int]int, L []int, V *learn.Variable) []map[int]int {
+	T := make([]map[int]int, len(D))
+	v := V.Varid
+	for i, I := range D {
+		T[i] = make(map[int]int)
+		copyMap(T[i], I)
+		T[i][v] = L[i]
+	}
+	return T
+}

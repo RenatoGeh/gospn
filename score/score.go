@@ -5,6 +5,7 @@ import (
 	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
+	"math"
 	"os"
 )
 
@@ -76,6 +77,39 @@ func (s *S) Evaluate(T spn.Dataset, L []int, N spn.SPN, classVar *learn.Variable
 		delete(I, v)
 		_, _, M := spn.StoreMAP(N, I, tk, st)
 		s.Register(M[v], L[i])
+		st.Reset(tk)
+		I[v] = l
+	}
+}
+
+// EvaluatePosterior
+func (s *S) EvaluatePosterior(T spn.Dataset, L []int, N spn.SPN, classVar *learn.Variable) {
+	st := spn.NewStorer()
+	tk := st.NewTicket()
+	v := classVar.Varid
+	sys.Println("Evaluating scores...")
+	n := len(T) / 10
+	for i, I := range T {
+		if i > 0 && i%n == 0 {
+			sys.Printf("... %d%% ...\n", int(100.0*(float64(i)/float64(len(T)))))
+		}
+		l := I[v]
+		delete(I, v)
+		spn.StoreInference(N, I, tk, st)
+		pe, _ := st.Single(tk, N)
+		mp := math.Inf(-1)
+		var ml int
+		for j := 0; j < classVar.Categories; j++ {
+			st.Reset(tk)
+			I[v] = j
+			spn.StoreInference(N, I, tk, st)
+			pj, _ := st.Single(tk, N)
+			if pd := pj - pe; pd > mp {
+				mp, ml = pd, j
+			}
+			delete(I, v)
+		}
+		s.Register(ml, L[i])
 		st.Reset(tk)
 		I[v] = l
 	}
