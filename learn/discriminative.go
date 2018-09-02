@@ -1,9 +1,11 @@
 package learn
 
 import (
+	//"fmt"
 	"github.com/RenatoGeh/gospn/common"
 	"github.com/RenatoGeh/gospn/learn/parameters"
 	"github.com/RenatoGeh/gospn/spn"
+	"github.com/RenatoGeh/gospn/sys"
 	"math"
 )
 
@@ -139,15 +141,27 @@ func DiscriminativeHardBGD(S spn.SPN, eta, eps float64, D spn.Dataset, Y []*Vari
 	P := S.Parameters()
 	y := make([]int, len(Y))
 	var j int
+
+	u := st.NewTicket()
+	var llh float64
+
 	for i := 0; i < P.Iterations; i++ {
 		for _, I := range D {
+			llh = 0.0
+			spn.StoreInference(S, I, u, st)
+			lv, _ := st.Single(u, S)
+			st.Reset(u)
+			sys.Printf("Log-value = %.3f\n", lv)
+			llh += lv
+			sys.Printf("Log-likelihood = %.3f\n", llh)
+
 			DeriveHard(S, st, d, I)
 			pullValues(I, Y, y)
 			DeriveHard(S, st, p, I)
 			pushValues(I, Y, y)
-			applyHDGD(S, d, p, st, eta, norm)
 			j++
 			if j%b == 0 {
+				sys.Println("Applying gradient.")
 				applyHDGD(S, d, p, st, eta, norm)
 				st.ResetTickets(d, p)
 			}
@@ -279,12 +293,20 @@ func applyHDGD(S spn.SPN, d, p int, st *spn.Storer, eta float64, norm bool) {
 		// DeriveHard guarantees s is sum.
 		sum := s.(*spn.Sum)
 		W := sum.Weights()
+		//change := false
 		for i, delta := range cnts {
-			w := W[i]
-			W[i] += eta * (delta / w)
+			if delta != 0 {
+				w := W[i]
+				W[i] += eta * (delta / w)
+				//fmt.Printf("(%f, %f) ", w, W[i])
+				//change = true
+			}
 		}
 		if norm {
 			Normalize(W)
 		}
+		//if change {
+		//fmt.Printf("\n%v\n", W)
+		//}
 	}
 }

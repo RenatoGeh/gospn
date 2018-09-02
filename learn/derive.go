@@ -205,9 +205,8 @@ func Normalize(v []float64) {
 		}
 	}
 	if min < 0 {
-		sys.Println("!")
 		for i := range v {
-			v[i] += min
+			v[i] -= min
 		}
 	}
 
@@ -303,6 +302,7 @@ func DeriveHard(S spn.SPN, st *spn.Storer, tk int, I spn.VarSet) int {
 			if e {
 				v, _ := tab.Entry(s, mi)
 				tab.Store(s, mi, v+1)
+				//fmt.Printf("%d ", int(v+1))
 				if mc := ch[mi]; !V[mc] {
 					Q.Enqueue(mc)
 					V[mc] = true
@@ -310,6 +310,7 @@ func DeriveHard(S spn.SPN, st *spn.Storer, tk int, I spn.VarSet) int {
 			}
 		}
 	}
+	//fmt.Println("")
 
 	return tk
 }
