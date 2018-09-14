@@ -2,11 +2,14 @@ package score
 
 import (
 	"fmt"
+	"github.com/RenatoGeh/gospn/conc"
+	"github.com/RenatoGeh/gospn/data"
 	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/sys"
 	"math"
 	"os"
+	"sync"
 )
 
 // S stores classification scores.
@@ -82,7 +85,8 @@ func (s *S) Evaluate(T spn.Dataset, L []int, N spn.SPN, classVar *learn.Variable
 	}
 }
 
-// EvaluatePosterior
+// EvaluatePosterior evaluates the SPN classification score by computing the exact probabilities,
+// instead of the approximate MAP.
 func (s *S) EvaluatePosterior(T spn.Dataset, L []int, N spn.SPN, classVar *learn.Variable) {
 	st := spn.NewStorer()
 	tk := st.NewTicket()
@@ -113,6 +117,61 @@ func (s *S) EvaluatePosterior(T spn.Dataset, L []int, N spn.SPN, classVar *learn
 		st.Reset(tk)
 		I[v] = l
 	}
+}
+
+func copyExcept(V spn.VarSet, x int) spn.VarSet {
+	U := make(spn.VarSet)
+	for k, v := range V {
+		if k != x {
+			U[k] = v
+		}
+	}
+	return U
+}
+
+// EvaluatePosteriorConc runs EvaluatePosterior concurrently. Additional argument k is the number
+// of concurrent jobs to run at a time. If k <= 0, k is set to the number of CPUs available.
+func (s *S) EvaluatePosteriorConc(D spn.Dataset, L []int, N spn.SPN, classVar *learn.Variable, k int) {
+	if len(D) < k {
+		s.EvaluatePosterior(D, L, N, classVar)
+		return
+	}
+	Q := conc.NewSingleQueue(k)
+	mu := &sync.Mutex{}
+	c, v := classVar.Categories, classVar.Varid
+	sys.Println("Evaluating scores...")
+
+	k = Q.Allowed()
+	G, H := data.Divide(D, L, k)
+	for i := 0; i < k; i++ {
+		Q.Run(func(id int) {
+			g, h := G[id], H[id]
+			st := spn.NewStorer()
+			tk := st.NewTicket()
+			for j, I := range g {
+				delete(I, v)
+				spn.StoreInference(N, I, tk, st)
+				pe, _ := st.Single(tk, N)
+				mp := math.Inf(-1)
+				var ml int
+				for u := 0; u < c; u++ {
+					st.Reset(tk)
+					I[v] = u
+					spn.StoreInference(N, I, tk, st)
+					pj, _ := st.Single(tk, N)
+					if pd := pj - pe; pd > mp {
+						mp, ml = pd, u
+					}
+					delete(I, v)
+				}
+				mu.Lock()
+				s.Register(ml, h[j])
+				mu.Unlock()
+				st.Reset(tk)
+			}
+		}, i)
+	}
+	Q.Wait()
 }
 
 // Merge absorbs all the information from the given score.

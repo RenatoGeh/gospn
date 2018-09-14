@@ -24,6 +24,8 @@ func NewSingleQueue(n int) *SingleQueue {
 	return &SingleQueue{n: n, k: 0, c: sync.NewCond(&sync.Mutex{})}
 }
 
+func (q *SingleQueue) Allowed() int { return q.n }
+
 // Run queries the SingleQueue to run function f with id i. It may or may not run immediately.
 func (q *SingleQueue) Run(f func(int), i int) {
 	q.c.L.Lock()
