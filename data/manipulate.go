@@ -25,6 +25,14 @@ func copyMap(d map[int]int, s map[int]int) {
 	}
 }
 
+func copySlice(s []int) []int {
+	d := make([]int, len(s))
+	for i, e := range s {
+		d[i] = e
+	}
+	return d
+}
+
 // ExtractLabels attempts to separate the real variable values and the labels from a dataset. A
 // label is always the last variable in a .data file. The converse is not true, since a dataset may
 // not contain labels if it's not a classification job. In this case, the ExtractLabels function
@@ -314,4 +322,41 @@ func MergeLabel(D []map[int]int, L []int, V *learn.Variable) []map[int]int {
 		T[i][v] = L[i]
 	}
 	return T
+}
+
+// Divide takes a dataset D and labels L and divides into n subdatasets and sublabels of
+// approximately same size, ignoring order or proportion of labels.
+func Divide(D []map[int]int, L []int, n int) ([][]map[int]int, [][]int) {
+	m := len(D)
+	k, l := m/n, m%n
+	if k == 0 {
+		Gd := make([][]map[int]int, 1)
+		Gl := make([][]int, 1)
+		for i, I := range D {
+			M := make(map[int]int)
+			copyMap(M, I)
+			Gd[0][i] = M
+			Gl[0][i] = L[i]
+		}
+		return Gd, Gl
+	}
+	Gd := make([][]map[int]int, n)
+	Gl := make([][]int, n)
+	for i := 0; i < n; i++ {
+		for j := 0; j < k; j++ {
+			p := i*k + j
+			M := make(map[int]int)
+			copyMap(M, D[p])
+			Gd[i] = append(Gd[i], M)
+			Gl[i] = append(Gl[i], L[p])
+		}
+	}
+	for i := 0; i < l; i++ {
+		p := m - i - 1
+		M := make(map[int]int)
+		copyMap(M, D[p])
+		Gd[i] = append(Gd[i], M)
+		Gl[i] = append(Gl[i], L[p])
+	}
+	return Gd, Gl
 }
