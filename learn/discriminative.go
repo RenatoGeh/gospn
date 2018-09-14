@@ -64,7 +64,7 @@ func DiscriminativeGD(S spn.SPN, eta, eps float64, D spn.Dataset, Y []*Variable,
 			DeriveSPN(S, st, p, z, Q)
 			DeriveWeights(S, st, u, p, z, Q)
 			pushValues(I, Y, y)
-			applyDGD(S, s, d, w, z, p, u, st, eta, norm, Q)
+			applyDGD(S, s, d, w, z, p, u, st, eta, norm, Q, 1)
 			st.ResetTickets(s, d, w, z, p, u)
 		}
 	}
@@ -85,7 +85,7 @@ func DiscriminativeHardGD(S spn.SPN, eta, eps float64, D spn.Dataset, Y []*Varia
 			pullValues(I, Y, y)
 			DeriveHard(S, st, p, I)
 			pushValues(I, Y, y)
-			applyHDGD(S, d, p, st, eta, norm)
+			applyHDGD(S, d, p, st, eta, norm, 1)
 			st.ResetTickets(d, p)
 		}
 	}
@@ -119,13 +119,13 @@ func DiscriminativeBGD(S spn.SPN, eta, eps float64, D spn.Dataset, Y []*Variable
 			st.ResetTickets(s, d, w, z, p, u)
 			j++
 			if j%b == 0 {
-				applyDGDFrom(S, l, st, eta, norm)
+				applyDGDFrom(S, l, st, eta, norm, b)
 				st.Reset(l)
 			}
 		}
 	}
 	if j%b != 0 {
-		applyDGDFrom(S, l, st, eta, norm)
+		applyDGDFrom(S, l, st, eta, norm, b)
 		st.Reset(l)
 	}
 	return S
@@ -162,13 +162,13 @@ func DiscriminativeHardBGD(S spn.SPN, eta, eps float64, D spn.Dataset, Y []*Vari
 			j++
 			if j%b == 0 {
 				sys.Println("Applying gradient.")
-				applyHDGD(S, d, p, st, eta, norm)
+				applyHDGD(S, d, p, st, eta, norm, b)
 				st.ResetTickets(d, p)
 			}
 		}
 	}
 	if j%b != 0 {
-		applyHDGD(S, d, p, st, eta, norm)
+		applyHDGD(S, d, p, st, eta, norm, b)
 		st.ResetTickets(d, p)
 	}
 	return S
@@ -179,7 +179,7 @@ func DiscriminativeHardBGD(S spn.SPN, eta, eps float64, D spn.Dataset, Y []*Vari
 // and applies to each weight.
 // Argument S is the SPN to be derived, integers s, d, w, z, p and u are the tickets for S(Y|X),
 // dSn/dSj(Y|X), dS/dW(Y|X), S(1|X), dSn/dSj(1|W), dS/dW(1|W) respectively on *spn.Storer st.
-func applyDGD(S spn.SPN, s, d, w, z, p, u int, st *spn.Storer, eta float64, norm bool, Q *common.Queue) {
+func applyDGD(S spn.SPN, s, d, w, z, p, u int, st *spn.Storer, eta float64, norm bool, Q *common.Queue, b int) {
 	Q.Reset()
 	Q.Enqueue(S)
 	V := make(map[spn.SPN]bool)
@@ -201,7 +201,7 @@ func applyDGD(S spn.SPN, s, d, w, z, p, u int, st *spn.Storer, eta float64, norm
 			iZ, _ := izt.Value(n)
 			for i := range W {
 				delta := eta * (math.Exp(dW[i]-iS[i]) - math.Exp(dU[i]-iZ[i]))
-				W[i] += delta - 2*P.Lambda*W[i]
+				W[i] += (delta / float64(b)) - 2*P.Lambda*W[i]
 			}
 			if norm {
 				Normalize(W)
@@ -252,7 +252,7 @@ func storeDGD(S spn.SPN, s, d, w, z, p, u, l int, st *spn.Storer, eta float64, n
 	}
 }
 
-func applyDGDFrom(S spn.SPN, l int, st *spn.Storer, eta float64, norm bool) {
+func applyDGDFrom(S spn.SPN, l int, st *spn.Storer, eta float64, norm bool, b int) {
 	T, _ := st.Table(l)
 	P := S.Parameters()
 	for s, dW := range T {
@@ -260,7 +260,7 @@ func applyDGDFrom(S spn.SPN, l int, st *spn.Storer, eta float64, norm bool) {
 			W := s.(*spn.Sum).Weights()
 			for i, d := range dW {
 				delta := eta * d
-				W[i] += delta - 2*P.Lambda*W[i]
+				W[i] += (delta / float64(b)) - 2*P.Lambda*W[i]
 			}
 			if norm {
 				Normalize(W)
@@ -269,7 +269,7 @@ func applyDGDFrom(S spn.SPN, l int, st *spn.Storer, eta float64, norm bool) {
 	}
 }
 
-func applyHDGD(S spn.SPN, d, p int, st *spn.Storer, eta float64, norm bool) {
+func applyHDGD(S spn.SPN, d, p int, st *spn.Storer, eta float64, norm bool, b int) {
 	dt, _ := st.Table(d)
 	pt, _ := st.Table(p)
 	C := make(map[spn.SPN]map[int]float64)
@@ -297,7 +297,7 @@ func applyHDGD(S spn.SPN, d, p int, st *spn.Storer, eta float64, norm bool) {
 		for i, delta := range cnts {
 			if delta != 0 {
 				w := W[i]
-				W[i] += eta * (delta / w)
+				W[i] += eta * (delta / (w * float64(b)))
 				//fmt.Printf("(%f, %f) ", w, W[i])
 				//change = true
 			}

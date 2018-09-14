@@ -114,7 +114,7 @@ func GenerativeHardGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Co
 			sys.Println("Computing hard derivatives...")
 			DeriveHard(S, storage, dtk, I)
 			sys.Println("Applying gradient descent...")
-			applyHGD(S, eta, dtk, storage, norm)
+			applyHGD(S, eta, dtk, storage, norm, 1)
 			// Reset DP tables.
 			storage.Reset(itk)
 			storage.Reset(dtk)
@@ -182,7 +182,7 @@ func GenerativeBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Colle
 			i++
 			if i%bSize == 0 {
 				sys.Println("Applying gradient descent...")
-				applyFastGD(S, eta, wtk, storage, norm)
+				applyFastGD(S, eta, wtk, storage, norm, bSize)
 				storage.Reset(wtk)
 			}
 			sys.Printf("Instance %d/%d.\n", i, n)
@@ -190,7 +190,7 @@ func GenerativeBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.Colle
 		// Apply gradient descent.
 		if i%bSize != 0 {
 			sys.Println("Applying gradient descent...")
-			applyFastGD(S, eta, wtk, storage, norm)
+			applyFastGD(S, eta, wtk, storage, norm, bSize)
 			storage.Reset(wtk)
 		}
 		sys.Printf("Log-likelihood value at this iteration: llh = %.3f\n", llh)
@@ -232,7 +232,7 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 			i++
 			if i%bSize == 0 {
 				sys.Println("Applying gradient descent...")
-				applyFastHGD(S, eta, dtk, storage, norm)
+				applyFastHGD(S, eta, dtk, storage, norm, bSize)
 				storage.Reset(dtk)
 			}
 			// Add current log-value to log-likelihood.
@@ -242,7 +242,7 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 		}
 		if i%bSize != 0 {
 			sys.Println("Applying gradient descent...")
-			applyFastHGD(S, eta, dtk, storage, norm)
+			applyFastHGD(S, eta, dtk, storage, norm, bSize)
 			storage.Reset(dtk)
 		}
 		sys.Printf("Log-likelihood value at this iteration: llh = %.3f\n", llh)
@@ -257,7 +257,7 @@ func GenerativeHardBGD(S spn.SPN, eta, eps float64, data spn.Dataset, c common.C
 	return S
 }
 
-func applyFastGD(S spn.SPN, eta float64, t int, st *spn.Storer, norm bool) {
+func applyFastGD(S spn.SPN, eta float64, t int, st *spn.Storer, norm bool, b int) {
 	T, _ := st.Table(t)
 	P := S.Parameters()
 	for s, dW := range T {
@@ -265,7 +265,7 @@ func applyFastGD(S spn.SPN, eta float64, t int, st *spn.Storer, norm bool) {
 			W := s.(*spn.Sum).Weights()
 			for i, d := range dW {
 				delta := eta * math.Exp(d)
-				W[i] += delta - 2*P.Lambda*W[i]
+				W[i] += (delta / float64(b)) - 2*P.Lambda*W[i]
 			}
 			if norm {
 				Normalize(W)
@@ -275,7 +275,7 @@ func applyFastGD(S spn.SPN, eta float64, t int, st *spn.Storer, norm bool) {
 }
 
 // This is where the magic happens.
-func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Collection, norm bool) {
+func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Collection, norm bool, b int) {
 	visited := make(map[spn.SPN]bool)
 	wt, _ := storage.Table(wtk)
 	c.Give(S)
@@ -290,7 +290,7 @@ func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Coll
 			dW, _ := wt.Value(s)
 			for i := range W {
 				delta := eta * math.Exp(dW[i])
-				W[i] += delta - 2*P.Lambda*W[i]
+				W[i] += (delta / float64(b)) - 2*P.Lambda*W[i]
 			}
 			if norm {
 				Normalize(W)
@@ -308,7 +308,7 @@ func applyGD(S spn.SPN, eta float64, wtk int, storage *spn.Storer, c common.Coll
 	sys.Free()
 }
 
-func applyFastHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
+func applyFastHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool, b int) {
 	T, _ := st.Table(tk)
 	P := S.Parameters()
 	for s, dW := range T {
@@ -316,7 +316,7 @@ func applyFastHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 			W := s.(*spn.Sum).Weights()
 			for i, d := range dW {
 				w := W[i]
-				delta := eta * d / w
+				delta := eta * (d / (w * float64(b)))
 				W[i] = w + delta - 2*P.Lambda*w
 			}
 			if norm {
@@ -326,7 +326,7 @@ func applyFastHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 	}
 }
 
-func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
+func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool, b int) {
 	tab, _ := st.Table(tk)
 	Q := common.Queue{}
 	V := make(map[spn.SPN]bool)
@@ -342,7 +342,7 @@ func applyHGD(S spn.SPN, eta float64, tk int, st *spn.Storer, norm bool) {
 				W := s.(*spn.Sum).Weights()
 				for i, d := range v {
 					w := W[i]
-					delta := eta * d / w
+					delta := eta * (d / (w * float64(b)))
 					W[i] = w + delta - 2*P.Lambda*w
 				}
 				if norm {

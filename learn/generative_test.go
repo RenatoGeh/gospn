@@ -117,7 +117,7 @@ func TestSimpleSPN(t *testing.T) {
 			}
 		}
 	}
-	applyGD(R, 0.1, wtk, st, &Q, false)
+	applyGD(R, 0.1, wtk, st, &Q, false, 1)
 	// Correct learned weights
 	fmt.Println("Testing gradient descent application...")
 	clw := [][]float64{[]float64{0.42668, 0.6066}, nil, nil, []float64{0.21624, 0.80928},
