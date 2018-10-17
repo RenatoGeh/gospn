@@ -2,36 +2,10 @@ package cluster
 
 import (
 	"container/heap"
+	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
 	"math"
 	"sort"
-	//common "github.com/RenatoGeh/gospn/common"
-	//utils "github.com/RenatoGeh/gospn/utils"
-	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
-	"github.com/mpraski/clusters"
 )
-
-func optics(D [][]float64, mp int, eps, xi float64, F metrics.MetricF) []int {
-	ci, err := clusters.OPTICS(mp, eps, xi, 0, metrics.EuclideanF)
-	if err != nil {
-		panic(err)
-	}
-	if err = ci.Learn(D); err != nil {
-		panic(err)
-	}
-	return ci.Guesses()
-}
-
-func OPTICS2(D [][]int, mp int, eps, xi float64, F metrics.MetricF) []map[int][]int {
-	E := copyMatrixF(D)
-	G := optics(E, mp, eps, xi, F)
-	m := -2
-	for _, g := range G {
-		if g > m {
-			m = g
-		}
-	}
-	return toCluster(m, D, G)
-}
 
 var distance = metrics.Euclidean
 var undef = math.Inf(1)

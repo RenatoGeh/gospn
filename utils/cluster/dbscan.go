@@ -5,37 +5,7 @@ import (
 	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/utils"
 	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
-	"github.com/mpraski/clusters"
 )
-
-func dbscan(D [][]float64, eps float64, mp int) []int {
-	ci, err := clusters.DBSCAN(mp, eps, 0, metrics.EuclideanF)
-	if err != nil {
-		panic(err)
-	}
-	if err = ci.Learn(D); err != nil {
-		panic(err)
-	}
-	return ci.Guesses()
-}
-
-func DBSCAN2(data [][]int, eps float64, mp int) []map[int][]int {
-	D := copyMatrixF(data)
-	G := dbscan(D, eps, mp)
-	H := make([]int, len(G))
-	m := -2
-	for i, g := range G {
-		if g > m {
-			m = g
-		}
-		if g > 0 {
-			H[i] = g + 1
-		} else {
-			H[i] = 1
-		}
-	}
-	return toCluster(m, data, H)
-}
 
 func dbscanInternal(data [][]float64, eps float64, mp int) []*utils.UFNode {
 	n := len(data)
