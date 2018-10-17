@@ -1,14 +1,14 @@
 package gens
 
 import (
-	"sort"
+	"fmt"
+	"sync"
 
+	"github.com/RenatoGeh/gospn/conc"
 	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/spn"
-	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils"
 	"github.com/RenatoGeh/gospn/utils/cluster"
-	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
 	"github.com/RenatoGeh/gospn/utils/indep"
 )
 
@@ -19,6 +19,25 @@ func Binded(kclusters int, pval, eps float64, mp int) learn.LearnFunc {
 	}
 }
 
+func LearnConcurrent(sc map[int]*learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp int, procs int) spn.SPN {
+	n := len(sc)
+	if n == 1 {
+		var tv *learn.Variable
+		for _, v := range sc {
+			tv = v
+		}
+		return newMultinom(tv, data)
+	}
+	vdata := learn.DataToVarData(data, sc)
+	igraph := indep.NewUFIndepGraph(vdata, pval)
+	vdata = nil
+	if len(igraph.Kset) > 1 {
+		return indepStep(procs, kclusters, 0, pval, eps, mp, data, sc, igraph)
+	}
+	igraph = nil
+	return clusterStep(procs, kclusters, 0, pval, eps, mp, data, sc)
+}
+
 // Learn runs the Gens Learning Algorithm
 // Based on the article
 //	Learning the Structure of Sum Product Networks
@@ -26,395 +45,200 @@ func Binded(kclusters int, pval, eps float64, mp int) learn.LearnFunc {
 //	International Conference on Machine Learning 30 (ICML 2013)
 func Learn(sc map[int]*learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
 	n := len(sc)
-
-	sys.Printf("Sample size: %d, scope size: %d\n", len(data), n)
-
 	// If the data's scope is unary, then we return a leaf (i.e. a univariate distribution).
 	if n == 1 {
-		sys.Println("Creating new leaf...")
-
-		// m number of instantiations.
-		m := len(data)
-		// pr is the univariate probability distribution.
 		var tv *learn.Variable
 		for _, v := range sc {
 			tv = v
 		}
-		counts := make([]int, tv.Categories)
-		for i := 0; i < m; i++ {
-			counts[data[i][tv.Varid]]++
-		}
-
-		leaf := spn.NewCountingMultinomial(tv.Varid, counts)
-		//sys.Println("Leaf created.")
-		return leaf
+		return newMultinom(tv, data)
 	}
 
 	// Else we check for independent subsets of variables. We separate variables in k partitions,
 	// where every partition is pairwise indepedent with each other.
-	//sys.Println("Preparing to create new product node...")
-
-	sys.Println("Creating VarDatas for Independency Test...")
-	vdata, l := make([]*utils.VarData, n), 0
-	for _, v := range sc {
-		tn := len(data)
-		// tdata is the transpose of data[k].
-		tdata := make([]int, tn)
-		for j := 0; j < tn; j++ {
-			tdata[j] = data[j][v.Varid]
-		}
-		vdata[l] = utils.NewVarData(v.Varid, v.Categories, tdata)
-		l++
-	}
-
-	sys.Println("Creating new Independency graph...")
+	vdata := learn.DataToVarData(data, sc)
 	// Independency graph.
 	igraph := indep.NewUFIndepGraph(vdata, pval)
 	vdata = nil
-
 	// If true, then we can partition the set of variables in data into independent subsets. This
 	// means we can create a product node (since product nodes' children have disjoint scopes).
 	if len(igraph.Kset) > 1 {
-		sys.Println("Found independency. Separating independent sets.")
-
-		//sys.Println("Found independency between variables. Creating new product node...")
-		// prod is the new product node. m is the number of disjoint sets. kset is a shortcut.
-		prod, m, kset := spn.NewProduct(), len(igraph.Kset), &igraph.Kset
-		tn := len(data)
-		for i := 0; i < m; i++ {
-			//sort.Ints((*kset)[i])
-			//}
-			//nexti := 0
-			//for done := 0; done < m; done++ {
-			//i := 0
-			//for (*kset)[i][0] != nexti {
-			//i++
-			//if i >= m {
-			//i = 0
-			//nexti++
-			//}
-			//}
-			//nexti++
-			// Data slices of the relevant vectors.
-			tdata := make([]map[int]int, tn)
-			// Number of variables in set of variables kset[i].
-			s := len((*kset)[i])
-			for j := 0; j < tn; j++ {
-				tdata[j] = make(map[int]int)
-				for l := 0; l < s; l++ {
-					// Get the instanciations of variables in kset[i].
-					//sys.Printf("[%d][%d] => %v vs %v | %v vs %v\n", j, k, (*kset)[i][k], len(data[j]), len(tdata[j]), k)
-					k := (*kset)[i][l]
-					tdata[j][k] = data[j][k]
-				}
-			}
-			// Create new scope with new variables.
-			nsc := make(map[int]*learn.Variable)
-			for j := 0; j < s; j++ {
-				t := (*kset)[i][j]
-				nsc[t] = &learn.Variable{t, sc[t].Categories, ""}
-			}
-			//sys.Printf("LENGTH: %d\n", len(tdata))
-			//sys.Println("Product node created. Recursing...")
-			// Adds the recursive calls as children of this new product node.
-			prod.AddChild(Learn(nsc, tdata, kclusters, pval, eps, mp))
-		}
-		return prod
+		return indepStep(1, kclusters, 0, pval, eps, mp, data, sc, igraph)
 	}
 	igraph = nil
-
 	// Else we perform k-clustering on the instances.
-	sys.Println("No independency found. Preparing for clustering...")
+	return clusterStep(1, kclusters, 0, pval, eps, mp, data, sc)
+}
 
+func newMultinom(v *learn.Variable, data []map[int]int) spn.SPN {
 	m := len(data)
-	mdata := make([][]int, m)
+	counts := make([]int, v.Categories)
 	for i := 0; i < m; i++ {
-		lc := len(data[i])
-		mdata[i] = make([]int, lc)
-		l := 0
-		keys := make([]int, lc)
-		for k := range data[i] {
-			keys[l] = k
-			l++
-		}
-		sort.Ints(keys)
-		for j := 0; j < lc; j++ {
-			mdata[i][j] = data[i][keys[j]]
-		}
+		counts[data[i][v.Varid]]++
 	}
+	return spn.NewCountingMultinomial(v.Varid, counts)
+}
 
-	var clusters []map[int][]int
-	if kclusters > 0 {
-		sys.Printf("data: %d, mdata: %d\n", len(data), len(mdata))
-		if len(mdata) < kclusters {
-			//Fully factorized form.
-			//All instances are approximately the same.
-			prod := spn.NewProduct()
-			m := len(data)
-			for _, v := range sc {
-				counts := make([]int, v.Categories)
-				for i := 0; i < m; i++ {
-					counts[data[i][v.Varid]]++
-				}
-				leaf := spn.NewCountingMultinomial(v.Varid, counts)
-				prod.AddChild(leaf)
-			}
-			return prod
-		}
-		clusters = cluster.KMedoid(kclusters, mdata)
-	} else if kclusters == -1 {
-		clusters = cluster.DBSCAN(mdata, eps, mp)
-	} else {
-		clusters = cluster.OPTICS(mdata, eps, mp)
+func newGaussMix(varid, g int, data []map[int]int) spn.SPN {
+	X := learn.ExtractInstance(varid, data)
+	Q := utils.PartitionQuantiles(X, g)
+	s := spn.NewSum()
+	for _, q := range Q {
+		s.AddChildW(spn.NewGaussianParams(varid, q[0], q[1]), 1.0/float64(len(Q)))
 	}
-	k := len(clusters)
-	//sys.Printf("Clustering similar instances with %d clusters.\n", k)
-	if k == 1 {
-		// Fully factorized form.
-		// All instances are approximately the same.
-		prod := spn.NewProduct()
-		m := len(data)
-		for _, v := range sc {
+	return s
+}
+
+func newFullyFactorized(g int, D []map[int]int, Sc map[int]*learn.Variable) spn.SPN {
+	prod := spn.NewProduct()
+	if g <= 0 {
+		m := len(D)
+		for _, v := range Sc {
 			counts := make([]int, v.Categories)
 			for i := 0; i < m; i++ {
-				counts[data[i][v.Varid]]++
+				counts[D[i][v.Varid]]++
 			}
 			leaf := spn.NewCountingMultinomial(v.Varid, counts)
-			counts = nil
 			prod.AddChild(leaf)
 		}
-		return prod
-	}
-	mdata = nil
-
-	sys.Println("Reformating clusters to appropriate format and creating sum node...")
-
-	sum := spn.NewSum()
-	for i := 0; i < k; i++ {
-		ni := len(clusters[i])
-		ndata := make([]map[int]int, ni)
-
-		l := 0
-		for k := range clusters[i] {
-			ndata[l] = make(map[int]int)
-			for index, value := range data[k] {
-				ndata[l][index] = value
+	} else {
+		for _, v := range Sc {
+			X := learn.ExtractInstance(v.Varid, D)
+			Q := utils.PartitionQuantiles(X, g)
+			z := spn.NewSum()
+			for _, q := range Q {
+				z.AddChildW(spn.NewGaussianParams(v.Varid, q[0], q[1]), 1.0/float64(len(Q)))
 			}
-			l++
+			prod.AddChild(z)
 		}
-
-		nsc := make(map[int]*learn.Variable)
-		for k, v := range sc {
-			nsc[k] = v
-		}
-
-		//sys.Println("Created new sum node child. Recursing...")
-		sum.AddChildW(Learn(nsc, ndata, kclusters, pval, eps, mp), float64(ni)/float64(len(data)))
 	}
+	return prod
+}
 
-	clusters = nil
+func indepStep(np, kc, g int, pval, eps float64, mp int, D []map[int]int, Sc map[int]*learn.Variable, igraph *indep.Graph) spn.SPN {
+	Q := conc.NewSingleQueue(np)
+	mu := &sync.Mutex{}
+	prod, m, kset := spn.NewProduct(), len(igraph.Kset), &igraph.Kset
+	tn := len(D)
+	fmt.Println("Fork start | indep")
+	step := func(id int) {
+		tdata := make([]map[int]int, tn)
+		s := len((*kset)[id])
+		for j := 0; j < tn; j++ {
+			tdata[j] = make(map[int]int)
+			for l := 0; l < s; l++ {
+				k := (*kset)[id][l]
+				tdata[j][k] = D[j][k]
+			}
+		}
+		nsc := make(map[int]*learn.Variable)
+		for j := 0; j < s; j++ {
+			t := (*kset)[id][j]
+			nsc[t] = &learn.Variable{Varid: t, Categories: Sc[t].Categories, Name: ""}
+		}
+		var nc spn.SPN
+		if g > 0 {
+			nc = LearnGauss(nsc, tdata, kc, pval, eps, mp, g)
+		} else {
+			nc = Learn(nsc, tdata, kc, pval, eps, mp)
+		}
+		mu.Lock()
+		prod.AddChild(nc)
+		mu.Unlock()
+	}
+	for i := 0; i < m; i++ {
+		if np != 1 {
+			Q.Run(step, i)
+		} else {
+			step(i)
+		}
+	}
+	if np != 1 {
+		Q.Wait()
+	}
+	fmt.Println("Fork end | indep")
+	return prod
+}
+
+func clusterStep(np, k, g int, pval, eps float64, mp int, D []map[int]int, Sc map[int]*learn.Variable) spn.SPN {
+	Q := conc.NewSingleQueue(np)
+	mu := &sync.Mutex{}
+	var clusters [][]map[int]int
+	if k > 0 {
+		if len(D) < k {
+			return newFullyFactorized(g, D, Sc)
+		}
+		clusters = cluster.KMeansDataI(k, D)
+	} else {
+		clusters = cluster.DBSCANData(D, eps, mp)
+	}
+	if c := len(clusters); c == 1 {
+		return newFullyFactorized(g, D, Sc)
+	}
+	sum := spn.NewSum()
+	fmt.Println("Fork start | clusters")
+	step := func(id int) {
+		nsc := learn.ReflectScope(Sc)
+		var nc spn.SPN
+		if g > 0 {
+			nc = LearnGauss(nsc, clusters[id], k, pval, eps, mp, g)
+		} else {
+			nc = Learn(nsc, clusters[id], k, pval, eps, mp)
+		}
+		mu.Lock()
+		sum.AddChildW(nc, float64(len(clusters[id]))/float64(len(D)))
+		mu.Unlock()
+	}
+	for i := range clusters {
+		if np != 1 {
+			Q.Run(step, i)
+		} else {
+			step(i)
+		}
+	}
+	if np != 1 {
+		Q.Wait()
+	}
+	fmt.Println("Fork start | clusters")
 	return sum
 }
 
-// LearnGauss uses Gaussians instead of Multinomials.
-func LearnGauss(sc map[int]*learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp int) spn.SPN {
+// LearnGaussConcurrent learns with gaussians concurrently.
+func LearnGaussConcurrent(sc map[int]*learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp, g, procs int) spn.SPN {
 	n := len(sc)
-
-	sys.Printf("Sample size: %d, scope size: %d\n", len(data), n)
-
-	// If the data's scope is unary, then we return a leaf (i.e. a univariate distribution).
 	if n == 1 {
-		sys.Println("Creating new leaf...")
-
-		// m number of instantiations.
-		m := len(data)
-		// pr is the univariate probability distribution.
-		var tv *learn.Variable
-		for _, v := range sc {
-			tv = v
+		var v *learn.Variable
+		for _, u := range sc {
+			v = u
 		}
-		counts := make([]int, tv.Categories)
-		for i := 0; i < m; i++ {
-			counts[data[i][tv.Varid]]++
-		}
-
-		leaf := spn.NewGaussian(tv.Varid, counts)
-		//sys.Println("Leaf created.")
-		return leaf
+		return newGaussMix(v.Varid, g, data)
 	}
-
-	// Else we check for independent subsets of variables. We separate variables in k partitions,
-	// where every partition is pairwise indepedent with each other.
-	//sys.Println("Preparing to create new product node...")
-
-	sys.Println("Creating VarDatas for Independency Test...")
-	vdata, l := make([]*utils.VarData, n), 0
-	for _, v := range sc {
-		tn := len(data)
-		// tdata is the transpose of data[k].
-		tdata := make([]int, tn)
-		for j := 0; j < tn; j++ {
-			tdata[j] = data[j][v.Varid]
-		}
-		vdata[l] = utils.NewVarData(v.Varid, v.Categories, tdata)
-		l++
-	}
-
-	sys.Println("Creating new Independency graph...")
-	// Independency graph.
+	vdata := learn.DataToVarData(data, sc)
 	igraph := indep.NewUFIndepGraph(vdata, pval)
 	vdata = nil
-
-	// If true, then we can partition the set of variables in data into independent subsets. This
-	// means we can create a product node (since product nodes' children have disjoint scopes).
 	if len(igraph.Kset) > 1 {
-		sys.Println("Found independency. Separating independent sets.")
-
-		//sys.Println("Found independency between variables. Creating new product node...")
-		// prod is the new product node. m is the number of disjoint sets. kset is a shortcut.
-		prod, m, kset := spn.NewProduct(), len(igraph.Kset), &igraph.Kset
-		tn := len(data)
-		for i := 0; i < m; i++ {
-			//sort.Ints((*kset)[i])
-			//}
-			//nexti := 0
-			//for done := 0; done < m; done++ {
-			//i := 0
-			//for (*kset)[i][0] != nexti {
-			//i++
-			//if i >= m {
-			//i = 0
-			//nexti++
-			//}
-			//}
-			//nexti++
-			// Data slices of the relevant vectors.
-			tdata := make([]map[int]int, tn)
-			// Number of variables in set of variables kset[i].
-			s := len((*kset)[i])
-			for j := 0; j < tn; j++ {
-				tdata[j] = make(map[int]int)
-				for l := 0; l < s; l++ {
-					// Get the instanciations of variables in kset[i].
-					//sys.Printf("[%d][%d] => %v vs %v | %v vs %v\n", j, k, (*kset)[i][k], len(data[j]), len(tdata[j]), k)
-					k := (*kset)[i][l]
-					tdata[j][k] = data[j][k]
-				}
-			}
-			// Create new scope with new variables.
-			nsc := make(map[int]*learn.Variable)
-			for j := 0; j < s; j++ {
-				t := (*kset)[i][j]
-				nsc[t] = &learn.Variable{t, sc[t].Categories, ""}
-			}
-			//sys.Printf("LENGTH: %d\n", len(tdata))
-			//sys.Println("Product node created. Recursing...")
-			// Adds the recursive calls as children of this new product node.
-			prod.AddChild(LearnGauss(nsc, tdata, kclusters, pval, eps, mp))
-		}
-		return prod
+		return indepStep(procs, kclusters, g, pval, eps, mp, data, sc, igraph)
 	}
 	igraph = nil
+	return clusterStep(procs, kclusters, g, pval, eps, mp, data, sc)
+}
 
-	// Else we perform k-clustering on the instances.
-	sys.Println("No independency found. Preparing for clustering...")
-
-	m := len(data)
-	mdata := make([][]int, m)
-	for i := 0; i < m; i++ {
-		lc := len(data[i])
-		mdata[i] = make([]int, lc)
-		l := 0
-		keys := make([]int, lc)
-		for k := range data[i] {
-			keys[l] = k
-			l++
+// LearnGauss uses Gaussians instead of Multinomials.
+func LearnGauss(sc map[int]*learn.Variable, data []map[int]int, kclusters int, pval, eps float64, mp, g int) spn.SPN {
+	n := len(sc)
+	if n == 1 {
+		var v *learn.Variable
+		for _, u := range sc {
+			v = u
 		}
-		sort.Ints(keys)
-		for j := 0; j < lc; j++ {
-			mdata[i][j] = data[i][keys[j]]
-		}
+		return newGaussMix(v.Varid, g, data)
 	}
-
-	var clusters []map[int][]int
-	if kclusters > 0 {
-		if len(mdata) < kclusters {
-			//Fully factorized form.
-			//All instances are approximately the same.
-			prod := spn.NewProduct()
-			m := len(data)
-			for _, v := range sc {
-				counts := make([]int, v.Categories)
-				for i := 0; i < m; i++ {
-					counts[data[i][v.Varid]]++
-				}
-				leaf := spn.NewGaussian(v.Varid, counts)
-				prod.AddChild(leaf)
-			}
-			return prod
-		}
-		D := learn.DataToMatrixF(data)
-		C := cluster.KMeansF(kclusters, D, metrics.EuclideanF)
-		clusters = make([]map[int][]int, len(C))
-		for i, c := range C {
-			clusters[i] = make(map[int][]int)
-			for k, v := range c {
-				clusters[i][k] = make([]int, len(v))
-				for j := range v {
-					clusters[i][k][j] = int(v[j])
-				}
-			}
-		}
-	} else if kclusters == -1 {
-		clusters = cluster.DBSCAN(mdata, eps, mp)
-	} else {
-		clusters = cluster.OPTICS(mdata, eps, mp)
+	vdata := learn.DataToVarData(data, sc)
+	igraph := indep.NewUFIndepGraph(vdata, pval)
+	vdata = nil
+	if len(igraph.Kset) > 1 {
+		return indepStep(1, kclusters, g, pval, eps, mp, data, sc, igraph)
 	}
-	k := len(clusters)
-	//sys.Printf("Clustering similar instances with %d clusters.\n", k)
-	if k == 1 {
-		// Fully factorized form.
-		// All instances are approximately the same.
-		prod := spn.NewProduct()
-		m := len(data)
-		for _, v := range sc {
-			counts := make([]int, v.Categories)
-			for i := 0; i < m; i++ {
-				counts[data[i][v.Varid]]++
-			}
-			leaf := spn.NewGaussian(v.Varid, counts)
-			counts = nil
-			prod.AddChild(leaf)
-		}
-		return prod
-	}
-	mdata = nil
-
-	sys.Println("Reformating clusters to appropriate format and creating sum node...")
-
-	sum := spn.NewSum()
-	for i := 0; i < k; i++ {
-		ni := len(clusters[i])
-		ndata := make([]map[int]int, ni)
-
-		l := 0
-		for k := range clusters[i] {
-			ndata[l] = make(map[int]int)
-			for index, value := range data[k] {
-				ndata[l][index] = value
-			}
-			l++
-		}
-
-		nsc := make(map[int]*learn.Variable)
-		for k, v := range sc {
-			nsc[k] = v
-		}
-
-		//sys.Println("Created new sum node child. Recursing...")
-		sum.AddChildW(LearnGauss(nsc, ndata, kclusters, pval, eps, mp), float64(ni)/float64(len(data)))
-	}
-
-	clusters = nil
-	return sum
+	igraph = nil
+	return clusterStep(1, kclusters, g, pval, eps, mp, data, sc)
 }

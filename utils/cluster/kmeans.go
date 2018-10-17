@@ -1,8 +1,11 @@
 package cluster
 
 import (
+	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
+	mc "github.com/muesli/clusters"
+	mk "github.com/muesli/kmeans"
 	"math"
 )
 
@@ -33,7 +36,101 @@ func kMeansRemove(which int, means map[int][]int, clusters []map[int][]int, v []
 	}
 }
 
+func kmeansMuesli(k int, M [][]float64) []int {
+	O := make(mc.Observations, len(M))
+	for i, I := range M {
+		O[i] = mc.Coordinates(I)
+	}
+	ci := mk.New()
+	C, err := ci.Partition(O, k)
+	if err != nil {
+		panic(err)
+	}
+	G := make([]int, len(M))
+	for i, I := range O {
+		c := C.Nearest(I)
+		G[i] = c
+	}
+	return G
+}
+
+func KMeansMuesliF(k int, D [][]float64, sc map[int]int) []map[int][]float64 {
+	O := make(mc.Observations, len(D))
+	for i, I := range D {
+		O[i] = mc.Coordinates(I)
+	}
+	ci := mk.New()
+	C, err := ci.Partition(O, k)
+	if err != nil {
+		panic(err)
+	}
+	G := make([]map[int][]float64, k)
+	for i := range G {
+		G[i] = make(map[int][]float64)
+	}
+	for i, I := range O {
+		c := C.Nearest(I)
+		J := D[i]
+		var u int
+		if sc == nil {
+			u = i
+		} else {
+			u = sc[i]
+		}
+		G[c][u] = make([]float64, len(J))
+		copy(G[c][u], J)
+	}
+	return G
+}
+
+func KMeansMuesli(k int, M [][]int, sc map[int]int) []map[int][]int {
+	D := copyMatrixF(M)
+	O := make(mc.Observations, len(D))
+	for i, I := range D {
+		O[i] = mc.Coordinates(I)
+	}
+	ci := mk.New()
+	C, err := ci.Partition(O, k)
+	if err != nil {
+		panic(err)
+	}
+	G := make([]map[int][]int, k)
+	for i := range G {
+		G[i] = make(map[int][]int)
+	}
+	for i, I := range O {
+		c := C.Nearest(I)
+		J := D[i]
+		var u int
+		if sc == nil {
+			u = i
+		} else {
+			u = sc[i]
+		}
+		G[c][u] = make([]int, len(J))
+		for l, v := range J {
+			G[c][u][l] = int(v)
+		}
+	}
+	return G
+}
+
+func KMeansDataI(k int, data []map[int]int) [][]map[int]int {
+	D, Sc := learn.DataToMatrixF(data)
+	G := kmeansMuesli(k, D)
+	return guessToData(k, G, D, Sc)
+}
+
 func KMeans(k int, data [][]int) []map[int][]int {
+	return KMeansMuesli(k, data, nil)
+}
+
+func KMeansData(k int, data []map[int]int) []map[int][]int {
+	D, Sc := learn.DataToMatrix(data)
+	return KMeansMuesli(k, D, Sc)
+}
+
+func OldKMeans(k int, data [][]int) []map[int][]int {
 	n := len(data)
 	F := metrics.Hamming
 
@@ -121,7 +218,16 @@ func KMeans(k int, data [][]int) []map[int][]int {
 	return clusters
 }
 
-func KMeansF(k int, D [][]float64, F metrics.MetricF) []map[int][]float64 {
+func KMeansF(k int, D [][]float64, F metrics.MetricF, sc map[int]int) []map[int][]float64 {
+	return KMeansMuesliF(k, D, nil)
+}
+
+func KMeansFData(k int, D []map[int]int, F metrics.MetricF) []map[int][]float64 {
+	E, Sc := learn.DataToMatrixF(D)
+	return KMeansMuesliF(k, E, Sc)
+}
+
+func OldKMeansF(k int, D [][]float64, F metrics.MetricF) []map[int][]float64 {
 	if len(D) < k {
 		panic("Length of dataset is smaller than number of clusters!")
 	}

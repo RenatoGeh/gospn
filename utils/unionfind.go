@@ -5,7 +5,7 @@ package utils
 type UFNode struct {
 	// Rank is the length of the longest.Path from root to a leaf.
 	rank int
-	//.Pa is.Parent of UFNode. Since we use the.Path-compression heuristic, this is usually the
+	// Pa is Parent of UFNode. Since we use the Path-compression heuristic, this is usually the
 	// representative of the set (i.e. the root node).
 	Pa *UFNode
 	// Variable ID.

@@ -166,6 +166,9 @@ func (s *S) EvaluatePosteriorConc(D spn.Dataset, L []int, N spn.SPN, classVar *l
 				}
 				mu.Lock()
 				s.Register(ml, h[j])
+				if _n := s.total; (_n > 0) && (_n%(len(D)/10) == 0) {
+					sys.Printf("... %d%% ...\n", int(100.0*(float64(_n)/float64(len(D)))))
+				}
 				mu.Unlock()
 				st.Reset(tk)
 			}

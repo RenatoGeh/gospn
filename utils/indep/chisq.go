@@ -12,7 +12,7 @@ import (
 // 	Pr(X^2 <= chi)
 // Where X^2 is the chi-square distribution X^2(df), with df being the degree of freedom.
 func ChiSquare(chi float64, df int) float64 {
-	cs := distuv.ChiSquared{float64(df), nil}
+	cs := distuv.ChiSquared{K: float64(df), Src: nil}
 	return cs.CDF(chi)
 }
 
@@ -173,12 +173,11 @@ func ChiSquareTest(p, q int, data [][]int, sigval float64) bool {
 		}
 	}
 
-	// Test statistic.
-	//fmt.Println("Computing test statistic...")
+	// Statistic test.
 	var chi float64
 	for i := 0; i < p; i++ {
 		for j := 0; j < q; j++ {
-			if E[i][j] == 0 {
+			if E[i][j] == 0 && data[i][j] == 0 {
 				continue
 			}
 			diff := float64(data[i][j]) - E[i][j]

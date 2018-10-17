@@ -57,8 +57,7 @@ func buildRegionGraph(D spn.Dataset, sc map[int]*learn.Variable, k int, t float6
 	G := newGraph(sc)
 	n := G.root
 	if k > 1 {
-		M := learn.DataToMatrixF(D)
-		C := cluster.KMeansF(k, M, metrics.EuclideanF)
+		C := cluster.KMeansFData(k, D, metrics.EuclideanF)
 		for i := 0; i < k; i++ {
 			//sys.Printf("Expanding region graph on cluster %d...\n", i)
 			P := transposeF(C[i])
@@ -69,7 +68,7 @@ func buildRegionGraph(D spn.Dataset, sc map[int]*learn.Variable, k int, t float6
 		P := transpose(C)
 		expandRegionGraph(G, n, P, t)
 	} else {
-		M := learn.DataToMatrix(D)
+		M := learn.CompleteDataToMatrix(D)
 		C := cluster.DBSCAN(M, 4, 4)
 		k = len(C)
 		for i := 0; i < k; i++ {
@@ -141,7 +140,7 @@ func partitionScope(sn scope, C map[int][]int) (scope, scope) {
 	M, V := clusterToMatrix(C, sn)
 	//sys.Printf("%d, %d\n", len(sn), len(M))
 	//sys.Println("Running k-means on variables...")
-	S := cluster.KMeansF(2, M, metrics.EuclideanF)
+	S := cluster.KMeansF(2, M, metrics.EuclideanF, V)
 	//sys.Println("Finished k-means.")
 	//sys.Printf("  %d, %d, %d, %d\n", len(S[0]), len(S[1]), len(S[0])+len(S[1]), len(sn))
 	s1, s2 := make(scope), make(scope)
@@ -149,7 +148,8 @@ func partitionScope(sn scope, C map[int][]int) (scope, scope) {
 	for k, _ := range S[0] {
 		// k is the variable ID, since M is the transpose of the dataset in matrix form.
 		// If we took the regular cluster form of the dataset, k would be the instance index.
-		s1[V[k]] = sn[V[k]]
+		//s1[V[k]] = sn[V[k]]
+		s1[k] = sn[k]
 	}
 	// Cluster/Partition 2
 	for k, _ := range S[1] {
@@ -157,7 +157,8 @@ func partitionScope(sn scope, C map[int][]int) (scope, scope) {
 		//if _, e := sn[k]; !e {
 		//sys.Printf("  %d does not exist in sn\n", k)
 		//}
-		s2[V[k]] = sn[V[k]]
+		//s2[V[k]] = sn[V[k]]
+		s2[k] = sn[k]
 	}
 	//sys.Printf("Split scope into two partitions of size: %d, %d...\n", len(s1), len(s2))
 	return s1, s2

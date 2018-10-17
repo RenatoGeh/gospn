@@ -2,19 +2,45 @@ package cluster
 
 import (
 	"github.com/RenatoGeh/gospn/common"
+	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/utils"
 	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
+	"github.com/mpraski/clusters"
 )
 
-// DBSCAN Density-based spatial clustering of applications with noise.
-// Parameters:
-//  - data is data matrix;
-//  - eps is epsilon maximum distance between density core points;
-//  - mp is minimum number of points to be considered core point.
-func DBSCAN(data [][]int, eps float64, mp int) []map[int][]int {
-	n, m := len(data), len(data[0])
+func dbscan(D [][]float64, eps float64, mp int) []int {
+	ci, err := clusters.DBSCAN(mp, eps, 0, metrics.EuclideanF)
+	if err != nil {
+		panic(err)
+	}
+	if err = ci.Learn(D); err != nil {
+		panic(err)
+	}
+	return ci.Guesses()
+}
+
+func DBSCAN2(data [][]int, eps float64, mp int) []map[int][]int {
+	D := copyMatrixF(data)
+	G := dbscan(D, eps, mp)
+	H := make([]int, len(G))
+	m := -2
+	for i, g := range G {
+		if g > m {
+			m = g
+		}
+		if g > 0 {
+			H[i] = g + 1
+		} else {
+			H[i] = 1
+		}
+	}
+	return toCluster(m, data, H)
+}
+
+func dbscanInternal(data [][]float64, eps float64, mp int) []*utils.UFNode {
+	n := len(data)
 	// Metric function.
-	mfunc := metrics.Euclidean
+	mfunc := metrics.EuclideanF
 
 	// Distance matrix.
 	dmatrix := make([][]float64, n)
@@ -75,6 +101,18 @@ func DBSCAN(data [][]int, eps float64, mp int) []map[int][]int {
 		}
 	}
 
+	return rgs
+}
+
+// DBSCAN Density-based spatial clustering of applications with noise.
+// Parameters:
+//  - data is data matrix;
+//  - eps is epsilon maximum distance between density core points;
+//  - mp is minimum number of points to be considered core point.
+func DBSCAN(data [][]int, eps float64, mp int) []map[int][]int {
+	D := copyMatrixF(data)
+	rgs := dbscanInternal(D, eps, mp)
+	n, m := len(D), len(D[0])
 	// Convert Union-Find format to []map[int][]int format.
 	k := 0
 	var clusters []map[int][]int
@@ -93,4 +131,21 @@ func DBSCAN(data [][]int, eps float64, mp int) []map[int][]int {
 	}
 
 	return clusters
+}
+
+func DBSCANData(data []map[int]int, eps float64, mp int) [][]map[int]int {
+	M, Sc := learn.DataToMatrixF(data)
+	rgs := dbscanInternal(M, eps, mp)
+	G := make([]int, len(M))
+	var k int
+	for i, u := range rgs {
+		if u.Pa == u {
+			ch := utils.UFVarids(u)
+			for _, c := range ch {
+				G[c] = i
+			}
+			k++
+		}
+	}
+	return guessToData(k, G, M, Sc)
 }
