@@ -12,5 +12,7 @@ install:
   - go get -u gonum.org/v1/gonum/mathext
   - go get -u golang.org/x/exp/rand
   - go get -u github.com/sbinet/npyio
+  - go get -u github.com/muesli/clusters
+  - go get -u github.com/muesli/kmeans
 
 script: make build
