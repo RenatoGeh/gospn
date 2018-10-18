@@ -115,6 +115,10 @@ func KMeansMuesli(k int, M [][]int, sc map[int]int) []map[int][]int {
 	return G
 }
 
+func KMeansI(k int, D [][]float64) []int {
+	return kmeansMuesli(k, D)
+}
+
 func KMeansDataI(k int, data []map[int]int) [][]map[int]int {
 	D, Sc := learn.DataToMatrixF(data)
 	G := kmeansMuesli(k, D)
@@ -218,11 +222,11 @@ func OldKMeans(k int, data [][]int) []map[int][]int {
 	return clusters
 }
 
-func KMeansF(k int, D [][]float64, F metrics.MetricF, sc map[int]int) []map[int][]float64 {
+func KMeansF(k int, D [][]float64, sc map[int]int) []map[int][]float64 {
 	return KMeansMuesliF(k, D, nil)
 }
 
-func KMeansFData(k int, D []map[int]int, F metrics.MetricF) []map[int][]float64 {
+func KMeansFData(k int, D []map[int]int) []map[int][]float64 {
 	E, Sc := learn.DataToMatrixF(D)
 	return KMeansMuesliF(k, E, Sc)
 }
