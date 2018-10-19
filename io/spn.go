@@ -9,6 +9,7 @@ import (
 // SaveSPN serializes an SPN and writes it to a file. Suggested extension: ".spn".
 func SaveSPN(filename string, S spn.SPN) error {
 	f, err := os.Create(filename)
+	defer f.Close()
 	if err != nil {
 		return err
 	}
