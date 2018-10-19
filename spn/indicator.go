@@ -1,6 +1,8 @@
 package spn
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/RenatoGeh/gospn/utils"
 )
 
@@ -58,4 +60,16 @@ func (i *Indicator) Sc() []int {
 		i.sc = []int{i.varid}
 	}
 	return i.sc
+}
+
+func (i *Indicator) GobEncode() ([]byte, error) {
+	var b bytes.Buffer
+	fmt.Fprintln(&b, i.varid, i.v)
+	return b.Bytes(), nil
+}
+
+func (i *Indicator) GobDecode(data []byte) error {
+	b := bytes.NewBuffer(data)
+	_, err := fmt.Fscanf(b, "%d %d", &i.varid, &i.v)
+	return err
 }
