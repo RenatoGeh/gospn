@@ -1,10 +1,15 @@
 package learn
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/RenatoGeh/gospn/spn"
 	"github.com/RenatoGeh/gospn/utils"
 )
+
+func init() {
+	spn.RegisterGobType(&Variable{})
+}
 
 // Variable is a wrapper struct that contains the variable ID and its number of categories.
 type Variable struct {
@@ -14,6 +19,18 @@ type Variable struct {
 	Categories int
 	// Variable name.
 	Name string
+}
+
+func (v *Variable) GobEncode() ([]byte, error) {
+	var b bytes.Buffer
+	fmt.Fprintln(&b, v.Varid, v.Categories, v.Name)
+	return b.Bytes(), nil
+}
+
+func (v *Variable) GobDecode(data []byte) error {
+	b := bytes.NewBuffer(data)
+	_, err := fmt.Fscanln(b, &v.Varid, &v.Categories, &v.Name)
+	return err
 }
 
 type Scope map[int]*Variable
