@@ -1,6 +1,8 @@
 package spn
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/RenatoGeh/gospn/sys"
 	"math"
 )
@@ -11,6 +13,17 @@ type Mode struct {
 	index int
 	// Highest value of variable.
 	val float64
+}
+
+func computeMode(pr []float64) (int, float64) {
+	var i int
+	var m float64
+	for j, p := range pr {
+		if p > m {
+			i, m = j, p
+		}
+	}
+	return i, m
 }
 
 // Multinomial represents a multinomial distribution.
@@ -201,3 +214,37 @@ func (m *Multinomial) MuSigma() (float64, float64) {
 	sd = math.Sqrt(sd / float64(len(m.pr)))
 	return mu, sd
 }
+
+// GobEncode serializes this multinomial node.
+func (m *Multinomial) GobEncode() ([]byte, error) {
+	var b bytes.Buffer
+	fmt.Fprintf(&b, "%d %d", m.varid, len(m.pr))
+	for _, p := range m.pr {
+		fmt.Fprintf(&b, " %f", p)
+	}
+	return b.Bytes(), nil
+}
+
+// GobDecode unserializes this multinomial node.
+func (m *Multinomial) GobDecode(data []byte) error {
+	b := bytes.NewBuffer(data)
+	var n int
+	_, err := fmt.Fscanf(b, "%d %d", &m.varid, &n)
+	if err != nil {
+		return err
+	}
+	m.sc = []int{m.varid}
+	m.pr = make([]float64, n)
+	for i := 0; i < n; i++ {
+		_, err = fmt.Fscanf(b, "%f", &m.pr[i])
+		if err != nil {
+			return err
+		}
+	}
+	imode, mode := computeMode(m.pr)
+	m.mode.index, m.mode.val = imode, mode
+	return nil
+}
+
+// SubType returns this leaf's subtype.
+func (m *Multinomial) SubType() string { return "multinomial" }

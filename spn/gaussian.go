@@ -2,6 +2,8 @@ package spn
 
 import (
 	//"github.com/RenatoGeh/gospn/sys"
+	"bytes"
+	"fmt"
 	"gonum.org/v1/gonum/stat/distuv"
 	"math"
 )
@@ -176,3 +178,21 @@ func (g *Gaussian) Sc() []int {
 	}
 	return g.sc
 }
+
+// GobEncode serializes this gaussian node.
+func (g *Gaussian) GobEncode() ([]byte, error) {
+	var b bytes.Buffer
+	fmt.Fprintln(&b, g.varid, g.dist.Mu, g.dist.Sigma)
+	return b.Bytes(), nil
+}
+
+// GobDecode unserializes this gaussian node.
+func (g *Gaussian) GobDecode(data []byte) error {
+	b := bytes.NewBuffer(data)
+	_, err := fmt.Fscanln(b, &g.varid, &g.dist.Mu, &g.dist.Sigma)
+	g.sc = []int{g.varid}
+	return err
+}
+
+// SubType returns this leaf's subtype.
+func (g *Gaussian) SubType() string { return "gaussian" }

@@ -28,6 +28,8 @@ type SPN interface {
 	Sc() []int
 	// Type returns the type of this node.
 	Type() string
+	// SubType returns the subtype of this node.
+	SubType() string
 	// AddChild adds a child to this node.
 	AddChild(c SPN)
 	// Returns the height of the graph.
@@ -87,6 +89,9 @@ func (n *Node) Sc() []int {
 func (n *Node) Type() string {
 	return "node"
 }
+
+// SubType returns the subtype of this node.
+func (n *Node) SubType() string { return "node" }
 
 // AddChild adds a child to this node.
 func (n *Node) AddChild(c SPN) {

@@ -97,3 +97,11 @@ func (p *Product) Parameters() *parameters.P {
 	}
 	return r
 }
+
+func (p *Product) GobEncode() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (p *Product) GobDecode(data []byte) error {
+	return nil
+}

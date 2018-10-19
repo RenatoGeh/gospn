@@ -1,6 +1,8 @@
 package spn
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/RenatoGeh/gospn/learn/parameters"
 	"github.com/RenatoGeh/gospn/utils"
 	"math"
@@ -129,4 +131,32 @@ func (s *Sum) Parameters() *parameters.P {
 		parameters.Bind(s, p)
 	}
 	return p
+}
+
+// GobEncode serializes this sum node, but does not recurse over its children.
+func (s *Sum) GobEncode() ([]byte, error) {
+	var b bytes.Buffer
+	fmt.Fprintf(&b, "%d", len(s.w))
+	for _, w := range s.w {
+		fmt.Fprintf(&b, " %f", w)
+	}
+	return b.Bytes(), nil
+}
+
+// GobDecode unserializes this sum node, but does not recurse over its children.
+func (s *Sum) GobDecode(data []byte) error {
+	b := bytes.NewBuffer(data)
+	var n int
+	_, err := fmt.Fscanf(b, "%d", &n)
+	if err != nil {
+		return err
+	}
+	s.w = make([]float64, n)
+	for i := 0; i < n; i++ {
+		_, err = fmt.Fscanf(b, " %f", &s.w[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
