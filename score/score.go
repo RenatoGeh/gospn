@@ -177,6 +177,19 @@ func (s *S) EvaluatePosteriorConc(D spn.Dataset, L []int, N spn.SPN, classVar *l
 	Q.Wait()
 }
 
+// ConfusionMatrix computes the confusion matrix of the predictions. Argument c is the number of
+// classes.
+func (s *S) ConfusionMatrix(c int) [][]int {
+	M := make([][]int, c)
+	for i := 0; i < c; i++ {
+		M[i] = make([]int, c)
+	}
+	for _, p := range s.predictions {
+		M[p.Expected][p.Predicted]++
+	}
+	return M
+}
+
 // Merge absorbs all the information from the given score.
 func (s *S) Merge(t *S) {
 	s.hits += t.hits
