@@ -56,10 +56,10 @@ func buildRegionGraph(D spn.Dataset, sc map[int]*learn.Variable, k int, t float6
 	G := newGraph(sc)
 	n := G.root
 	if k > 1 {
-		C := cluster.KMeansFData(k, D)
+		C := cluster.KMeansDataI(k, D)
 		for i := 0; i < k; i++ {
 			//sys.Printf("Expanding region graph on cluster %d...\n", i)
-			P := transposeF(C[i])
+			P := transpose(dataToCluster(C[i]))
 			expandRegionGraph(G, n, P, t)
 		}
 	} else if k == 1 {

@@ -199,7 +199,7 @@ func clusterStep(np, k, g int, pval, eps float64, mp int, D []map[int]int, Sc ma
 	if np != 1 {
 		Q.Wait()
 	}
-	fmt.Println("Fork start | clusters")
+	fmt.Println("Fork end | clusters")
 	return sum
 }
 

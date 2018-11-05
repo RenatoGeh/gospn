@@ -11,6 +11,7 @@ func init() {
 	gob.Register(&Product{})
 	gob.Register(&Gaussian{})
 	gob.Register(&Multinomial{})
+	gob.Register(&Indicator{})
 	gob.Register([][]uint32{})
 }
 
