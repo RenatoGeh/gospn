@@ -18,6 +18,88 @@ import (
 // best method is the recursive version, as it takes less memory and same time usage in average
 // when compared to the static versions.
 
+// InferenceY returns the value of S(I, Y=y). This convenience function allows for fast computation
+// of soft inference values without having to create another VarSet for each valuation of Y.
+func InferenceY(S SPN, I VarSet, Y, y int) float64 {
+	if len(S.Ch()) == 0 {
+		return 0
+	}
+	J := map[int]int{Y: y}
+	O := common.Queue{}
+	TopSortTarjan(S, &O)
+	V := make(map[SPN]float64)
+	for !O.Empty() {
+		s := O.Dequeue().(SPN)
+		switch t := s.Type(); t {
+		case "leaf":
+			if varid := s.Sc()[0]; varid == Y {
+				V[s] = s.Value(J)
+			} else {
+				V[s] = s.Value(I)
+			}
+		case "sum":
+			sum := s.(*Sum)
+			ch := sum.Ch()
+			W := sum.Weights()
+			n := len(ch)
+			vals := make([]float64, n)
+			for i, cs := range ch {
+				v := V[cs]
+				vals[i] = v + math.Log(W[i])
+			}
+			V[s] = sum.Compute(vals)
+		case "product":
+			prod := s.(*Product)
+			ch := prod.Ch()
+			n := len(ch)
+			vals := make([]float64, n)
+			for i, ch := range ch {
+				vals[i] = V[ch]
+			}
+			V[s] = prod.Compute(vals)
+		}
+	}
+	return V[S]
+}
+
+// Inference simply returns the value of S(I), without storing values for later use.
+func Inference(S SPN, I VarSet) float64 {
+	if len(S.Ch()) == 0 {
+		return 0
+	}
+	O := common.Queue{}
+	TopSortTarjan(S, &O)
+	V := make(map[SPN]float64)
+	for !O.Empty() {
+		s := O.Dequeue().(SPN)
+		switch t := s.Type(); t {
+		case "leaf":
+			V[s] = s.Value(I)
+		case "sum":
+			sum := s.(*Sum)
+			ch := sum.Ch()
+			W := sum.Weights()
+			n := len(ch)
+			vals := make([]float64, n)
+			for i, cs := range ch {
+				v := V[cs]
+				vals[i] = v + math.Log(W[i])
+			}
+			V[s] = sum.Compute(vals)
+		case "product":
+			prod := s.(*Product)
+			ch := prod.Ch()
+			n := len(ch)
+			vals := make([]float64, n)
+			for i, ch := range ch {
+				vals[i] = V[ch]
+			}
+			V[s] = prod.Compute(vals)
+		}
+	}
+	return V[S]
+}
+
 // StoreInference takes an SPN S and stores the values for an instance I on a DP table storage
 // at the position designated by the ticket tk. Returns S and the ticket used (if tk < 0,
 // StoreInference creates a new ticket).
@@ -35,7 +117,6 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 	TopSortTarjan(S, &O)
 	sys.Free()
 
-	P := S.Parameters()
 	table, _ := storage.Table(tk)
 	for !O.Empty() {
 		s := O.Dequeue().(SPN)
@@ -48,30 +129,19 @@ func StoreInference(S SPN, I VarSet, tk int, storage *Storer) (SPN, int) {
 			W := sum.Weights()
 			n := len(ch)
 			vals := make([]float64, n)
-			if P.HardWeight {
-				for i, cs := range ch {
-					v, _ := table.Single(cs)
-					vals[i] = v
+			for i, cs := range ch {
+				v, e := table.Single(cs)
+				if !e {
+					fmt.Println("Error: The SPN graph has sums or products as leaves.")
+					sys.Free()
+					return nil, -1
 				}
-			} else {
-				for i, cs := range ch {
-					v, e := table.Single(cs)
-					if !e {
-						fmt.Println("Error: The SPN graph has sums or products as leaves.")
-						sys.Free()
-						return nil, -1
-					}
-					vals[i] = v + math.Log(W[i])
-				}
+				vals[i] = v + math.Log(W[i])
 			}
 			if n == 0 {
 				table.StoreSingle(s, utils.LogZero)
 			} else {
-				if P.HardWeight {
-					table.StoreSingle(s, sum.ComputeHard(vals, P.SmoothSum))
-				} else {
-					table.StoreSingle(s, sum.Compute(vals))
-				}
+				table.StoreSingle(s, sum.Compute(vals))
 			}
 		case "product":
 			prod := s.(*Product)
