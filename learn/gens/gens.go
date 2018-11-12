@@ -1,7 +1,6 @@
 package gens
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/RenatoGeh/gospn/conc"
@@ -71,9 +70,8 @@ func Learn(sc map[int]*learn.Variable, data []map[int]int, kclusters int, pval, 
 }
 
 func newMultinom(v *learn.Variable, data []map[int]int) spn.SPN {
-	m := len(data)
 	counts := make([]int, v.Categories)
-	for i := 0; i < m; i++ {
+	for i := range data {
 		counts[data[i][v.Varid]]++
 	}
 	return spn.NewCountingMultinomial(v.Varid, counts)
@@ -120,7 +118,6 @@ func indepStep(np, kc, g int, pval, eps float64, mp int, D []map[int]int, Sc map
 	mu := &sync.Mutex{}
 	prod, m, kset := spn.NewProduct(), len(igraph.Kset), &igraph.Kset
 	tn := len(D)
-	fmt.Println("Fork start | indep")
 	step := func(id int) {
 		tdata := make([]map[int]int, tn)
 		s := len((*kset)[id])
@@ -156,7 +153,6 @@ func indepStep(np, kc, g int, pval, eps float64, mp int, D []map[int]int, Sc map
 	if np != 1 {
 		Q.Wait()
 	}
-	fmt.Println("Fork end | indep")
 	return prod
 }
 
@@ -176,7 +172,6 @@ func clusterStep(np, k, g int, pval, eps float64, mp int, D []map[int]int, Sc ma
 		return newFullyFactorized(g, D, Sc)
 	}
 	sum := spn.NewSum()
-	fmt.Println("Fork start | clusters")
 	step := func(id int) {
 		nsc := learn.ReflectScope(Sc)
 		var nc spn.SPN
@@ -199,7 +194,6 @@ func clusterStep(np, k, g int, pval, eps float64, mp int, D []map[int]int, Sc ma
 	if np != 1 {
 		Q.Wait()
 	}
-	fmt.Println("Fork end | clusters")
 	return sum
 }
 

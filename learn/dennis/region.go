@@ -23,16 +23,21 @@ func (r *region) add(p *partition) {
 
 func (r *region) translate(D spn.Dataset, m, g int) []spn.SPN {
 	if len(r.sc) == 1 {
-		r.rep = make([]spn.SPN, g)
 		var v int
 		for k, _ := range r.sc {
 			v = k
 			break
 		}
 		X := learn.ExtractInstance(v, D)
-		Q := utils.PartitionQuantiles(X, g)
-		for i, q := range Q {
-			r.rep[i] = spn.NewGaussianParams(v, q[0], q[1])
+		if g > len(D) {
+			mu, sigma := utils.MuSigma(X)
+			r.rep = []spn.SPN{spn.NewGaussianParams(v, mu, sigma)}
+		} else {
+			r.rep = make([]spn.SPN, g)
+			Q := utils.PartitionQuantiles(X, g)
+			for i, q := range Q {
+				r.rep[i] = spn.NewGaussianParams(v, q[0], q[1])
+			}
 		}
 	} else {
 		r.rep = make([]spn.SPN, m)

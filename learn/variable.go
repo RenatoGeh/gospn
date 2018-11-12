@@ -127,7 +127,6 @@ func DataToMatrixF(D spn.Dataset) ([][]float64, map[int]int) {
 	Z := make(map[int]int) // map[varid]newid
 	S := make(map[int]int) // map[newid]varid
 	var u int
-	fmt.Printf("n: %d, m: %d\n", n, m)
 	for i, I := range D {
 		M[i] = make([]float64, m)
 		//fmt.Printf("  i: %d, len(I): %d\n", i, len(I))
