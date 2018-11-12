@@ -10,8 +10,8 @@ GoSPN
 
 My crude (and slightly terrifying) rendition of Renee French's Go [Gopher](https://blog.golang.org/gopher) writing what's on his mind.
 
-An implementation of Sum-Product Networks (SPNs) in Go
-------------------------------------------------------
+GoSPN: A Sum-Product Network (SPN) Library
+------------------------------------------
 
 ### Overview
 
@@ -31,56 +31,49 @@ This project aims to provide a simple framework for Sum-Product
 Networks. Our objective is to provide inference tools and implement
 various learning algorithms present in literature.
 
-### Features
+### Roadmap
 
-**Completed**
+## All
 
-- Soft inference (marginal probabilities)
-- Hard inference (MAP)
-- Gens-Domingos learning schema
-   * *Learning the Structure of Sum-Product Networks*, R. Gens & P.
-     Domingos, ICML 2013
-   * [pdf](http://spn.cs.washington.edu/papers/slspn.pdf)
-- Generative gradient descent
-- SPN derivatives
-- Support for `.arff` dataset format (discrete variables for now)
-- Poon-Domingos deep structure
-- Dennis-Ventura clustering structural learning algorithm
-    * *Learning the Architecture of Sum-Product Networks Using Clustering
-     on Variables*, A. Dennis & D. Ventura, NIPS 25 (2012)
-    * [pdf](http://papers.nips.cc/paper/4544-learning-the-architecture-of-sum-product-networks-using-clustering-on-variables.pdf)
+- [ ] Unit tests
+- [ ] Support for continuos variables
 
+## Inference
 
+- [x] Soft inference (marginal probabilities)
+- [x] Hard inference (MAP) through max-product algorithm
 
-**Under development**
+## Structure learning
 
-- Testing performance on Poon-Domingos' deep structure using hard
-  generative gradient descent.
-- Testing performance on Dennis-Ventura's.
+- [x] Gens-Domingos learning schema (LearnSPN) [1]
+- [x] Dennis-Ventura clustering structural learning algorithm [2]
+- [x] Poon-Domingos dense architecture [3]
 
+## Weight learning
 
-**To do (high priority)**
+- [x] Computation of SPN derivatives
+- [x] Soft generative gradient descent
+- [x] Hard generative gradient descent
+- [x] Soft discriminative gradient descent
+- [x] Hard discriminative gradient descent
 
-- Soft and Hard GD discriminative learning
-  * *Discriminative Learning of Sum-Product Networks*, R. Gens & P.
-    Domingos, NIPS 25 (2012)
-  * [pdf](http://spn.cs.washington.edu/papers/dspn.pdf)
+## Input/Output
 
-**To do (low priority)**
+- [x] Support for `.npy` files
+- [x] Support for `.arff` dataset format (discrete variables only)
+- [ ] Support for `.csv` dataset file format
+- [x] Support for our own `.data` dataset format
+- [x] Serialization of SPNs
 
-- Generative EM
-- EM clustering
-- Mauro-Vergari structural learning algorithm
-    * *Simplifying, Regularizing and Strengthening Sum-Product Network
-    Structure Learning*, A. Vergari & N. Mauro & F. Esposito, ECMLPKDD
-    2015
-    * [pdf](http://www.di.uniba.it/~vergari/papers/Simplifying,%20Regularizing%20and%20Strengthening%20Sum-Product%20Network%20Structure%20Learning.pdf)
+### References
 
-- Language modelling SPN
-  * *Language Modelling with Sum-Product Networks*, Cheng *et al*,
-  INTERSPEECH 2014
-  * [pdf](http://spn.cs.washington.edu/papers/is14.pdf)
- - Support for `.csv` dataset file format.
+- [1] *Learning the Structure of Sum-Product Networks*, R. Gens & P.
+  Domingos, ICML 2013
+- [2] *Learning the Architecture of Sum-Product Networks Using
+  Clustering on Variables*, A. Dennis & D. Ventura, NIPS 25 (2012)
+- [3] *Sum-Product Networks: A New Deep Architecture*, H. Poon & P.
+  Domingos, UAI 2011
+
 
 ### Branches
 
@@ -92,9 +85,7 @@ various learning algorithms present in literature.
 
 #### As a Go library
 
-Check the docs: https://godoc.org/github.com/RenatoGeh/gospn
-
-You can find more elaborate examples at: https://github.com/RenatoGeh/benchmarks
+GoDocs: https://godoc.org/github.com/RenatoGeh/gospn
 
 Learning algorithms are inside the `github.com/RenatoGeh/gospn/learn`
 package, with each algorithm as a subpackage of `learn` (e.g.
@@ -141,14 +132,18 @@ p := S.Value(evidence)
 ```
 
 The method `S.Value` may repeat calculations if the SPN's graph is not a
-tree. To use dynamic programming and avoid recomputations, use
-`spn.Storer`:
+tree. To use dynamic programming and avoid recomputations, either use
+`spn.Inference` or `spn.Storer`:
 
 ```
+// This only returns the desired probability (in logspace).
+p := spn.Inference(S, evidence)
+
+// A Storer stores values for all nodes.
 T := spn.NewStorer()
 t := T.NewTicket() // Creates a new DP table.
 spn.StoreInference(S, evidence, t, T) // Stores inference values from each node to T(t).
-p := T.Single(t, S) // Returns the first value inside node S: T(t, S).
+p = T.Single(t, S) // Returns the first value inside node S: T(t, S).
 ```
 
 Finding the approximate MPE works the same way. Let `evidence` be some
@@ -165,11 +160,6 @@ not a tree. Use `StoreMAP` if the graph is a general DAG instead.
 _, args := spn.StoreMAP(S, evidence, t, T)
 mpe := T.Single(t, S)
 ```
-
-#### As a standalone program
-
-**GoSPN is no longer supported as a standalone program. Use it as a
-library instead.**
 
 ### Dependencies
 
@@ -258,46 +248,16 @@ To update GoSPN, run:
 go get -u github.com/RenatoGeh/gospn
 ```
 
-### Code and Docs Organization
-
-In this section we describe the general layout that we intend to follow
-for both code and documentation. For more information on SPNs, look for
-the documentation present in this repository under directory `/doc`.
-
-#### Code
-
-Code documentation can be found at <https://godoc.org/github.com/RenatoGeh/gospn>.
-
-#### Documentation
-
-An analysis on our Gens-Domingos implementation can be found at
-<https://github.com/RenatoGeh/gospn/blob/dev/doc/analysis/analysis.pdf>.
-
 ### Datasets
 
-We use the following datasets:
+For a list of all available datasets in `.data` format, see:
 
-* Custom hand drawn numerical digits dataset (https://github.com/RenatoGeh/datasets/tree/master/digits)
-* Olivetti Faces Dataset by AT&T Laboratories Cambridge
-* Caltech101: L. Fei-Fei, R. Fergus and P. Perona. *Learning generative visual models
-  from few training examples: an incremental Bayesian approach tested on
-  101 object categories.* IEEE. CVPR 2004, Workshop on Generative-Model
-  Based Vision. 2004
-
-For a list of all available datasets, see:
-
-* https://godoc.org/github.com/RenatoGeh/gospn/data
 * https://github.com/RenatoGeh/datasets
 
 ### Results
 
-In our [analysis'](https://github.com/RenatoGeh/gospn/blob/dev/doc/analysis/analysis.pdf)
-experiments section we show some results from the three datasets
-enumerated above. We include some graphs and image completions here.
-More images completions can be found at
-[/results/olivetti_3bit/](https://github.com/RenatoGeh/gospn/tree/dev/results/olivetti_3bit).
-We also ran experiments on a modified Caltech-101 dataset due to memory
-constraints. Read the analysis document (Experiments section) for more information.
+Some benchmarking and experiments we did with GoSPN. More can be found
+at https://github.com/renatogeh/benchmarks.
 
 #### Image classifications
 
@@ -325,7 +285,7 @@ completions](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/results/olive
 
 ### Literature
 
-The following are articles that used GoSPN.
+The following articles used GoSPN!
 
 - *Credal Sum-Product Networks*, D. Mauá & F. Cozman & D. Conaty & C.
   Campos, PMLR 2017
@@ -338,8 +298,8 @@ The following are articles that used GoSPN.
 
 This project is part of my undergraduate research project supervised by
 Prof. [Denis Deratani Mauá](https://www.ime.usp.br/~ddm/) at the
-Institute of Mathematics and Statistics - University of São Paulo. We currently
-have financial support from CNPq grant #800585/2016-0.
+Institute of Mathematics and Statistics - University of São Paulo. We
+had financial support from CNPq grant #800585/2016-0.
 
 We would like to greatly thank Diarmaid Conaty and Cassio P. de Campos, both
 from Queen's University Belfast, for finding and correcting several
