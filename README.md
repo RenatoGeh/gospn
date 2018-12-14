@@ -266,10 +266,10 @@ at https://github.com/renatogeh/benchmarks.
 #### Image classifications
 
 ![Digits dataset correct
-classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/doc/analysis/imgs/digits_percs.png)
+classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/results/digits_percs.png)
 
 ![Caltech dataset correct
-classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/doc/analysis/imgs/caltech_percs.png)
+classifications](https://raw.githubusercontent.com/RenatoGeh/gospn/dev/results/caltech_percs.png)
 
 #### Image completions with prior face knowledge
 
