@@ -32,3 +32,20 @@ func BreadthFirst(G SPN, f func(SPN) bool) { searchFunc(G, f, &common.Queue{}) }
 // DepthFirst applies a function f to each node of the graph G. The graph traversal is node using
 // a depth-first search approach. If f returns false, then the search ends. Else, it continues.
 func DepthFirst(G SPN, f func(SPN) bool) { searchFunc(G, f, &common.Stack{}) }
+
+// CountNodes counts the number of nodes, returning the number of sum, product and leaf nodes in
+// this order.
+func CountNodes(G SPN) (int, int, int) {
+	var s, p, l int
+	BreadthFirst(G, func(S SPN) bool {
+		if t := S.Type(); t == "sum" {
+			s++
+		} else if t == "product" {
+			p++
+		} else {
+			l++
+		}
+		return true
+	})
+	return s, p, l
+}
