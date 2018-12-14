@@ -74,6 +74,10 @@ various learning algorithms present in literature.
 - [3] *Sum-Product Networks: A New Deep Architecture*, H. Poon & P.
   Domingos, UAI 2011
 
+### Looking to contribute?
+
+See the [Contribution
+Guidelines](https://github.com/RenatoGeh/gospn/blob/dev/CONTRIBUTING.md).
 
 ### Branches
 
