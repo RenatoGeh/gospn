@@ -88,7 +88,7 @@ func PartitionQuantiles(X []int, m int) [][]float64 {
 		}
 		sigma = math.Sqrt(sigma / n)
 		if sigma == 0 {
-			sigma = 1
+			sigma = 0.5
 		}
 		P[i] = []float64{mu, sigma, n}
 	}
