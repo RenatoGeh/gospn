@@ -16,4 +16,4 @@ install:
   #- go get -u github.com/muesli/kmeans
   - go get -u github.com/RenatoGeh/kmeans
 
-script: make build
+script: go build
