@@ -13,6 +13,7 @@ install:
   - go get -u golang.org/x/exp/rand
   - go get -u github.com/sbinet/npyio
   - go get -u github.com/muesli/clusters
-  - go get -u github.com/muesli/kmeans
+  #- go get -u github.com/muesli/kmeans
+  - go get -u github.com/RenatoGeh/kmeans
 
 script: make build

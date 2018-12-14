@@ -4,8 +4,8 @@ import (
 	"github.com/RenatoGeh/gospn/learn"
 	"github.com/RenatoGeh/gospn/sys"
 	"github.com/RenatoGeh/gospn/utils/cluster/metrics"
+	mk "github.com/RenatoGeh/kmeans"
 	mc "github.com/muesli/clusters"
-	mk "github.com/muesli/kmeans"
 	"math"
 )
 
@@ -42,14 +42,9 @@ func kmeansMuesli(k int, M [][]float64) []int {
 		O[i] = mc.Coordinates(I)
 	}
 	ci := mk.New()
-	C, err := ci.Partition(O, k)
+	G, err := ci.PartitionPoints(O, k)
 	if err != nil {
 		panic(err)
-	}
-	G := make([]int, len(M))
-	for i, I := range O {
-		c := C.Nearest(I)
-		G[i] = c
 	}
 	return G
 }
@@ -60,7 +55,7 @@ func KMeansMuesliF(k int, D [][]float64, sc map[int]int) []map[int][]float64 {
 		O[i] = mc.Coordinates(I)
 	}
 	ci := mk.New()
-	C, err := ci.Partition(O, k)
+	C, err := ci.PartitionPoints(O, k)
 	if err != nil {
 		panic(err)
 	}
@@ -68,8 +63,7 @@ func KMeansMuesliF(k int, D [][]float64, sc map[int]int) []map[int][]float64 {
 	for i := range G {
 		G[i] = make(map[int][]float64)
 	}
-	for i, I := range O {
-		c := C.Nearest(I)
+	for i, c := range C {
 		J := D[i]
 		var u int
 		if sc == nil {
@@ -90,7 +84,7 @@ func KMeansMuesli(k int, M [][]int, sc map[int]int) []map[int][]int {
 		O[i] = mc.Coordinates(I)
 	}
 	ci := mk.New()
-	C, err := ci.Partition(O, k)
+	C, err := ci.PartitionPoints(O, k)
 	if err != nil {
 		panic(err)
 	}
@@ -98,8 +92,7 @@ func KMeansMuesli(k int, M [][]int, sc map[int]int) []map[int][]int {
 	for i := range G {
 		G[i] = make(map[int][]int)
 	}
-	for i, I := range O {
-		c := C.Nearest(I)
+	for i, c := range C {
 		J := D[i]
 		var u int
 		if sc == nil {
