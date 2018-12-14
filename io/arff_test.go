@@ -2,12 +2,11 @@ package io
 
 import (
 	"fmt"
-	"github.com/RenatoGeh/gospn/io"
 	"testing"
 )
 
 func TestParseArff(t *testing.T) {
-	name, sc, vals, labels := io.ParseArff("test.arff")
+	name, sc, vals, labels := ParseArff("test.arff")
 
 	fmt.Printf("Relation name: %s.\n", name)
 	fmt.Println("Scope:")
