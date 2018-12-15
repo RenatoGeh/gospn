@@ -115,7 +115,7 @@ the master branch. Commits should:
 
 - Have commit titles preferably not exceed 50 characters
 - Have commit titles prepended by the package and subpackage
-- Have commit body messages never exceed 72 characters
+- Have commit body message lines never exceed 72 characters
 - Always be Signed-off-by the authors
 - Be clear on what it does
 - Only do one thing

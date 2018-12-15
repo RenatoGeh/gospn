@@ -236,12 +236,10 @@ command:
 $ go get -u github.com/RenatoGeh/gospn
 ```
 
-This should install GoSPN to your $GOPATH directory. Note that this will
-download the repo's default branch (namely `dev`). To get to the
-`stable` branch, after downloading the repo as described above, run:
+Then ensure all dependencies are pulled:
 
 ```
-git checkout stable
+cd gospn && go build
 ```
 
 ### Updating GoSPN
