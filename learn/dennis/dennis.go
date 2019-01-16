@@ -202,7 +202,7 @@ func Structure(D spn.Dataset, sc map[int]*learn.Variable, k, m, g int, t float64
 func LearnGD(D spn.Dataset, sc map[int]*learn.Variable, k, m, g int, t float64, P *parameters.P, i int) spn.SPN {
 	S := Structure(D, sc, k, m, g, t)
 	var ns, np, nl int
-	spn.BreadthFirst(S, func(s spn.SPN) bool {
+	spn.BreadthFirst(S, func(s spn.SPN) int {
 		switch t := s.Type(); t {
 		case "sum":
 			ns++
@@ -211,7 +211,7 @@ func LearnGD(D spn.Dataset, sc map[int]*learn.Variable, k, m, g int, t float64, 
 		default:
 			nl++
 		}
-		return true
+		return 0
 	})
 	sys.Printf("Sum: %d, Products: %d, Leaves: %d, Total: %d\n", ns, np, nl, ns+np+nl)
 	parameters.Bind(S, P)
